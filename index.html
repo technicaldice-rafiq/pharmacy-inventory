@@ -1,237 +1,18 @@
 <!DOCTYPE html>
 <html lang="bn">
-<link rel="stylesheet" href="style.css"> <link rel="stylesheet" href="style.css">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f766e">
+
   <title>Pharmacy Inventory Pro</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f7f9;
-      color: #1f2937;
-    }
-
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 250px;
-      background: #0f766e;
-      color: white;
-      padding: 20px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 30px;
-    }
-
-    .brand-icon {
-      font-size: 32px;
-    }
-
-    .brand-title {
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .brand-subtitle {
-      font-size: 12px;
-      opacity: .8;
-      margin-top: 3px;
-    }
-
-    .nav-btn {
-      width: 100%;
-      border: none;
-      background: transparent;
-      color: white;
-      text-align: left;
-      padding: 13px;
-      margin: 3px 0;
-      border-radius: 9px;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    .nav-btn:hover,
-    .nav-btn.active {
-      background: rgba(255,255,255,.18);
-    }
-
-    main {
-      margin-left: 250px;
-    }
-
-    header {
-      background: white;
-      padding: 18px 25px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 24px;
-    }
-
-    header p {
-      margin: 4px 0 0;
-      color: #6b7280;
-      font-size: 13px;
-    }
-
-    .date {
-      margin-left: auto;
-      color: #6b7280;
-    }
-
-    .menu {
-      display: none;
-      border: none;
-      background: #e5e7eb;
-      padding: 8px 11px;
-      border-radius: 8px;
-      font-size: 20px;
-    }
-
-    .content {
-      padding: 25px;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.05);
-    }
-
-    .card-icon {
-      font-size: 28px;
-    }
-
-    .card-title {
-      color: #6b7280;
-      margin-top: 8px;
-      font-size: 14px;
-    }
-
-    .card-value {
-      font-size: 25px;
-      font-weight: bold;
-      margin-top: 7px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 18px;
-      margin-top: 18px;
-    }
-
-    .panel {
-      background: white;
-      padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.04);
-    }
-
-    .panel h3 {
-      margin-top: 0;
-    }
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .quick-btn {
-      border: none;
-      background: #0f766e;
-      color: white;
-      padding: 13px;
-      border-radius: 9px;
-      cursor: pointer;
-    }
-
-    .quick-btn:hover {
-      opacity: .9;
-    }
-
-    .empty {
-      text-align: center;
-      padding: 35px;
-      color: #777;
-    }
-
-    @media(max-width: 800px) {
-
-      .sidebar {
-        transform: translateX(-100%);
-        transition: .2s;
-        z-index: 10;
-      }
-
-      .sidebar.open {
-        transform: translateX(0);
-      }
-
-      main {
-        margin-left: 0;
-      }
-
-      .menu {
-        display: block;
-      }
-
-      .cards {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .date {
-        display: none;
-      }
-    }
-
-    @media(max-width: 450px) {
-
-      .cards {
-        grid-template-columns: 1fr;
-      }
-
-      .content {
-        padding: 15px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- Sidebar -->
+  <!-- ================= SIDEBAR ================= -->
 
   <aside class="sidebar" id="sidebar">
 
@@ -239,13 +20,8 @@
       <div class="brand-icon">💊</div>
 
       <div>
-        <div class="brand-title">
-          Pharmacy
-        </div>
-
-        <div class="brand-subtitle">
-          Inventory Pro
-        </div>
+        <div class="brand-title">Pharmacy</div>
+        <div class="brand-subtitle">Inventory Pro</div>
       </div>
     </div>
 
@@ -253,7 +29,7 @@
       📊 Dashboard
     </button>
 
-    <button class="nav-btn" onclick="comingSoon('Medicines')">
+    <button class="nav-btn" onclick="showMedicines()">
       💊 Medicines
     </button>
 
@@ -284,7 +60,7 @@
   </aside>
 
 
-  <!-- Main -->
+  <!-- ================= MAIN ================= -->
 
   <main>
 
@@ -295,15 +71,11 @@
       </button>
 
       <div>
-
-        <h1 id="pageTitle">
-          Dashboard
-        </h1>
+        <h1 id="pageTitle">Dashboard</h1>
 
         <p>
           Pharmacy Stock & Inventory Management
         </p>
-
       </div>
 
       <div class="date" id="today"></div>
@@ -311,73 +83,118 @@
     </header>
 
 
+    <!-- ================= CONTENT ================= -->
+
     <section class="content" id="content">
 
-      <div class="cards">
+      <!-- DASHBOARD -->
 
-        <div class="card">
+      <div id="dashboardPage">
 
-          <div class="card-icon">
-            💰
+        <div class="cards">
+
+          <div class="card">
+            <div class="card-icon">💰</div>
+
+            <div class="card-title">
+              Today's Sales
+            </div>
+
+            <div class="card-value">
+              ৳ 0
+            </div>
           </div>
 
-          <div class="card-title">
-            Today's Sales
+
+          <div class="card">
+            <div class="card-icon">💊</div>
+
+            <div class="card-title">
+              Total Medicines
+            </div>
+
+            <div class="card-value"
+                 id="totalMedicines">
+              0
+            </div>
           </div>
 
-          <div class="card-value">
-            ৳ 0
+
+          <div class="card">
+            <div class="card-icon">⚠️</div>
+
+            <div class="card-title">
+              Low Stock
+            </div>
+
+            <div class="card-value"
+                 id="lowStockCount">
+              0
+            </div>
+          </div>
+
+
+          <div class="card">
+            <div class="card-icon">📅</div>
+
+            <div class="card-title">
+              Near Expiry
+            </div>
+
+            <div class="card-value"
+                 id="expiryCount">
+              0
+            </div>
           </div>
 
         </div>
 
 
-        <div class="card">
+        <div class="grid">
 
-          <div class="card-icon">
-            📦
+          <div class="panel">
+
+            <h3>
+              🧾 Recent Sales
+            </h3>
+
+            <div class="empty">
+              এখনো কোনো বিক্রয় তথ্য নেই।
+            </div>
+
           </div>
 
-          <div class="card-title">
-            Total Stock
-          </div>
 
-          <div class="card-value">
-            0
-          </div>
+          <div class="panel">
 
-        </div>
+            <h3>
+              ⚡ Quick Actions
+            </h3>
 
+            <div class="quick-actions">
 
-        <div class="card">
+              <button class="quick-btn"
+                      onclick="showMedicines()">
+                Add Medicine
+              </button>
 
-          <div class="card-icon">
-            ⚠️
-          </div>
+              <button class="quick-btn"
+                      onclick="comingSoon('New Sale')">
+                New Sale
+              </button>
 
-          <div class="card-title">
-            Low Stock
-          </div>
+              <button class="quick-btn"
+                      onclick="comingSoon('Purchase')">
+                Purchase
+              </button>
 
-          <div class="card-value">
-            0
-          </div>
+              <button class="quick-btn"
+                      onclick="comingSoon('Reports')">
+                Reports
+              </button>
 
-        </div>
+            </div>
 
-
-        <div class="card">
-
-          <div class="card-icon">
-            📅
-          </div>
-
-          <div class="card-title">
-            Near Expiry
-          </div>
-
-          <div class="card-value">
-            0
           </div>
 
         </div>
@@ -385,48 +202,350 @@
       </div>
 
 
-      <div class="grid">
+      <!-- ================= MEDICINE PAGE ================= -->
+
+      <div id="medicinePage" style="display:none;">
 
         <div class="panel">
 
-          <h3>
-            🧾 Recent Sales
-          </h3>
+          <h2>
+            💊 Medicine Management
+          </h2>
 
-          <div class="empty">
-            এখনো কোনো বিক্রয় তথ্য নেই।
-          </div>
+          <p style="color:#6b7280;">
+            নতুন ওষুধ যোগ করুন এবং Stock Management করুন।
+          </p>
+
+
+          <!-- MEDICINE FORM -->
+
+          <form id="medicineForm">
+
+            <div class="form-grid">
+
+
+              <div class="form-group">
+
+                <label>
+                  Medicine Name *
+                </label>
+
+                <input
+                  type="text"
+                  id="medicineName"
+                  class="form-control"
+                  placeholder="যেমন: Napa"
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Generic Name
+                </label>
+
+                <input
+                  type="text"
+                  id="genericName"
+                  class="form-control"
+                  placeholder="যেমন: Paracetamol"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Company
+                </label>
+
+                <input
+                  type="text"
+                  id="companyName"
+                  class="form-control"
+                  placeholder="যেমন: Beximco"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Strength
+                </label>
+
+                <input
+                  type="text"
+                  id="strength"
+                  class="form-control"
+                  placeholder="যেমন: 500 mg"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Dosage Form
+                </label>
+
+                <select
+                  id="dosageForm"
+                  class="form-control"
+                >
+
+                  <option value="">
+                    Select
+                  </option>
+
+                  <option>Tablet</option>
+                  <option>Capsule</option>
+                  <option>Syrup</option>
+                  <option>Injection</option>
+                  <option>Cream</option>
+                  <option>Ointment</option>
+                  <option>Drop</option>
+                  <option>Inhaler</option>
+                  <option>Suspension</option>
+                  <option>Other</option>
+
+                </select>
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Barcode
+                </label>
+
+                <input
+                  type="text"
+                  id="barcode"
+                  class="form-control"
+                  placeholder="Barcode number"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Pack Size
+                </label>
+
+                <input
+                  type="text"
+                  id="packSize"
+                  class="form-control"
+                  placeholder="যেমন: 10 tablets"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Stock *
+                </label>
+
+                <input
+                  type="number"
+                  id="stock"
+                  class="form-control"
+                  min="0"
+                  value="0"
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Reorder Level
+                </label>
+
+                <input
+                  type="number"
+                  id="reorderLevel"
+                  class="form-control"
+                  min="0"
+                  value="10"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Batch Number
+                </label>
+
+                <input
+                  type="text"
+                  id="batchNumber"
+                  class="form-control"
+                  placeholder="Batch No."
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Manufacturing Date
+                </label>
+
+                <input
+                  type="date"
+                  id="manufacturingDate"
+                  class="form-control"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Expiry Date *
+                </label>
+
+                <input
+                  type="date"
+                  id="expiryDate"
+                  class="form-control"
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Purchase Price
+                </label>
+
+                <input
+                  type="number"
+                  id="purchasePrice"
+                  class="form-control"
+                  min="0"
+                  step="0.01"
+                  placeholder="৳"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Sale Price
+                </label>
+
+                <input
+                  type="number"
+                  id="salePrice"
+                  class="form-control"
+                  min="0"
+                  step="0.01"
+                  placeholder="৳"
+                >
+
+              </div>
+
+            </div>
+
+
+            <div style="margin-top:20px;">
+
+              <button
+                type="submit"
+                class="btn btn-primary"
+              >
+                💾 Save Medicine
+              </button>
+
+              <button
+                type="button"
+                class="btn"
+                onclick="clearMedicineForm()"
+              >
+                Clear
+              </button>
+
+            </div>
+
+          </form>
 
         </div>
 
 
-        <div class="panel">
+        <!-- ================= MEDICINE LIST ================= -->
+
+        <div class="panel" style="margin-top:18px;">
 
           <h3>
-            ⚡ Quick Actions
+            📋 Medicine List
           </h3>
 
-          <div class="quick-actions">
 
-            <button class="quick-btn"
-                    onclick="comingSoon('New Sale')">
-              New Sale
-            </button>
+          <input
+            type="text"
+            id="medicineSearch"
+            class="search-box"
+            placeholder="🔍 Medicine name, generic, company বা barcode দিয়ে Search..."
+            oninput="renderMedicines()"
+          >
 
-            <button class="quick-btn"
-                    onclick="comingSoon('Add Purchase')">
-              Add Purchase
-            </button>
 
-            <button class="quick-btn"
-                    onclick="comingSoon('Add Medicine')">
-              Add Medicine
-            </button>
+          <div
+            class="table-container"
+            style="margin-top:15px;"
+          >
 
-            <button class="quick-btn"
-                    onclick="comingSoon('Reports')">
-              Reports
-            </button>
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>#</th>
+                  <th>Medicine</th>
+                  <th>Generic</th>
+                  <th>Company</th>
+                  <th>Batch</th>
+                  <th>Expiry</th>
+                  <th>Stock</th>
+                  <th>Sale Price</th>
+                  <th>Status</th>
+                  <th>Action</th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="medicineTableBody">
+
+              </tbody>
+
+            </table>
 
           </div>
 
@@ -439,56 +558,476 @@
   </main>
 
 
+  <!-- ================= JAVASCRIPT ================= -->
+
+  <script src="app.js"></script>
+
+
   <script>
 
-    // Today's date
-
-    document.getElementById("today").innerText =
-      new Date().toLocaleDateString(
-        "en-BD",
-        {
-          day: "numeric",
-          month: "short",
-          year: "numeric"
-        }
-      );
-
-
-    // Mobile menu
-
-    function toggleMenu() {
-
-      document
-        .getElementById("sidebar")
-        .classList
-        .toggle("open");
-
-    }
-
-
-    // Dashboard
+    // ================================
+    // Page Navigation
+    // ================================
 
     function showDashboard() {
 
-      document.getElementById("pageTitle").innerText =
-        "Dashboard";
+      document.getElementById(
+        "dashboardPage"
+      ).style.display = "block";
+
+      document.getElementById(
+        "medicinePage"
+      ).style.display = "none";
+
+      document.getElementById(
+        "pageTitle"
+      ).innerText = "Dashboard";
+
+      updateDashboard();
 
     }
 
 
-    // Temporary page message
+    function showMedicines() {
 
-    function comingSoon(name) {
+      document.getElementById(
+        "dashboardPage"
+      ).style.display = "none";
 
-      alert(
-        name +
-        " module আমরা পরের ধাপে চালু করব।"
-      );
+      document.getElementById(
+        "medicinePage"
+      ).style.display = "block";
+
+      document.getElementById(
+        "pageTitle"
+      ).innerText = "Medicines";
+
+      renderMedicines();
+
+      updateDashboard();
 
     }
+
+
+    // ================================
+    // Medicine Save
+    // ================================
+
+    document.getElementById(
+      "medicineForm"
+    ).addEventListener(
+      "submit",
+      function(event) {
+
+        event.preventDefault();
+
+
+        const medicine = {
+
+          id: Date.now(),
+
+          name:
+            document.getElementById(
+              "medicineName"
+            ).value.trim(),
+
+          generic:
+            document.getElementById(
+              "genericName"
+            ).value.trim(),
+
+          company:
+            document.getElementById(
+              "companyName"
+            ).value.trim(),
+
+          strength:
+            document.getElementById(
+              "strength"
+            ).value.trim(),
+
+          dosageForm:
+            document.getElementById(
+              "dosageForm"
+            ).value,
+
+          barcode:
+            document.getElementById(
+              "barcode"
+            ).value.trim(),
+
+          packSize:
+            document.getElementById(
+              "packSize"
+            ).value.trim(),
+
+          stock:
+            Number(
+              document.getElementById(
+                "stock"
+              ).value
+            ) || 0,
+
+          reorderLevel:
+            Number(
+              document.getElementById(
+                "reorderLevel"
+              ).value
+            ) || 0,
+
+          batchNumber:
+            document.getElementById(
+              "batchNumber"
+            ).value.trim(),
+
+          manufacturingDate:
+            document.getElementById(
+              "manufacturingDate"
+            ).value,
+
+          expiryDate:
+            document.getElementById(
+              "expiryDate"
+            ).value,
+
+          purchasePrice:
+            Number(
+              document.getElementById(
+                "purchasePrice"
+              ).value
+            ) || 0,
+
+          salePrice:
+            Number(
+              document.getElementById(
+                "salePrice"
+              ).value
+            ) || 0,
+
+          createdAt:
+            new Date().toISOString()
+
+        };
+
+
+        medicines.push(medicine);
+
+        saveLocalData();
+
+        alert(
+          "✅ Medicine সফলভাবে Save হয়েছে।"
+        );
+
+
+        clearMedicineForm();
+
+        renderMedicines();
+
+        updateDashboard();
+
+      }
+    );
+
+
+    // ================================
+    // Clear Form
+    // ================================
+
+    function clearMedicineForm() {
+
+      document.getElementById(
+        "medicineForm"
+      ).reset();
+
+      document.getElementById(
+        "stock"
+      ).value = 0;
+
+      document.getElementById(
+        "reorderLevel"
+      ).value = 10;
+
+    }
+
+
+    // ================================
+    // Render Medicines
+    // ================================
+
+    function renderMedicines() {
+
+      const tbody =
+        document.getElementById(
+          "medicineTableBody"
+        );
+
+      if (!tbody) return;
+
+
+      const search =
+        (
+          document.getElementById(
+            "medicineSearch"
+          )?.value || ""
+        )
+        .toLowerCase()
+        .trim();
+
+
+      const filtered =
+        medicines.filter(
+          medicine => {
+
+            const text =
+              (
+                medicine.name +
+                " " +
+                medicine.generic +
+                " " +
+                medicine.company +
+                " " +
+                medicine.barcode
+              )
+              .toLowerCase();
+
+            return text.includes(search);
+
+          }
+        );
+
+
+      if (filtered.length === 0) {
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10"
+                style="text-align:center;padding:30px;color:#777;">
+              কোনো Medicine পাওয়া যায়নি।
+            </td>
+          </tr>
+        `;
+
+        return;
+
+      }
+
+
+      tbody.innerHTML =
+        filtered.map(
+          (medicine, index) => {
+
+            const stock =
+              Number(medicine.stock) || 0;
+
+            const reorder =
+              Number(medicine.reorderLevel) || 0;
+
+
+            let status =
+              `<span class="status status-success">
+                In Stock
+              </span>`;
+
+
+            if (stock <= reorder) {
+
+              status =
+                `<span class="status status-warning">
+                  Low Stock
+                </span>`;
+
+            }
+
+
+            if (stock === 0) {
+
+              status =
+                `<span class="status status-danger">
+                  Out of Stock
+                </span>`;
+
+            }
+
+
+            return `
+
+              <tr>
+
+                <td>
+                  ${index + 1}
+                </td>
+
+                <td>
+                  <strong>
+                    ${escapeHTML(medicine.name)}
+                  </strong>
+
+                  <br>
+
+                  <small>
+                    ${escapeHTML(medicine.strength || "")}
+                  </small>
+                </td>
+
+                <td>
+                  ${escapeHTML(medicine.generic || "-")}
+                </td>
+
+                <td>
+                  ${escapeHTML(medicine.company || "-")}
+                </td>
+
+                <td>
+                  ${escapeHTML(medicine.batchNumber || "-")}
+                </td>
+
+                <td>
+                  ${medicine.expiryDate || "-"}
+                </td>
+
+                <td>
+                  <strong>
+                    ${stock}
+                  </strong>
+                </td>
+
+                <td>
+                  ৳ ${Number(
+                    medicine.salePrice || 0
+                  ).toFixed(2)}
+                </td>
+
+                <td>
+                  ${status}
+                </td>
+
+                <td>
+
+                  <button
+                    class="btn btn-danger"
+                    onclick="deleteMedicine(${medicine.id})"
+                  >
+                    Delete
+                  </button>
+
+                </td>
+
+              </tr>
+
+            `;
+
+          }
+        ).join("");
+
+    }
+
+
+    // ================================
+    // Delete Medicine
+    // ================================
+
+    function deleteMedicine(id) {
+
+      const medicine =
+        findMedicine(id);
+
+      if (!medicine) return;
+
+
+      const confirmDelete =
+        confirm(
+          "আপনি কি এই Medicine Delete করতে চান?"
+        );
+
+
+      if (!confirmDelete) return;
+
+
+      medicines =
+        medicines.filter(
+          item =>
+            item.id !== Number(id)
+        );
+
+
+      saveLocalData();
+
+      renderMedicines();
+
+      updateDashboard();
+
+    }
+
+
+    // ================================
+    // Dashboard Update
+    // ================================
+
+    function updateDashboard() {
+
+      const total =
+        document.getElementById(
+          "totalMedicines"
+        );
+
+      const low =
+        document.getElementById(
+          "lowStockCount"
+        );
+
+      const expiry =
+        document.getElementById(
+          "expiryCount"
+        );
+
+
+      if (total) {
+
+        total.innerText =
+          medicines.length;
+
+      }
+
+
+      if (low) {
+
+        low.innerText =
+          getLowStockMedicines().length;
+
+      }
+
+
+      if (expiry) {
+
+        expiry.innerText =
+          getExpiringMedicines(30).length;
+
+      }
+
+    }
+
+
+    // ================================
+    // Safe HTML
+    // ================================
+
+    function escapeHTML(value) {
+
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    }
+
+
+    // Initial Dashboard
+
+    updateDashboard();
 
   </script>
 
-<script src="app.js"></script>
 </body>
 </html>
