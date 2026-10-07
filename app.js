@@ -7672,3 +7672,194 @@ function checkAdminSession() {
 // ==========================================
 // END ADMIN SECURITY
 // ==========================================
+// ==========================================
+// ADMIN LOGIN + SECURITY
+// ==========================================
+
+const ADMIN_USERNAME_KEY = "pharmacy_admin_username";
+const ADMIN_PASSWORD_KEY = "pharmacy_admin_password";
+const ADMIN_LOGIN_KEY = "pharmacy_admin_logged_in";
+
+function setupDefaultAdmin() {
+    if (!localStorage.getItem(ADMIN_USERNAME_KEY)) {
+        localStorage.setItem(ADMIN_USERNAME_KEY, "admin");
+    }
+
+    if (!localStorage.getItem(ADMIN_PASSWORD_KEY)) {
+        localStorage.setItem(ADMIN_PASSWORD_KEY, "1234");
+    }
+}
+
+function isLoggedIn() {
+    return localStorage.getItem(ADMIN_LOGIN_KEY) === "true";
+}
+
+function showLogin() {
+
+    setupDefaultAdmin();
+
+    const root = document.getElementById("app");
+
+    if (!root) return;
+
+    root.innerHTML = `
+        <div style="
+            min-height:80vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        ">
+
+            <div style="
+                width:100%;
+                max-width:420px;
+                background:white;
+                padding:30px;
+                border-radius:18px;
+                box-shadow:0 8px 30px rgba(0,0,0,.12);
+            ">
+
+                <div style="text-align:center;">
+                    <div style="font-size:55px;">💊</div>
+
+                    <h2>Pharmacy Inventory Pro</h2>
+
+                    <p>🔐 Admin Login</p>
+                </div>
+
+                <label>
+                    <b>Username</b>
+                </label>
+
+                <input
+                    id="loginUsername"
+                    type="text"
+                    placeholder="Username"
+                    style="
+                        width:100%;
+                        padding:13px;
+                        margin:8px 0 15px;
+                        box-sizing:border-box;
+                    "
+                >
+
+                <label>
+                    <b>Password</b>
+                </label>
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    placeholder="Password"
+                    style="
+                        width:100%;
+                        padding:13px;
+                        margin:8px 0 18px;
+                        box-sizing:border-box;
+                    "
+                    onkeydown="
+                        if(event.key==='Enter'){
+                            adminLogin();
+                        }
+                    "
+                >
+
+                <button
+                    onclick="adminLogin()"
+                    style="
+                        width:100%;
+                        padding:13px;
+                        font-size:16px;
+                    "
+                >
+                    🔐 Login
+                </button>
+
+                <div style="
+                    margin-top:18px;
+                    padding:12px;
+                    background:#f5f5f5;
+                    text-align:center;
+                ">
+                    প্রথম Login:<br>
+                    <b>Username:</b> admin<br>
+                    <b>Password:</b> 1234
+                </div>
+
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        document.getElementById("loginUsername")?.focus();
+    }, 100);
+}
+
+function adminLogin() {
+
+    setupDefaultAdmin();
+
+    const username =
+        document.getElementById("loginUsername")?.value.trim();
+
+    const password =
+        document.getElementById("loginPassword")?.value;
+
+    const savedUsername =
+        localStorage.getItem(ADMIN_USERNAME_KEY);
+
+    const savedPassword =
+        localStorage.getItem(ADMIN_PASSWORD_KEY);
+
+    if (
+        username === savedUsername &&
+        password === savedPassword
+    ) {
+
+        localStorage.setItem(
+            ADMIN_LOGIN_KEY,
+            "true"
+        );
+
+        showDashboard();
+
+    } else {
+
+        alert("❌ Username অথবা Password ভুল!");
+
+    }
+}
+
+function adminLogout() {
+
+    localStorage.removeItem(
+        ADMIN_LOGIN_KEY
+    );
+
+    if (typeof saleCart !== "undefined") {
+        saleCart = [];
+    }
+
+    showLogin();
+}
+
+
+// ==========================================
+// START LOGIN
+// ==========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        setupDefaultAdmin();
+
+        if (isLoggedIn()) {
+            showDashboard();
+        } else {
+            showLogin();
+        }
+
+    }
+);
