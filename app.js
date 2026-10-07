@@ -1,7 +1,21 @@
 // ==========================================
 // PHARMACY INVENTORY PRO
 // COMPLETE VERSION
-// Customer Search + Invoice History
+// ==========================================
+// Medicine Management
+// Purchase / Supplier
+// Sales / POS
+// Customer Search
+// Invoice Print
+// Due Collection
+// Payment History
+// Stock Adjustment
+// Low Stock Alert
+// Expiry Alert
+// Purchase History
+// Profit / Loss
+// Date-wise Report
+// Backup / Restore
 // ==========================================
 
 
@@ -27,6 +41,14 @@ let customers = JSON.parse(
 
 let suppliers = JSON.parse(
     localStorage.getItem("pharmacy_suppliers") || "[]"
+);
+
+let payments = JSON.parse(
+    localStorage.getItem("pharmacy_payments") || "[]"
+);
+
+let stockAdjustments = JSON.parse(
+    localStorage.getItem("pharmacy_stock_adjustments") || "[]"
 );
 
 let saleCart = [];
@@ -63,6 +85,16 @@ function saveData() {
     localStorage.setItem(
         "pharmacy_suppliers",
         JSON.stringify(suppliers)
+    );
+
+    localStorage.setItem(
+        "pharmacy_payments",
+        JSON.stringify(payments)
+    );
+
+    localStorage.setItem(
+        "pharmacy_stock_adjustments",
+        JSON.stringify(stockAdjustments)
     );
 }
 
@@ -181,6 +213,100 @@ function input(
 }
 
 
+function getMedicineById(id) {
+
+    return medicines.find(
+        m => Number(m.id) === Number(id)
+    );
+
+}
+
+
+function getCustomerName(sale) {
+
+    return sale.customer ||
+        "Walk-in Customer";
+
+}
+
+
+function saleCost(sale) {
+
+    return (sale.items || []).reduce(
+        (sum, item) => {
+
+            let buy =
+                Number(
+                    item.purchasePrice ??
+                    item.buyPrice ??
+                    0
+                );
+
+            if (
+                buy === 0 &&
+                item.medicineId
+            ) {
+
+                const medicine =
+                    getMedicineById(
+                        item.medicineId
+                    );
+
+                buy =
+                    Number(
+                        medicine?.purchase || 0
+                    );
+
+            }
+
+            if (
+                buy === 0 &&
+                item.medicine
+            ) {
+
+                const medicine =
+                    medicines.find(
+                        m =>
+                            m.name ===
+                            item.medicine
+                    );
+
+                buy =
+                    Number(
+                        medicine?.purchase || 0
+                    );
+
+            }
+
+            return sum +
+                (
+                    buy *
+                    Number(
+                        item.qty ||
+                        item.quantity ||
+                        0
+                    )
+                );
+
+        },
+        0
+    );
+
+}
+
+
+function saleProfit(sale) {
+
+    const cost =
+        saleCost(sale);
+
+    return Number(
+        sale.total || 0
+    ) - cost;
+
+}
+
+
 // ==========================================
 // DASHBOARD
 // ==========================================
@@ -211,7 +337,7 @@ function showDashboard() {
         ).length;
 
 
-    const expiry =
+    const nearExpiry =
 
         medicines.filter(
             m => {
@@ -236,6 +362,27 @@ function showDashboard() {
 
             }
         ).length;
+
+
+    const expired =
+
+        medicines.filter(
+            m => {
+
+                if (!m.expiry)
+                    return false;
+
+                return (
+                    new Date(m.expiry) <
+                    new Date()
+                );
+
+            }
+        ).length;
+
+
+    const totalDue =
+        getTotalDue();
 
 
     app().innerHTML = `
@@ -288,7 +435,33 @@ function showDashboard() {
                 </h3>
 
                 <div class="card-value">
-                    ${expiry}
+                    ${nearExpiry}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    💵 Total Due
+                </h3>
+
+                <div class="card-value">
+                    ${money(totalDue)}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    ❌ Expired
+                </h3>
+
+                <div class="card-value">
+                    ${expired}
                 </div>
 
             </div>
@@ -315,7 +488,7 @@ function showDashboard() {
                     class="btn btn-primary"
                     onclick="showMedicines()"
                 >
-                    💊 Add Medicine
+                    💊 Medicines
                 </button>
 
 
@@ -353,9 +526,33 @@ function showDashboard() {
 
                 <button
                     class="btn btn-primary"
+                    onclick="showDueCollection()"
+                >
+                    💰 Due
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showStockAdjustment()"
+                >
+                    📦 Stock
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
                     onclick="showReports()"
                 >
                     📊 Reports
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showBackup()"
+                >
+                    💾 Backup
                 </button>
 
             </div>
@@ -437,8 +634,7 @@ function recentSalesHTML() {
 
                             <td>
                                 ${escapeHTML(
-                                    s.customer ||
-                                    "Walk-in Customer"
+                                    getCustomerName(s)
                                 )}
                             </td>
 
@@ -1234,7 +1430,7 @@ function showPurchase() {
 
 
         <h3>
-            Recent Purchases
+            📋 Purchase History
         </h3>
 
 
@@ -1287,7 +1483,7 @@ function showPurchase() {
 
             const medicine =
                 medicines.find(
-                    m => m.id === id
+                    m => Number(m.id) === id
                 );
 
 
@@ -1340,18 +1536,26 @@ function showPurchase() {
 
             purchases.push({
 
-                id: Date.now(),
+                id:
+                    Date.now(),
 
-                date: today(),
+                date:
+                    today(),
 
-                time: currentTime(),
+                time:
+                    currentTime(),
 
                 medicine:
                     medicine.name,
 
-                qty: qty,
+                medicineId:
+                    medicine.id,
 
-                price: price,
+                qty:
+                    qty,
+
+                price:
+                    price,
 
                 supplier:
                     supplier,
@@ -1360,6 +1564,10 @@ function showPurchase() {
                     qty * price
 
             });
+
+
+            // Update current purchase price
+            medicine.purchase = price;
 
 
             saveData();
@@ -1391,7 +1599,7 @@ function renderPurchases() {
     const list =
         [...purchases]
             .reverse()
-            .slice(0, 30);
+            .slice(0, 50);
 
 
     if (!list.length) {
@@ -1413,8 +1621,10 @@ function renderPurchases() {
                 <tr>
 
                     <th>Date</th>
+                    <th>Time</th>
                     <th>Medicine</th>
                     <th>Qty</th>
+                    <th>Price</th>
                     <th>Total</th>
                     <th>Supplier / Company</th>
 
@@ -1435,6 +1645,13 @@ function renderPurchases() {
 
                         <td>
                             ${escapeHTML(
+                                p.time || ""
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHTML(
                                 p.medicine
                             )}
                         </td>
@@ -1442,6 +1659,13 @@ function renderPurchases() {
 
                         <td>
                             ${p.qty}
+                        </td>
+
+
+                        <td>
+                            ${money(
+                                p.price
+                            )}
                         </td>
 
 
@@ -1648,9 +1872,8 @@ function showSales() {
                         font-size:13px;
                         color:#666;
                     ">
-                        নতুন বা অন্য কোনো
-                        ব্যক্তি কিনলে
-                        Walk-in Customer
+                        নতুন বা অন্য কোনো ব্যক্তি
+                        কিনলে Walk-in Customer
                         রাখলেই হবে।
                     </p>
 
@@ -1694,10 +1917,6 @@ function showSales() {
             <hr style="margin:30px 0;">
 
 
-            <!-- ==================================
-                 CUSTOMER SEARCH
-            =================================== -->
-
             <div
                 style="
                     border:2px solid #ddd;
@@ -1716,22 +1935,17 @@ function showSales() {
                     color:#666;
                     font-size:14px;
                 ">
-                    Customer-এর নাম লিখে
-                    তার আগের সব Sale,
-                    Date, Amount এবং
-                    Invoice দেখতে পারবেন।
+                    Customer-এর নাম লিখে তার
+                    আগের সব Sale, Date,
+                    Amount এবং Invoice দেখতে পারবেন।
                 </p>
 
 
                 <input
                     id="customerSalesSearch"
                     class="form-control"
-                    placeholder="
-                        🔍 Customer Name লিখুন...
-                    "
-                    oninput="
-                        searchCustomerSales()
-                    "
+                    placeholder="🔍 Customer Name লিখুন..."
+                    oninput="searchCustomerSales()"
                     style="
                         width:100%;
                         padding:12px;
@@ -1743,8 +1957,7 @@ function showSales() {
 
                 <div
                     id="customerSalesResult"
-                >
-                </div>
+                ></div>
 
             </div>
 
@@ -1770,10 +1983,8 @@ function showSales() {
             const medicine =
                 medicines.find(
                     m =>
-                        m.id ===
-                        Number(
-                            this.value
-                        )
+                        Number(m.id) ===
+                        Number(this.value)
                 );
 
 
@@ -1838,7 +2049,7 @@ function addToCart() {
 
     const medicine =
         medicines.find(
-            m => m.id === id
+            m => Number(m.id) === id
         );
 
 
@@ -1890,7 +2101,7 @@ function addToCart() {
     const existing =
         saleCart.find(
             i =>
-                i.medicineId === id
+                Number(i.medicineId) === id
         );
 
 
@@ -1929,7 +2140,12 @@ function addToCart() {
                 qty,
 
             price:
-                price
+                price,
+
+            purchasePrice:
+                Number(
+                    medicine.purchase || 0
+                )
 
         });
 
@@ -2292,8 +2508,8 @@ function completeCartSale() {
         const medicine =
             medicines.find(
                 m =>
-                    m.id ===
-                    item.medicineId
+                    Number(m.id) ===
+                    Number(item.medicineId)
             );
 
 
@@ -2331,8 +2547,8 @@ function completeCartSale() {
             const medicine =
                 medicines.find(
                     m =>
-                        m.id ===
-                        item.medicineId
+                        Number(m.id) ===
+                        Number(item.medicineId)
                 );
 
 
@@ -2382,6 +2598,11 @@ function completeCartSale() {
 
                     price:
                         item.price,
+
+                    purchasePrice:
+                        Number(
+                            item.purchasePrice || 0
+                        ),
 
                     total:
                         Number(
@@ -2512,8 +2733,7 @@ function renderSales() {
 
                         <td>
                             ${escapeHTML(
-                                s.customer ||
-                                "Walk-in Customer"
+                                getCustomerName(s)
                             )}
                         </td>
 
@@ -2615,11 +2835,8 @@ function searchCustomerSales() {
             sale => {
 
                 const customer =
-                    (
-                        sale.customer ||
-                        ""
-                    )
-                    .toLowerCase();
+                    getCustomerName(sale)
+                        .toLowerCase();
 
 
                 return customer.includes(
@@ -2663,6 +2880,17 @@ function searchCustomerSales() {
         );
 
 
+    const totalDue =
+        results.reduce(
+            (sum, sale) =>
+                sum +
+                Number(
+                    sale.due || 0
+                ),
+            0
+        );
+
+
     box.innerHTML = `
 
         <div style="
@@ -2679,9 +2907,16 @@ function searchCustomerSales() {
 
             <br>
 
-            মোট Purchase:
+            মোট Sale:
             <b>
                 ${money(totalAmount)}
+            </b>
+
+            <br>
+
+            মোট Due:
+            <b>
+                ${money(totalDue)}
             </b>
 
         </div>
@@ -2733,8 +2968,7 @@ function searchCustomerSales() {
 
                             <td>
                                 ${escapeHTML(
-                                    sale.customer ||
-                                    "Walk-in Customer"
+                                    getCustomerName(sale)
                                 )}
                             </td>
 
@@ -2748,13 +2982,11 @@ function searchCustomerSales() {
 
 
                             <td>
-
                                 ${
                                     sale.items
                                         ? sale.items.length
                                         : 1
                                 }
-
                             </td>
 
 
@@ -2855,7 +3087,10 @@ function printInvoice(sale) {
                         sale.qty,
 
                     price:
-                        sale.price
+                        sale.price,
+
+                    total:
+                        sale.total
 
                 }
 
@@ -3011,8 +3246,7 @@ function printInvoice(sale) {
 
                     <b>Customer:</b>
                     ${escapeHTML(
-                        sale.customer ||
-                        "Walk-in Customer"
+                        getCustomerName(sale)
                     )}
 
                 </p>
@@ -3056,7 +3290,9 @@ function printInvoice(sale) {
 
 
                             <td>
-                                ${item.qty || item.quantity || 0}
+                                ${item.qty ||
+                                    item.quantity ||
+                                    0}
                             </td>
 
 
@@ -3666,6 +3902,1100 @@ function deleteCustomer(index) {
 
 
 // ==========================================
+// DUE / PAYMENT
+// ==========================================
+
+function getTotalDue() {
+
+    const totalSaleDue =
+        sales.reduce(
+            (sum, sale) =>
+                sum +
+                Number(
+                    sale.due || 0
+                ),
+            0
+        );
+
+
+    const totalPayments =
+        payments.reduce(
+            (sum, payment) =>
+                sum +
+                Number(
+                    payment.amount || 0
+                ),
+            0
+        );
+
+
+    return Math.max(
+        0,
+        totalSaleDue - totalPayments
+    );
+
+}
+
+
+function customerDueTotal(name) {
+
+    const saleDue =
+        sales
+            .filter(
+                s =>
+                    getCustomerName(s) ===
+                    name
+            )
+            .reduce(
+                (sum, s) =>
+                    sum +
+                    Number(s.due || 0),
+                0
+            );
+
+
+    const collected =
+        payments
+            .filter(
+                p =>
+                    p.customer === name
+            )
+            .reduce(
+                (sum, p) =>
+                    sum +
+                    Number(
+                        p.amount || 0
+                    ),
+                0
+            );
+
+
+    return Math.max(
+        0,
+        saleDue - collected
+    );
+
+}
+
+
+function showDueCollection() {
+
+    const customerNames =
+        [
+            ...new Set(
+                sales.map(
+                    s =>
+                        getCustomerName(s)
+                )
+            )
+        ];
+
+
+    layout(
+        "💰 Due / বাকি আদায়",
+        `
+
+        <div style="margin-bottom:15px;">
+
+            <label>
+                <b>Customer</b>
+            </label>
+
+            <select
+                id="dueCustomer"
+                class="form-control"
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin-top:5px;
+                "
+            >
+
+                <option value="">
+                    Customer নির্বাচন করুন
+                </option>
+
+                ${customerNames.map(
+                    n => `
+
+                    <option
+                        value="${escapeHTML(n)}"
+                    >
+                        ${escapeHTML(n)}
+                        — Due:
+                        ${money(
+                            customerDueTotal(n)
+                        )}
+                    </option>
+
+                `
+                ).join("")}
+
+            </select>
+
+        </div>
+
+
+        ${input(
+            "dueAmount",
+            "Payment Amount",
+            "number",
+            "0"
+        )}
+
+
+        ${input(
+            "dueNote",
+            "Note"
+        )}
+
+
+        <button
+            class="btn btn-primary"
+            onclick="collectDue()"
+        >
+            💾 Payment Save
+        </button>
+
+
+        <hr style="margin:25px 0;">
+
+
+        <h3>
+            📋 Customer Due List
+        </h3>
+
+
+        <div id="dueList"></div>
+
+        `
+    );
+
+
+    renderDueList();
+
+}
+
+
+function renderDueList() {
+
+    const box =
+        document.getElementById(
+            "dueList"
+        );
+
+
+    if (!box) return;
+
+
+    const names =
+        [
+            ...new Set(
+                sales.map(
+                    s =>
+                        getCustomerName(s)
+                )
+            )
+        ];
+
+
+    const rows =
+        names.map(
+            name => {
+
+                const originalDue =
+                    sales
+                        .filter(
+                            s =>
+                                getCustomerName(s) ===
+                                name
+                        )
+                        .reduce(
+                            (sum, s) =>
+                                sum +
+                                Number(
+                                    s.due || 0
+                                ),
+                            0
+                        );
+
+
+                const paid =
+                    payments
+                        .filter(
+                            p =>
+                                p.customer ===
+                                name
+                        )
+                        .reduce(
+                            (sum, p) =>
+                                sum +
+                                Number(
+                                    p.amount || 0
+                                ),
+                            0
+                        );
+
+
+                const due =
+                    Math.max(
+                        0,
+                        originalDue - paid
+                    );
+
+
+                return {
+                    name,
+                    originalDue,
+                    paid,
+                    due
+                };
+
+            }
+        )
+        .filter(
+            x =>
+                x.originalDue > 0 ||
+                x.paid > 0
+        );
+
+
+    if (!rows.length) {
+
+        box.innerHTML =
+            "<p>কোনো Customer Due নেই।</p>";
+
+    } else {
+
+        box.innerHTML = `
+
+            <div style="overflow:auto;">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Customer</th>
+                            <th>Total Due</th>
+                            <th>Collected</th>
+                            <th>Current Due</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        ${rows.map(
+                            r => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHTML(
+                                        r.name
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${money(
+                                        r.originalDue
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${money(
+                                        r.paid
+                                    )}
+                                </td>
+
+                                <td>
+                                    <b>
+                                        ${money(
+                                            r.due
+                                        )}
+                                    </b>
+                                </td>
+
+                            </tr>
+
+                        `
+                        ).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        `;
+
+    }
+
+
+    box.innerHTML += `
+
+        <h3 style="margin-top:25px;">
+            💳 Payment History
+        </h3>
+
+
+        ${
+            payments.length
+
+                ? `
+
+                <div style="overflow:auto;">
+
+                    <table>
+
+                        <tr>
+
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Note</th>
+
+                        </tr>
+
+
+                        ${[...payments]
+                            .reverse()
+                            .map(
+                                p => `
+
+                                <tr>
+
+                                    <td>
+                                        ${escapeHTML(
+                                            p.date
+                                        )}
+                                    </td>
+
+                                    <td>
+                                        ${escapeHTML(
+                                            p.time || ""
+                                        )}
+                                    </td>
+
+                                    <td>
+                                        ${escapeHTML(
+                                            p.customer
+                                        )}
+                                    </td>
+
+                                    <td>
+                                        ${money(
+                                            p.amount
+                                        )}
+                                    </td>
+
+                                    <td>
+                                        ${escapeHTML(
+                                            p.note || ""
+                                        )}
+                                    </td>
+
+                                </tr>
+
+                            `
+                            )
+                            .join("")}
+
+                    </table>
+
+                </div>
+
+            `
+
+                : `
+                    <p>
+                        এখনো কোনো payment history নেই।
+                    </p>
+                `
+        }
+
+    `;
+
+}
+
+
+function collectDue() {
+
+    const customer =
+        document.getElementById(
+            "dueCustomer"
+        )?.value;
+
+
+    const amount =
+        Number(
+            document.getElementById(
+                "dueAmount"
+            )?.value || 0
+        );
+
+
+    const note =
+        document.getElementById(
+            "dueNote"
+        )?.value.trim() || "";
+
+
+    if (!customer) {
+
+        alert(
+            "Customer নির্বাচন করুন"
+        );
+
+        return;
+
+    }
+
+
+    if (amount <= 0) {
+
+        alert(
+            "Payment Amount দিন"
+        );
+
+        return;
+
+    }
+
+
+    const currentDue =
+        customerDueTotal(
+            customer
+        );
+
+
+    if (currentDue <= 0) {
+
+        alert(
+            "এই Customer-এর কোনো Current Due নেই।"
+        );
+
+        return;
+
+    }
+
+
+    if (amount > currentDue) {
+
+        alert(
+            "বর্তমান Due-এর চেয়ে বেশি টাকা দেওয়া যাবে না। Current Due: " +
+            money(currentDue)
+        );
+
+        return;
+
+    }
+
+
+    payments.push({
+
+        id:
+            Date.now(),
+
+        date:
+            today(),
+
+        time:
+            currentTime(),
+
+        customer:
+            customer,
+
+        amount:
+            amount,
+
+        note:
+            note
+
+    });
+
+
+    saveData();
+
+
+    alert(
+        "Payment successfully saved!"
+    );
+
+
+    showDueCollection();
+
+}
+
+
+// ==========================================
+// STOCK ADJUSTMENT
+// ==========================================
+
+function showStockAdjustment() {
+
+    layout(
+        "📦 Stock Adjustment",
+        `
+
+        <div style="margin-bottom:15px;">
+
+            <label>
+                <b>Medicine</b>
+            </label>
+
+
+            <select
+                id="adjustMedicine"
+                class="form-control"
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin-top:5px;
+                "
+            >
+
+                <option value="">
+                    Medicine নির্বাচন করুন
+                </option>
+
+
+                ${medicines.map(
+                    (m, i) => `
+
+                    <option value="${i}">
+
+                        ${escapeHTML(
+                            m.name
+                        )}
+
+                        — Stock:
+                        ${Number(
+                            m.stock || 0
+                        )}
+
+                    </option>
+
+                `
+                ).join("")}
+
+            </select>
+
+        </div>
+
+
+        <div style="margin-bottom:12px;">
+
+            <label>
+                <b>Adjustment Type</b>
+            </label>
+
+
+            <select
+                id="adjustType"
+                class="form-control"
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin-top:5px;
+                "
+            >
+
+                <option value="add">
+                    ➕ Stock Add
+                </option>
+
+                <option value="remove">
+                    ➖ Stock Remove
+                </option>
+
+                <option value="damage">
+                    🗑️ Damaged / Expired Remove
+                </option>
+
+            </select>
+
+        </div>
+
+
+        ${input(
+            "adjustQty",
+            "Quantity",
+            "number",
+            "1"
+        )}
+
+
+        ${input(
+            "adjustNote",
+            "Reason / Note"
+        )}
+
+
+        <button
+            class="btn btn-primary"
+            onclick="saveStockAdjustment()"
+        >
+            💾 Save Adjustment
+        </button>
+
+
+        <hr style="margin:25px 0;">
+
+
+        <div id="adjustmentHistory"></div>
+
+        `
+    );
+
+
+    renderAdjustmentHistory();
+
+}
+
+
+function saveStockAdjustment() {
+
+    const i =
+        Number(
+            document.getElementById(
+                "adjustMedicine"
+            )?.value
+        );
+
+
+    const type =
+        document.getElementById(
+            "adjustType"
+        )?.value;
+
+
+    const qty =
+        Number(
+            document.getElementById(
+                "adjustQty"
+            )?.value || 0
+        );
+
+
+    const note =
+        document.getElementById(
+            "adjustNote"
+        )?.value.trim() || "";
+
+
+    if (!medicines[i]) {
+
+        alert(
+            "Medicine নির্বাচন করুন"
+        );
+
+        return;
+
+    }
+
+
+    if (qty <= 0) {
+
+        alert(
+            "Quantity দিন"
+        );
+
+        return;
+
+    }
+
+
+    const oldStock =
+        Number(
+            medicines[i].stock || 0
+        );
+
+
+    if (
+        type !== "add" &&
+        qty > oldStock
+    ) {
+
+        alert(
+            "Stock-এর চেয়ে বেশি কমানো যাবে না।"
+        );
+
+        return;
+
+    }
+
+
+    medicines[i].stock =
+        type === "add"
+            ? oldStock + qty
+            : oldStock - qty;
+
+
+    stockAdjustments.push({
+
+        id:
+            Date.now(),
+
+        date:
+            today(),
+
+        time:
+            currentTime(),
+
+        medicine:
+            medicines[i].name,
+
+        medicineId:
+            medicines[i].id,
+
+        type:
+            type,
+
+        qty:
+            qty,
+
+        oldStock:
+            oldStock,
+
+        newStock:
+            medicines[i].stock,
+
+        note:
+            note
+
+    });
+
+
+    saveData();
+
+
+    alert(
+        "Stock successfully updated!"
+    );
+
+
+    showStockAdjustment();
+
+}
+
+
+function renderAdjustmentHistory() {
+
+    const box =
+        document.getElementById(
+            "adjustmentHistory"
+        );
+
+
+    if (!box) return;
+
+
+    if (!stockAdjustments.length) {
+
+        box.innerHTML =
+            "<p>কোনো Stock Adjustment নেই।</p>";
+
+        return;
+
+    }
+
+
+    box.innerHTML = `
+
+        <h3>
+            📋 Adjustment History
+        </h3>
+
+
+        <div style="overflow:auto;">
+
+            <table>
+
+                <tr>
+
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Medicine</th>
+                    <th>Type</th>
+                    <th>Qty</th>
+                    <th>Stock</th>
+                    <th>Note</th>
+
+                </tr>
+
+
+                ${[
+                    ...stockAdjustments
+                ]
+                    .reverse()
+                    .map(
+                        a => `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHTML(
+                                    a.date
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    a.time || ""
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    a.medicine
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    a.type
+                                )}
+                            </td>
+
+                            <td>
+                                ${a.qty}
+                            </td>
+
+                            <td>
+                                ${a.oldStock}
+                                →
+                                ${a.newStock}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    a.note || ""
+                                )}
+                            </td>
+
+                        </tr>
+
+                    `
+                    )
+                    .join("")}
+
+            </table>
+
+        </div>
+
+    `;
+
+}
+
+
+// ==========================================
+// ALERTS
+// ==========================================
+
+function showLowStock() {
+
+    const list =
+        medicines.filter(
+            m =>
+                Number(m.stock || 0) <=
+                Number(m.reorder || 0)
+        );
+
+
+    layout(
+        "⚠️ Low Stock Alert",
+        `
+
+        ${
+            list.length
+
+                ? `
+
+                <div style="overflow:auto;">
+
+                    <table>
+
+                        <tr>
+
+                            <th>Medicine</th>
+                            <th>Stock</th>
+                            <th>Reorder Level</th>
+
+                        </tr>
+
+
+                        ${list.map(
+                            m => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHTML(
+                                        m.name
+                                    )}
+                                </td>
+
+                                <td>
+                                    <b>
+                                        ${m.stock || 0}
+                                    </b>
+                                </td>
+
+                                <td>
+                                    ${m.reorder || 0}
+                                </td>
+
+                            </tr>
+
+                        `
+                        ).join("")}
+
+                    </table>
+
+                </div>
+
+            `
+
+                : `
+                    <p>
+                        ✅ কোনো Low Stock নেই।
+                    </p>
+                `
+        }
+
+        `
+    );
+
+}
+
+
+function showExpiryAlert() {
+
+    const expired =
+        medicines.filter(
+            m =>
+                m.expiry &&
+                new Date(m.expiry) <
+                new Date()
+        );
+
+
+    const near =
+        medicines.filter(
+            m => {
+
+                if (!m.expiry)
+                    return false;
+
+                const days =
+                    (
+                        new Date(m.expiry) -
+                        new Date()
+                    ) /
+                    86400000;
+
+                return (
+                    days >= 0 &&
+                    days <= 30
+                );
+
+            }
+        );
+
+
+    layout(
+        "📅 Expiry Alert",
+        `
+
+        <h3>
+            ❌ Expired Medicines
+        </h3>
+
+
+        ${
+            expired.length
+
+                ? expired.map(
+                    m => `
+
+                    <p>
+
+                        <b>
+                            ${escapeHTML(
+                                m.name
+                            )}
+                        </b>
+
+                        —
+                        Expiry:
+                        ${escapeHTML(
+                            m.expiry
+                        )}
+
+                    </p>
+
+                `
+                ).join("")
+
+                : `
+                    <p>
+                        ✅ কোনো expired medicine নেই।
+                    </p>
+                `
+        }
+
+
+        <h3 style="margin-top:25px;">
+            ⚠️ আগামী ৩০ দিনের মধ্যে Expiry
+        </h3>
+
+
+        ${
+            near.length
+
+                ? near.map(
+                    m => `
+
+                    <p>
+
+                        <b>
+                            ${escapeHTML(
+                                m.name
+                            )}
+                        </b>
+
+                        —
+                        Expiry:
+                        ${escapeHTML(
+                            m.expiry
+                        )}
+
+                    </p>
+
+                `
+                ).join("")
+
+                : `
+                    <p>
+                        ✅ আগামী ৩০ দিনের মধ্যে
+                        কোনো expiry নেই।
+                    </p>
+                `
+        }
+
+        `
+    );
+
+}
+
+
+// ==========================================
 // REPORTS
 // ==========================================
 
@@ -3710,6 +5040,19 @@ function showReports() {
             );
 
 
+    const totalProfit =
+        sales.reduce(
+            (sum, sale) =>
+                sum +
+                saleProfit(sale),
+            0
+        );
+
+
+    const totalDue =
+        getTotalDue();
+
+
     const low =
         medicines.filter(
             m =>
@@ -3722,23 +5065,28 @@ function showReports() {
         );
 
 
-    const expiry =
+    const expired =
+        medicines.filter(
+            m =>
+                m.expiry &&
+                new Date(m.expiry) <
+                new Date()
+        );
+
+
+    const nearExpiry =
         medicines.filter(
             m => {
 
                 if (!m.expiry)
                     return false;
 
-
                 const days =
                     (
-                        new Date(
-                            m.expiry
-                        ) -
+                        new Date(m.expiry) -
                         new Date()
                     ) /
                     86400000;
-
 
                 return (
                     days >= 0 &&
@@ -3762,9 +5110,7 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(
-                        todaySales
-                    )}
+                    ${money(todaySales)}
                 </div>
 
             </div>
@@ -3777,9 +5123,7 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(
-                        totalSales
-                    )}
+                    ${money(totalSales)}
                 </div>
 
             </div>
@@ -3792,9 +5136,33 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(
-                        totalPurchase
-                    )}
+                    ${money(totalPurchase)}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Estimated Profit
+                </h3>
+
+                <div class="card-value">
+                    ${money(totalProfit)}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Total Due
+                </h3>
+
+                <div class="card-value">
+                    ${money(totalDue)}
                 </div>
 
             </div>
@@ -3813,6 +5181,30 @@ function showReports() {
             </div>
 
         </div>
+
+
+        <hr style="margin:25px 0;">
+
+
+        <h3>
+            📅 Date-wise Sales
+        </h3>
+
+
+        ${input(
+            "reportDate",
+            "Select Date",
+            "date",
+            today()
+        )}
+
+
+        <button
+            class="btn btn-primary"
+            onclick="showDateReport()"
+        >
+            🔎 View Date Report
+        </button>
 
 
         <hr style="margin:25px 0;">
@@ -3848,24 +5240,60 @@ function showReports() {
 
                 : `
                     <p>
-                        কোনো Low Stock নেই।
+                        ✅ কোনো Low Stock নেই।
                     </p>
                 `
         }
 
 
         <h3 style="margin-top:25px;">
-
-            📅 Near Expiry
-            (30 days)
-
+            ❌ Expired Medicines
         </h3>
 
 
         ${
-            expiry.length
+            expired.length
 
-                ? expiry.map(
+                ? expired.map(
+                    m => `
+
+                    <p>
+
+                        <b>
+                            ${escapeHTML(
+                                m.name
+                            )}
+                        </b>
+
+                        —
+                        Expiry:
+                        ${escapeHTML(
+                            m.expiry
+                        )}
+
+                    </p>
+
+                `
+                ).join("")
+
+                : `
+                    <p>
+                        ✅ কোনো expired medicine নেই।
+                    </p>
+                `
+        }
+
+
+        <h3 style="margin-top:25px;">
+            📅 Near Expiry
+            (30 days)
+        </h3>
+
+
+        ${
+            nearExpiry.length
+
+                ? nearExpiry.map(
                     m => `
 
                     <p>
@@ -3912,6 +5340,632 @@ function showReports() {
 }
 
 
+function showDateReport() {
+
+    const date =
+        document.getElementById(
+            "reportDate"
+        )?.value;
+
+
+    if (!date) {
+
+        alert(
+            "Date নির্বাচন করুন"
+        );
+
+        return;
+
+    }
+
+
+    const dateSales =
+        sales.filter(
+            s =>
+                s.date === date
+        );
+
+
+    const datePurchases =
+        purchases.filter(
+            p =>
+                p.date === date
+        );
+
+
+    const salesTotal =
+        dateSales.reduce(
+            (sum, s) =>
+                sum +
+                Number(
+                    s.total || 0
+                ),
+            0
+        );
+
+
+    const purchaseTotal =
+        datePurchases.reduce(
+            (sum, p) =>
+                sum +
+                Number(
+                    p.total || 0
+                ),
+            0
+        );
+
+
+    const profit =
+        dateSales.reduce(
+            (sum, s) =>
+                sum +
+                saleProfit(s),
+            0
+        );
+
+
+    layout(
+        "📅 Date Report — " +
+        escapeHTML(date),
+        `
+
+        <div class="cards">
+
+            <div class="card">
+
+                <h3>
+                    Sales
+                </h3>
+
+                <div class="card-value">
+                    ${money(salesTotal)}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Purchase
+                </h3>
+
+                <div class="card-value">
+                    ${money(purchaseTotal)}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Estimated Profit
+                </h3>
+
+                <div class="card-value">
+                    ${money(profit)}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Invoices
+                </h3>
+
+                <div class="card-value">
+                    ${dateSales.length}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <hr style="margin:25px 0;">
+
+
+        <h3>
+            🧾 Sales List
+        </h3>
+
+
+        ${
+            dateSales.length
+
+                ? `
+
+                <div style="overflow:auto;">
+
+                    <table>
+
+                        <tr>
+
+                            <th>Invoice</th>
+                            <th>Time</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Paid</th>
+                            <th>Due</th>
+                            <th>Print</th>
+
+                        </tr>
+
+
+                        ${dateSales.map(
+                            s => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHTML(
+                                        s.invoice || "-"
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHTML(
+                                        s.time || ""
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHTML(
+                                        getCustomerName(s)
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${money(
+                                        s.total
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${money(
+                                        s.paid
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${money(
+                                        s.due
+                                    )}
+                                </td>
+
+                                <td>
+
+                                    <button
+                                        onclick='
+                                            printInvoice(
+                                                ${JSON.stringify(s)}
+                                            )
+                                        '
+                                    >
+                                        🖨️
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        `
+                        ).join("")}
+
+                    </table>
+
+                </div>
+
+            `
+
+                : `
+                    <p>
+                        এই তারিখে কোনো Sales নেই।
+                    </p>
+                `
+        }
+
+
+        <hr style="margin:25px 0;">
+
+
+        <h3>
+            📦 Purchase List
+        </h3>
+
+
+        ${
+            datePurchases.length
+
+                ? `
+
+                <div style="overflow:auto;">
+
+                    <table>
+
+                        <tr>
+
+                            <th>Time</th>
+                            <th>Medicine</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Supplier</th>
+
+                        </tr>
+
+
+                        ${datePurchases.map(
+                            p => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHTML(
+                                        p.time || ""
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHTML(
+                                        p.medicine
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${p.qty}
+                                </td>
+
+                                <td>
+                                    ${money(
+                                        p.total
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHTML(
+                                        p.supplier || ""
+                                    )}
+                                </td>
+
+                            </tr>
+
+                        `
+                        ).join("")}
+
+                    </table>
+
+                </div>
+
+            `
+
+                : `
+                    <p>
+                        এই তারিখে কোনো Purchase নেই।
+                    </p>
+                `
+        }
+
+
+        <hr style="margin:25px 0;">
+
+
+        <button
+            class="btn btn-primary"
+            onclick="window.print()"
+        >
+            🖨️ Print Date Report
+        </button>
+
+        `
+    );
+
+}
+
+
+// ==========================================
+// BACKUP / RESTORE
+// ==========================================
+
+function showBackup() {
+
+    layout(
+        "💾 Backup / Restore",
+        `
+
+        <div style="
+            padding:15px;
+            border:1px solid #ddd;
+            border-radius:10px;
+        ">
+
+            <h3>
+                💾 Backup
+            </h3>
+
+
+            <p>
+                আপনার Pharmacy-এর সব data
+                একটি JSON file হিসেবে
+                Backup করতে পারবেন।
+            </p>
+
+
+            <button
+                class="btn btn-primary"
+                onclick="downloadBackup()"
+            >
+                ⬇️ Download Backup
+            </button>
+
+        </div>
+
+
+        <hr style="margin:25px 0;">
+
+
+        <div style="
+            padding:15px;
+            border:1px solid #ddd;
+            border-radius:10px;
+        ">
+
+            <h3>
+                ♻️ Restore
+            </h3>
+
+
+            <p>
+                আগের Backup JSON file
+                নির্বাচন করে Restore করুন।
+            </p>
+
+
+            <input
+                id="restoreFile"
+                type="file"
+                accept=".json,application/json"
+                class="form-control"
+                style="
+                    width:100%;
+                    padding:10px;
+                    box-sizing:border-box;
+                "
+            >
+
+
+            <button
+                class="btn btn-primary"
+                onclick="restoreBackup()"
+                style="margin-top:10px;"
+            >
+                ⬆️ Restore Backup
+            </button>
+
+        </div>
+
+        `
+    );
+
+}
+
+
+function downloadBackup() {
+
+    const data = {
+
+        version:
+            3,
+
+        exportedAt:
+            new Date().toISOString(),
+
+        medicines:
+            medicines,
+
+        purchases:
+            purchases,
+
+        sales:
+            sales,
+
+        customers:
+            customers,
+
+        suppliers:
+            suppliers,
+
+        payments:
+            payments,
+
+        stockAdjustments:
+            stockAdjustments
+
+    };
+
+
+    const blob =
+        new Blob(
+            [
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            ],
+            {
+                type:
+                    "application/json"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const a =
+        document.createElement(
+            "a"
+        );
+
+
+    a.href =
+        url;
+
+
+    a.download =
+        "pharmacy-inventory-backup-" +
+        today() +
+        ".json";
+
+
+    document.body.appendChild(a);
+
+
+    a.click();
+
+
+    a.remove();
+
+
+    setTimeout(
+        function() {
+
+            URL.revokeObjectURL(
+                url
+            );
+
+        },
+        1000
+    );
+
+}
+
+
+function restoreBackup() {
+
+    const file =
+        document.getElementById(
+            "restoreFile"
+        )?.files?.[0];
+
+
+    if (!file) {
+
+        alert(
+            "Backup file নির্বাচন করুন"
+        );
+
+        return;
+
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e) {
+
+            try {
+
+                const d =
+                    JSON.parse(
+                        e.target.result
+                    );
+
+
+                if (
+                    !d ||
+                    !Array.isArray(
+                        d.medicines
+                    ) ||
+                    !Array.isArray(
+                        d.sales
+                    )
+                ) {
+
+                    throw new Error(
+                        "Invalid backup"
+                    );
+
+                }
+
+
+                if (
+                    !confirm(
+                        "বর্তমান data-এর জায়গায় Backup restore করবেন?"
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                medicines =
+                    d.medicines || [];
+
+
+                purchases =
+                    d.purchases || [];
+
+
+                sales =
+                    d.sales || [];
+
+
+                customers =
+                    d.customers || [];
+
+
+                suppliers =
+                    d.suppliers || [];
+
+
+                payments =
+                    d.payments || [];
+
+
+                stockAdjustments =
+                    d.stockAdjustments || [];
+
+
+                saleCart = [];
+
+
+                saveData();
+
+
+                alert(
+                    "Backup successfully restored!"
+                );
+
+
+                showDashboard();
+
+            } catch (err) {
+
+                alert(
+                    "Backup file সঠিক নয়।"
+                );
+
+            }
+
+        };
+
+
+    reader.readAsText(file);
+
+}
+
+
 // ==========================================
 // COMPATIBILITY
 // ==========================================
@@ -3930,7 +5984,9 @@ function comingSoon(name) {
     }
 
 
-    if (name === "Purchase") {
+    if (
+        name === "Purchase"
+    ) {
 
         showPurchase();
 
@@ -3951,7 +6007,9 @@ function comingSoon(name) {
     }
 
 
-    if (name === "Customers") {
+    if (
+        name === "Customers"
+    ) {
 
         showCustomers();
 
@@ -3960,9 +6018,72 @@ function comingSoon(name) {
     }
 
 
-    if (name === "Reports") {
+    if (
+        name === "Reports"
+    ) {
 
         showReports();
+
+        return;
+
+    }
+
+
+    if (
+        name === "Due" ||
+        name === "Due Collection" ||
+        name === "বাকি আদায়"
+    ) {
+
+        showDueCollection();
+
+        return;
+
+    }
+
+
+    if (
+        name === "Stock" ||
+        name === "Stock Adjustment" ||
+        name === "Stock Management"
+    ) {
+
+        showStockAdjustment();
+
+        return;
+
+    }
+
+
+    if (
+        name === "Low Stock"
+    ) {
+
+        showLowStock();
+
+        return;
+
+    }
+
+
+    if (
+        name === "Expiry" ||
+        name === "Expiry Alert"
+    ) {
+
+        showExpiryAlert();
+
+        return;
+
+    }
+
+
+    if (
+        name === "Backup" ||
+        name === "Backup / Restore"
+    ) {
+
+        showBackup();
 
         return;
 
@@ -4026,3 +6147,8 @@ function clearMedicineForm() {
     }
 
 }
+
+
+// ==========================================
+// END
+// ==========================================
