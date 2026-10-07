@@ -711,6 +711,76 @@ return `
 // MEDICINES
 // ==========================================
 
+// ==========================================
+// MEDICINE DATABASE AUTO FILL
+// ==========================================
+
+function fillMedicineFromDatabase() {
+
+    const input =
+        document.getElementById("mName");
+
+    if (!input) return;
+
+    const value =
+        input.value.trim().toLowerCase();
+
+    if (!value) return;
+
+    if (
+        typeof MEDICINE_DATABASE === "undefined"
+    ) {
+        return;
+    }
+
+    const medicine =
+        MEDICINE_DATABASE.find(m => {
+
+            const fullName =
+                (
+                    m.brand +
+                    " - " +
+                    m.strength
+                ).toLowerCase();
+
+            return (
+                fullName === value ||
+                m.brand.toLowerCase() === value
+            );
+
+        });
+
+    if (!medicine) return;
+
+    const generic =
+        document.getElementById("mGeneric");
+
+    const company =
+        document.getElementById("mCompany");
+
+    const strength =
+        document.getElementById("mStrength");
+
+    if (generic) {
+        generic.value =
+            medicine.generic || "";
+    }
+
+    if (company) {
+        company.value =
+            medicine.company || "";
+    }
+
+    if (strength) {
+        strength.value =
+            medicine.strength || "";
+    }
+
+    // শুধু brand name save হবে
+    input.value =
+        medicine.brand || "";
+
+}
 function showMedicines() {
 
 layout(  
@@ -719,11 +789,52 @@ layout(
 
     <form id="medicineForm">  
 
-        ${input(  
-            "mName",  
-            "Medicine Name *"  
-        )}  
+        <div style="margin-bottom:12px;">
 
+    <label>
+        <b>Medicine Name *</b>
+    </label>
+
+    <input
+        id="mName"
+        list="medicineDatabaseList"
+        class="form-control"
+        placeholder="Medicine name লিখুন বা তালিকা থেকে নির্বাচন করুন"
+        autocomplete="off"
+        style="
+            width:100%;
+            padding:10px;
+            margin-top:5px;
+            box-sizing:border-box;
+        "
+    >
+
+    <datalist id="medicineDatabaseList">
+
+        ${
+            typeof MEDICINE_DATABASE !== "undefined"
+            ? MEDICINE_DATABASE.map(m => `
+                <option
+                    value="${escapeHTML(
+                        m.brand + " - " + m.strength
+                    )}"
+                >
+                </option>
+            `).join("")
+            : ""
+        }
+
+    </datalist>
+
+    <small style="
+        display:block;
+        margin-top:5px;
+        color:#666;
+    ">
+        💊 ওষুধ নির্বাচন করলে Generic, Company ও Strength অটো বসবে।
+    </small>
+
+</div>
         ${input(  
             "mGeneric",  
             "Generic Name"  
