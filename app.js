@@ -1,5 +1,12 @@
 // ==========================================
-// PHARMACY INVENTORY PRO - COMPLETE VERSION
+// PHARMACY INVENTORY PRO
+// COMPLETE VERSION
+// Customer Search + Invoice History
+// ==========================================
+
+
+// ==========================================
+// DATA
 // ==========================================
 
 let medicines = JSON.parse(
@@ -23,6 +30,7 @@ let suppliers = JSON.parse(
 );
 
 let saleCart = [];
+
 let editingMedicineIndex = -1;
 
 
@@ -66,7 +74,9 @@ function saveData() {
 document.addEventListener(
     "DOMContentLoaded",
     function () {
+
         showDashboard();
+
     }
 );
 
@@ -76,18 +86,29 @@ document.addEventListener(
 // ==========================================
 
 function money(n) {
-    return "৳ " + Number(n || 0).toFixed(2);
+
+    return "৳ " +
+        Number(n || 0).toFixed(2);
+
 }
 
+
 function today() {
+
     return new Date()
         .toISOString()
         .split("T")[0];
+
 }
 
+
 function currentTime() {
-    return new Date().toLocaleTimeString();
+
+    return new Date()
+        .toLocaleTimeString();
+
 }
+
 
 function escapeHTML(value) {
 
@@ -97,21 +118,33 @@ function escapeHTML(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+
 }
 
+
 function app() {
+
     return document.getElementById("app");
+
 }
+
 
 function layout(title, html) {
 
     app().innerHTML = `
+
         <div class="panel">
+
             <h2>${title}</h2>
+
             ${html}
+
         </div>
+
     `;
+
 }
+
 
 function input(
     id,
@@ -121,6 +154,7 @@ function input(
 ) {
 
     return `
+
         <div style="margin-bottom:12px;">
 
             <label>
@@ -141,7 +175,9 @@ function input(
             >
 
         </div>
+
     `;
+
 }
 
 
@@ -152,74 +188,122 @@ function input(
 function showDashboard() {
 
     const salesToday =
+
         sales
-            .filter(s => s.date === today())
+            .filter(
+                s =>
+                    s.date === today()
+            )
             .reduce(
                 (sum, s) =>
-                    sum + Number(s.total || 0),
+                    sum +
+                    Number(s.total || 0),
                 0
             );
 
+
     const lowStock =
+
         medicines.filter(
             m =>
                 Number(m.stock || 0) <=
                 Number(m.reorder || 0)
         ).length;
 
+
     const expiry =
-        medicines.filter(m => {
 
-            if (!m.expiry) return false;
+        medicines.filter(
+            m => {
 
-            const d = new Date(m.expiry);
-            const now = new Date();
+                if (!m.expiry)
+                    return false;
 
-            const days =
-                (d - now) / 86400000;
+                const d =
+                    new Date(m.expiry);
 
-            return days >= 0 && days <= 30;
+                const now =
+                    new Date();
 
-        }).length;
+                const days =
+                    (d - now) /
+                    86400000;
+
+                return (
+                    days >= 0 &&
+                    days <= 30
+                );
+
+            }
+        ).length;
+
 
     app().innerHTML = `
 
         <div class="cards">
 
             <div class="card">
-                <h3>💰 Today's Sales</h3>
+
+                <h3>
+                    💰 Today's Sales
+                </h3>
+
                 <div class="card-value">
                     ${money(salesToday)}
                 </div>
+
             </div>
 
+
             <div class="card">
-                <h3>💊 Medicines</h3>
+
+                <h3>
+                    💊 Medicines
+                </h3>
+
                 <div class="card-value">
                     ${medicines.length}
                 </div>
+
             </div>
 
+
             <div class="card">
-                <h3>⚠️ Low Stock</h3>
+
+                <h3>
+                    ⚠️ Low Stock
+                </h3>
+
                 <div class="card-value">
                     ${lowStock}
                 </div>
+
             </div>
 
+
             <div class="card">
-                <h3>📅 Near Expiry</h3>
+
+                <h3>
+                    📅 Near Expiry
+                </h3>
+
                 <div class="card-value">
                     ${expiry}
                 </div>
+
             </div>
 
         </div>
 
 
-        <div class="panel" style="margin-top:20px;">
+        <div
+            class="panel"
+            style="margin-top:20px;"
+        >
 
-            <h3>⚡ Quick Actions</h3>
+            <h3>
+                ⚡ Quick Actions
+            </h3>
 
             <div style="
                 display:flex;
@@ -229,25 +313,48 @@ function showDashboard() {
 
                 <button
                     class="btn btn-primary"
-                    onclick="showMedicines()">
+                    onclick="showMedicines()"
+                >
                     💊 Add Medicine
                 </button>
 
+
                 <button
                     class="btn btn-primary"
-                    onclick="showPurchase()">
+                    onclick="showPurchase()"
+                >
                     📦 Purchase
                 </button>
 
-                <button
-                    class="btn btn-primary"
-                    onclick="showSales()">
-                    🧾 New Sale
-                </button>
 
                 <button
                     class="btn btn-primary"
-                    onclick="showReports()">
+                    onclick="showSales()"
+                >
+                    🧾 New Sale
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showSuppliers()"
+                >
+                    🏢 Suppliers
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showCustomers()"
+                >
+                    👤 Customers
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showReports()"
+                >
                     📊 Reports
                 </button>
 
@@ -256,23 +363,32 @@ function showDashboard() {
         </div>
 
 
-        <div class="panel" style="margin-top:20px;">
+        <div
+            class="panel"
+            style="margin-top:20px;"
+        >
 
-            <h3>📋 Recent Sales</h3>
+            <h3>
+                📋 Recent Sales
+            </h3>
 
             ${recentSalesHTML()}
 
         </div>
+
     `;
+
 }
 
 
 function recentSalesHTML() {
 
     const recent =
+
         [...sales]
-        .reverse()
-        .slice(0, 5);
+            .reverse()
+            .slice(0, 5);
+
 
     if (!recent.length) {
 
@@ -281,7 +397,9 @@ function recentSalesHTML() {
                 এখনো কোনো বিক্রয় নেই।
             </p>
         `;
+
     }
+
 
     return `
 
@@ -292,41 +410,47 @@ function recentSalesHTML() {
                 <thead>
 
                     <tr>
+
                         <th>Date</th>
-                        <th>Medicine</th>
-                        <th>Qty</th>
+                        <th>Customer</th>
+                        <th>Items</th>
                         <th>Total</th>
+
                     </tr>
 
                 </thead>
 
+
                 <tbody>
 
-                    ${recent.map(s => `
+                    ${recent.map(
+                        s => `
 
                         <tr>
 
                             <td>
-                                ${escapeHTML(s.date)}
-                            </td>
-
-                            <td>
                                 ${escapeHTML(
-                                    s.medicine ||
-                                    (
-                                        s.items &&
-                                        s.items.length
-                                            ? s.items
-                                                .map(i => i.medicine)
-                                                .join(", ")
-                                            : "-"
-                                    )
+                                    s.date
                                 )}
                             </td>
 
+
                             <td>
-                                ${s.qty || "-"}
+                                ${escapeHTML(
+                                    s.customer ||
+                                    "Walk-in Customer"
+                                )}
                             </td>
+
+
+                            <td>
+                                ${
+                                    s.items
+                                        ? s.items.length
+                                        : 1
+                                }
+                            </td>
+
 
                             <td>
                                 ${money(s.total)}
@@ -334,14 +458,17 @@ function recentSalesHTML() {
 
                         </tr>
 
-                    `).join("")}
+                    `
+                    ).join("")}
 
                 </tbody>
 
             </table>
 
         </div>
+
     `;
+
 }
 
 
@@ -416,14 +543,15 @@ function showMedicines() {
                 "0"
             )}
 
+
             <button
                 id="medicineSaveBtn"
                 type="submit"
-                class="btn btn-primary">
-
+                class="btn btn-primary"
+            >
                 💾 Save Medicine
-
             </button>
+
 
             <button
                 id="medicineCancelBtn"
@@ -432,10 +560,9 @@ function showMedicines() {
                 style="
                     display:none;
                     margin-left:8px;
-                ">
-
+                "
+            >
                 ❌ Cancel Edit
-
             </button>
 
         </form>
@@ -443,7 +570,11 @@ function showMedicines() {
 
         <hr style="margin:25px 0;">
 
-        <h3>📋 Medicine List</h3>
+
+        <h3>
+            📋 Medicine List
+        </h3>
+
 
         <input
             id="medicineSearch"
@@ -458,6 +589,7 @@ function showMedicines() {
             "
         >
 
+
         <div id="medicineList"></div>
 
         `
@@ -470,10 +602,12 @@ function showMedicines() {
 
         e.preventDefault();
 
+
         const name =
             document.getElementById(
                 "mName"
             ).value.trim();
+
 
         if (!name) {
 
@@ -482,7 +616,9 @@ function showMedicines() {
             );
 
             return;
+
         }
+
 
         const medicineData = {
 
@@ -540,6 +676,7 @@ function showMedicines() {
                         "mSale"
                     ).value
                 ) || 0
+
         };
 
 
@@ -553,11 +690,11 @@ function showMedicines() {
                     editingMedicineIndex
                 ].id;
 
+
             medicines[
                 editingMedicineIndex
             ] = medicineData;
 
-            saveData();
 
             alert(
                 "Medicine successfully updated!"
@@ -568,25 +705,32 @@ function showMedicines() {
             medicineData.id =
                 Date.now();
 
+
             medicines.push(
                 medicineData
             );
 
-            saveData();
 
             alert(
                 "Medicine successfully saved!"
             );
+
         }
+
+
+        saveData();
 
 
         editingMedicineIndex = -1;
 
+
         showMedicines();
+
     };
 
 
     renderMedicines();
+
 }
 
 
@@ -601,12 +745,15 @@ function renderMedicines() {
             "medicineList"
         );
 
+
     if (!list) return;
+
 
     const searchBox =
         document.getElementById(
             "medicineSearch"
         );
+
 
     const search =
         searchBox
@@ -615,23 +762,28 @@ function renderMedicines() {
                 .toLowerCase()
             : "";
 
+
     const filtered =
-        medicines.filter(m => {
+        medicines.filter(
+            m => {
 
-            const text = (
+                const text =
 
-                (m.name || "") +
-                " " +
-                (m.generic || "") +
-                " " +
-                (m.company || "") +
-                " " +
-                (m.batch || "")
+                    (m.name || "") +
+                    " " +
+                    (m.generic || "") +
+                    " " +
+                    (m.company || "") +
+                    " " +
+                    (m.batch || "");
 
-            ).toLowerCase();
 
-            return text.includes(search);
-        });
+                return text
+                    .toLowerCase()
+                    .includes(search);
+
+            }
+        );
 
 
     if (!filtered.length) {
@@ -643,6 +795,7 @@ function renderMedicines() {
         `;
 
         return;
+
     }
 
 
@@ -655,83 +808,118 @@ function renderMedicines() {
                 <thead>
 
                     <tr>
+
                         <th>Medicine</th>
                         <th>Generic</th>
                         <th>Company</th>
                         <th>Stock</th>
                         <th>Purchase</th>
-                        <th>Sale Price</th>
+                        <th>Sale</th>
                         <th>Expiry</th>
                         <th>Action</th>
+
                     </tr>
 
                 </thead>
 
+
                 <tbody>
 
-                    ${filtered.map(m => {
+                    ${filtered.map(
+                        m => {
 
-                        const realIndex =
-                            medicines.indexOf(m);
+                            const index =
+                                medicines.indexOf(m);
 
-                        return `
 
-                        <tr>
+                            return `
 
-                            <td>
-                                ${escapeHTML(m.name)}
-                            </td>
+                                <tr>
 
-                            <td>
-                                ${escapeHTML(m.generic)}
-                            </td>
+                                    <td>
+                                        ${escapeHTML(
+                                            m.name
+                                        )}
+                                    </td>
 
-                            <td>
-                                ${escapeHTML(m.company)}
-                            </td>
 
-                            <td>
-                                ${m.stock || 0}
-                            </td>
+                                    <td>
+                                        ${escapeHTML(
+                                            m.generic
+                                        )}
+                                    </td>
 
-                            <td>
-                                ${money(m.purchase)}
-                            </td>
 
-                            <td>
-                                ${money(m.sale)}
-                            </td>
+                                    <td>
+                                        ${escapeHTML(
+                                            m.company
+                                        )}
+                                    </td>
 
-                            <td>
-                                ${m.expiry || "-"}
-                            </td>
 
-                            <td>
+                                    <td>
+                                        ${m.stock || 0}
+                                    </td>
 
-                                <button
-                                    onclick="editMedicine(${realIndex})">
-                                    ✏️ Edit
-                                </button>
 
-                                <button
-                                    onclick="deleteMedicine(${realIndex})">
-                                    🗑️ Delete
-                                </button>
+                                    <td>
+                                        ${money(
+                                            m.purchase
+                                        )}
+                                    </td>
 
-                            </td>
 
-                        </tr>
+                                    <td>
+                                        ${money(
+                                            m.sale
+                                        )}
+                                    </td>
 
-                        `;
 
-                    }).join("")}
+                                    <td>
+                                        ${escapeHTML(
+                                            m.expiry ||
+                                            "-"
+                                        )}
+                                    </td>
+
+
+                                    <td>
+
+                                        <button
+                                            onclick="
+                                                editMedicine(${index})
+                                            "
+                                        >
+                                            ✏️ Edit
+                                        </button>
+
+
+                                        <button
+                                            onclick="
+                                                deleteMedicine(${index})
+                                            "
+                                        >
+                                            🗑️ Delete
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+                            `;
+
+                        }
+                    ).join("")}
 
                 </tbody>
 
             </table>
 
         </div>
+
     `;
+
 }
 
 
@@ -744,55 +932,67 @@ function editMedicine(index) {
     const m =
         medicines[index];
 
+
     if (!m) return;
+
 
     editingMedicineIndex =
         index;
+
 
     document.getElementById(
         "mName"
     ).value =
         m.name || "";
 
+
     document.getElementById(
         "mGeneric"
     ).value =
         m.generic || "";
+
 
     document.getElementById(
         "mCompany"
     ).value =
         m.company || "";
 
+
     document.getElementById(
         "mStrength"
     ).value =
         m.strength || "";
+
 
     document.getElementById(
         "mBatch"
     ).value =
         m.batch || "";
 
+
     document.getElementById(
         "mExpiry"
     ).value =
         m.expiry || "";
+
 
     document.getElementById(
         "mStock"
     ).value =
         m.stock || 0;
 
+
     document.getElementById(
         "mReorder"
     ).value =
         m.reorder || 0;
 
+
     document.getElementById(
         "mPurchase"
     ).value =
         m.purchase || 0;
+
 
     document.getElementById(
         "mSale"
@@ -805,10 +1005,12 @@ function editMedicine(index) {
             "medicineSaveBtn"
         );
 
+
     if (saveBtn) {
 
         saveBtn.textContent =
             "💾 Update Medicine";
+
     }
 
 
@@ -817,10 +1019,12 @@ function editMedicine(index) {
             "medicineCancelBtn"
         );
 
+
     if (cancelBtn) {
 
         cancelBtn.style.display =
             "inline-block";
+
     }
 
 
@@ -828,11 +1032,12 @@ function editMedicine(index) {
         top: 0,
         behavior: "smooth"
     });
+
 }
 
 
 // ==========================================
-// CANCEL EDIT
+// CANCEL MEDICINE EDIT
 // ==========================================
 
 function cancelMedicineEdit() {
@@ -840,6 +1045,7 @@ function cancelMedicineEdit() {
     editingMedicineIndex = -1;
 
     showMedicines();
+
 }
 
 
@@ -849,7 +1055,9 @@ function cancelMedicineEdit() {
 
 function deleteMedicine(index) {
 
-    if (!medicines[index]) return;
+    if (!medicines[index])
+        return;
+
 
     if (
         !confirm(
@@ -859,14 +1067,18 @@ function deleteMedicine(index) {
         return;
     }
 
+
     medicines.splice(
         index,
         1
     );
 
+
     saveData();
 
+
     showMedicines();
+
 }
 
 
@@ -888,6 +1100,7 @@ function showPurchase() {
                     <b>Medicine</b>
                 </label>
 
+
                 <select
                     id="purchaseMedicine"
                     class="form-control"
@@ -895,20 +1108,87 @@ function showPurchase() {
                         width:100%;
                         padding:10px;
                         margin-top:5px;
-                    ">
+                    "
+                >
 
                     <option value="">
                         Select Medicine
                     </option>
 
-                    ${medicines.map(m => `
 
-                        <option value="${m.id}">
-                            ${escapeHTML(m.name)}
-                            | Stock: ${m.stock}
+                    ${medicines.map(
+                        m => `
+
+                        <option
+                            value="${m.id}"
+                        >
+
+                            ${escapeHTML(
+                                m.name
+                            )}
+
+                            |
+                            Stock:
+                            ${m.stock}
+
                         </option>
 
-                    `).join("")}
+                    `
+                    ).join("")}
+
+                </select>
+
+            </div>
+
+
+            <div style="margin-bottom:12px;">
+
+                <label>
+                    <b>Supplier / Company</b>
+                </label>
+
+
+                <select
+                    id="purchaseSupplier"
+                    class="form-control"
+                    style="
+                        width:100%;
+                        padding:10px;
+                        margin-top:5px;
+                    "
+                >
+
+                    <option value="">
+                        Select Supplier / Company
+                    </option>
+
+
+                    ${suppliers.map(
+                        s => `
+
+                        <option
+                            value="${escapeHTML(
+                                s.name
+                            )}"
+                        >
+
+                            ${escapeHTML(
+                                s.name
+                            )}
+
+                            ${
+                                s.phone
+                                    ? " - " +
+                                      escapeHTML(
+                                          s.phone
+                                      )
+                                    : ""
+                            }
+
+                        </option>
+
+                    `
+                    ).join("")}
 
                 </select>
 
@@ -922,6 +1202,7 @@ function showPurchase() {
                 "1"
             )}
 
+
             ${input(
                 "purchasePriceInput",
                 "Purchase Price",
@@ -929,24 +1210,33 @@ function showPurchase() {
                 "0"
             )}
 
-            ${input(
-                "purchaseSupplier",
-                "Supplier"
-            )}
 
             <button
                 class="btn btn-primary"
-                type="submit">
-
+                type="submit"
+            >
                 📦 Add Purchase
+            </button>
 
+
+            <button
+                type="button"
+                onclick="showSuppliers()"
+                style="margin-left:8px;"
+            >
+                ➕ Add Supplier
             </button>
 
         </form>
 
+
         <hr style="margin:25px 0;">
 
-        <h3>Recent Purchases</h3>
+
+        <h3>
+            Recent Purchases
+        </h3>
+
 
         <div id="purchaseList"></div>
 
@@ -964,12 +1254,14 @@ function showPurchase() {
 
             e.preventDefault();
 
+
             const id =
                 Number(
                     document.getElementById(
                         "purchaseMedicine"
                     ).value
                 );
+
 
             const qty =
                 Number(
@@ -978,12 +1270,20 @@ function showPurchase() {
                     ).value
                 );
 
+
             const price =
                 Number(
                     document.getElementById(
                         "purchasePriceInput"
                     ).value
                 );
+
+
+            const supplier =
+                document.getElementById(
+                    "purchaseSupplier"
+                ).value.trim();
+
 
             const medicine =
                 medicines.find(
@@ -1000,6 +1300,17 @@ function showPurchase() {
                 return;
             }
 
+
+            if (!supplier) {
+
+                alert(
+                    "Supplier / Company select করুন"
+                );
+
+                return;
+            }
+
+
             if (qty <= 0) {
 
                 alert(
@@ -1010,10 +1321,21 @@ function showPurchase() {
             }
 
 
+            if (price < 0) {
+
+                alert(
+                    "Purchase Price সঠিক দিন"
+                );
+
+                return;
+            }
+
+
             medicine.stock =
                 Number(
                     medicine.stock || 0
-                ) + qty;
+                ) +
+                qty;
 
 
             purchases.push({
@@ -1021,6 +1343,8 @@ function showPurchase() {
                 id: Date.now(),
 
                 date: today(),
+
+                time: currentTime(),
 
                 medicine:
                     medicine.name,
@@ -1030,9 +1354,7 @@ function showPurchase() {
                 price: price,
 
                 supplier:
-                    document.getElementById(
-                        "purchaseSupplier"
-                    ).value.trim(),
+                    supplier,
 
                 total:
                     qty * price
@@ -1042,12 +1364,16 @@ function showPurchase() {
 
             saveData();
 
+
             alert(
                 "Purchase added এবং stock updated!"
             );
 
+
             showPurchase();
+
         };
+
 }
 
 
@@ -1058,13 +1384,14 @@ function renderPurchases() {
             "purchaseList"
         );
 
+
     if (!box) return;
 
 
     const list =
         [...purchases]
-        .reverse()
-        .slice(0, 20);
+            .reverse()
+            .slice(0, 30);
 
 
     if (!list.length) {
@@ -1073,6 +1400,7 @@ function renderPurchases() {
             "<p>কোনো purchase নেই।</p>";
 
         return;
+
     }
 
 
@@ -1083,45 +1411,64 @@ function renderPurchases() {
             <table>
 
                 <tr>
+
                     <th>Date</th>
                     <th>Medicine</th>
                     <th>Qty</th>
                     <th>Total</th>
-                    <th>Supplier</th>
+                    <th>Supplier / Company</th>
+
                 </tr>
 
-                ${list.map(p => `
+
+                ${list.map(
+                    p => `
 
                     <tr>
 
                         <td>
-                            ${escapeHTML(p.date)}
+                            ${escapeHTML(
+                                p.date
+                            )}
                         </td>
 
+
                         <td>
-                            ${escapeHTML(p.medicine)}
+                            ${escapeHTML(
+                                p.medicine
+                            )}
                         </td>
+
 
                         <td>
                             ${p.qty}
                         </td>
 
-                        <td>
-                            ${money(p.total)}
-                        </td>
 
                         <td>
-                            ${escapeHTML(p.supplier)}
+                            ${money(
+                                p.total
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHTML(
+                                p.supplier || ""
+                            )}
                         </td>
 
                     </tr>
 
-                `).join("")}
+                `
+                ).join("")}
 
             </table>
 
         </div>
+
     `;
+
 }
 
 
@@ -1133,6 +1480,7 @@ function showSales() {
 
     saleCart = [];
 
+
     layout(
         "🧾 Sales / POS",
         `
@@ -1142,13 +1490,15 @@ function showSales() {
             style="
                 padding:0;
                 box-shadow:none;
-            ">
+            "
+        >
 
             <div style="margin-bottom:12px;">
 
                 <label>
                     <b>Medicine</b>
                 </label>
+
 
                 <select
                     id="cartMedicine"
@@ -1157,25 +1507,38 @@ function showSales() {
                         width:100%;
                         padding:10px;
                         margin-top:5px;
-                    ">
+                    "
+                >
 
                     <option value="">
                         Select Medicine
                     </option>
 
-                    ${medicines.map(m => `
 
-                        <option value="${m.id}">
+                    ${medicines.map(
+                        m => `
 
-                            ${escapeHTML(m.name)}
+                        <option
+                            value="${m.id}"
+                        >
+
+                            ${escapeHTML(
+                                m.name
+                            )}
+
                             |
-                            Stock: ${m.stock}
+                            Stock:
+                            ${m.stock}
+
                             |
-                            ${money(m.sale)}
+                            ${money(
+                                m.sale
+                            )}
 
                         </option>
 
-                    `).join("")}
+                    `
+                    ).join("")}
 
                 </select>
 
@@ -1184,7 +1547,8 @@ function showSales() {
 
             <div style="
                 display:grid;
-                grid-template-columns:1fr 1fr;
+                grid-template-columns:
+                    1fr 1fr;
                 gap:10px;
             ">
 
@@ -1194,6 +1558,7 @@ function showSales() {
                     "number",
                     "1"
                 )}
+
 
                 ${input(
                     "cartPrice",
@@ -1208,29 +1573,31 @@ function showSales() {
             <button
                 type="button"
                 class="btn btn-primary"
-                onclick="addToCart()">
-
+                onclick="addToCart()"
+            >
                 ➕ Add to Cart
-
             </button>
 
 
             <hr style="margin:25px 0;">
 
-            <h3>🛒 Sale Cart</h3>
+
+            <h3>
+                🛒 Sale Cart
+            </h3>
+
 
             <div id="cartList"></div>
 
 
             <div style="margin-top:15px;">
 
-                <!-- CUSTOMER DROPDOWN -->
-
                 <div style="margin-bottom:12px;">
 
                     <label>
                         <b>Customer</b>
                     </label>
+
 
                     <select
                         id="saleCustomer"
@@ -1239,33 +1606,53 @@ function showSales() {
                             width:100%;
                             padding:10px;
                             margin-top:5px;
-                            box-sizing:border-box;
-                        ">
+                        "
+                    >
 
                         <option value="">
                             Walk-in Customer
                         </option>
 
-                        ${
-                            customers.map(c => `
 
-                                <option value="${escapeHTML(c.name)}">
+                        ${customers.map(
+                            c => `
 
-                                    ${escapeHTML(c.name)}
+                            <option
+                                value="${escapeHTML(
+                                    c.name
+                                )}"
+                            >
 
-                                    ${
-                                        c.phone
-                                            ? " - " +
-                                              escapeHTML(c.phone)
-                                            : ""
-                                    }
+                                ${escapeHTML(
+                                    c.name
+                                )}
 
-                                </option>
+                                ${
+                                    c.phone
+                                        ? " - " +
+                                          escapeHTML(
+                                              c.phone
+                                          )
+                                        : ""
+                                }
 
-                            `).join("")
-                        }
+                            </option>
+
+                        `
+                        ).join("")}
 
                     </select>
+
+
+                    <p style="
+                        font-size:13px;
+                        color:#666;
+                    ">
+                        নতুন বা অন্য কোনো
+                        ব্যক্তি কিনলে
+                        Walk-in Customer
+                        রাখলেই হবে।
+                    </p>
 
                 </div>
 
@@ -1276,6 +1663,7 @@ function showSales() {
                     "number",
                     "0"
                 )}
+
 
                 ${input(
                     "salePaid",
@@ -1289,24 +1677,82 @@ function showSales() {
 
             <div
                 id="saleSummary"
-                style="margin-top:15px;">
-            </div>
+                style="margin-top:15px;"
+            ></div>
 
 
             <button
                 type="button"
                 class="btn btn-primary"
-                onclick="completeCartSale()">
-
+                onclick="completeCartSale()"
+            >
                 💰 Complete Sale &
                 Print Invoice
-
             </button>
 
 
-            <hr style="margin:25px 0;">
+            <hr style="margin:30px 0;">
 
-            <h3>📋 Today's Sales</h3>
+
+            <!-- ==================================
+                 CUSTOMER SEARCH
+            =================================== -->
+
+            <div
+                style="
+                    border:2px solid #ddd;
+                    padding:15px;
+                    border-radius:10px;
+                    margin-bottom:25px;
+                "
+            >
+
+                <h3>
+                    🔎 Customer Sales Search
+                </h3>
+
+
+                <p style="
+                    color:#666;
+                    font-size:14px;
+                ">
+                    Customer-এর নাম লিখে
+                    তার আগের সব Sale,
+                    Date, Amount এবং
+                    Invoice দেখতে পারবেন।
+                </p>
+
+
+                <input
+                    id="customerSalesSearch"
+                    class="form-control"
+                    placeholder="
+                        🔍 Customer Name লিখুন...
+                    "
+                    oninput="
+                        searchCustomerSales()
+                    "
+                    style="
+                        width:100%;
+                        padding:12px;
+                        box-sizing:border-box;
+                        margin-bottom:10px;
+                    "
+                >
+
+
+                <div
+                    id="customerSalesResult"
+                >
+                </div>
+
+            </div>
+
+
+            <h3>
+                📋 Today's Sales
+            </h3>
+
 
             <div id="salesList"></div>
 
@@ -1325,8 +1771,11 @@ function showSales() {
                 medicines.find(
                     m =>
                         m.id ===
-                        Number(this.value)
+                        Number(
+                            this.value
+                        )
                 );
+
 
             document.getElementById(
                 "cartPrice"
@@ -1334,6 +1783,7 @@ function showSales() {
                 medicine
                     ? medicine.sale
                     : 0;
+
         };
 
 
@@ -1352,6 +1802,7 @@ function showSales() {
     renderCart();
 
     renderSales();
+
 }
 
 
@@ -1368,6 +1819,7 @@ function addToCart() {
             ).value
         );
 
+
     const qty =
         Number(
             document.getElementById(
@@ -1375,12 +1827,14 @@ function addToCart() {
             ).value
         );
 
+
     const price =
         Number(
             document.getElementById(
                 "cartPrice"
             ).value
         );
+
 
     const medicine =
         medicines.find(
@@ -1397,6 +1851,7 @@ function addToCart() {
         return;
     }
 
+
     if (qty <= 0) {
 
         alert(
@@ -1406,9 +1861,12 @@ function addToCart() {
         return;
     }
 
+
     if (
         qty >
-        Number(medicine.stock || 0)
+        Number(
+            medicine.stock || 0
+        )
     ) {
 
         alert(
@@ -1417,6 +1875,7 @@ function addToCart() {
 
         return;
     }
+
 
     if (price < 0) {
 
@@ -1439,7 +1898,9 @@ function addToCart() {
 
         if (
             existing.qty + qty >
-            Number(medicine.stock || 0)
+            Number(
+                medicine.stock || 0
+            )
         ) {
 
             alert(
@@ -1449,23 +1910,29 @@ function addToCart() {
             return;
         }
 
+
         existing.qty += qty;
+
         existing.price = price;
 
     } else {
 
         saleCart.push({
 
-            medicineId: id,
+            medicineId:
+                id,
 
             medicine:
                 medicine.name,
 
-            qty: qty,
+            qty:
+                qty,
 
-            price: price
+            price:
+                price
 
         });
+
     }
 
 
@@ -1473,9 +1940,11 @@ function addToCart() {
         "cartQty"
     ).value = 1;
 
+
     document.getElementById(
         "cartMedicine"
     ).value = "";
+
 
     document.getElementById(
         "cartPrice"
@@ -1483,6 +1952,7 @@ function addToCart() {
 
 
     renderCart();
+
 }
 
 
@@ -1496,6 +1966,7 @@ function renderCart() {
         document.getElementById(
             "cartList"
         );
+
 
     if (!box) return;
 
@@ -1517,11 +1988,13 @@ function renderCart() {
                 <table>
 
                     <tr>
+
                         <th>Medicine</th>
                         <th>Qty</th>
                         <th>Price</th>
                         <th>Total</th>
                         <th>Action</th>
+
                     </tr>
 
 
@@ -1536,28 +2009,41 @@ function renderCart() {
                                 )}
                             </td>
 
+
                             <td>
                                 ${item.qty}
                             </td>
 
-                            <td>
-                                ${money(item.price)}
-                            </td>
 
                             <td>
                                 ${money(
-                                    item.qty *
                                     item.price
                                 )}
                             </td>
 
+
+                            <td>
+                                ${money(
+                                    Number(
+                                        item.qty
+                                    ) *
+                                    Number(
+                                        item.price
+                                    )
+                                )}
+                            </td>
+
+
                             <td>
 
                                 <button
-                                    onclick="removeFromCart(${index})">
-
+                                    onclick="
+                                        removeFromCart(
+                                            ${index}
+                                        )
+                                    "
+                                >
                                     🗑️ Remove
-
                                 </button>
 
                             </td>
@@ -1570,7 +2056,9 @@ function renderCart() {
                 </table>
 
             </div>
+
         `;
+
     }
 
 
@@ -1644,25 +2132,30 @@ function renderCart() {
                     ${money(subtotal)}
                 </p>
 
+
                 <p>
                     <b>Discount:</b>
                     ${money(discount)}
                 </p>
+
 
                 <p style="font-size:20px;">
                     <b>Grand Total:</b>
                     ${money(total)}
                 </p>
 
+
                 <p>
                     <b>Paid:</b>
                     ${money(paid)}
                 </p>
 
+
                 <p>
                     <b>Due:</b>
                     ${money(due)}
                 </p>
+
 
                 <p>
                     <b>Change:</b>
@@ -1670,8 +2163,11 @@ function renderCart() {
                 </p>
 
             </div>
+
         `;
+
     }
+
 }
 
 
@@ -1687,6 +2183,7 @@ function removeFromCart(index) {
     );
 
     renderCart();
+
 }
 
 
@@ -1764,6 +2261,16 @@ function completeCartSale() {
         subtotal - discount;
 
 
+    if (paid < 0) {
+
+        alert(
+            "Paid Amount সঠিক দিন"
+        );
+
+        return;
+    }
+
+
     const due =
         Math.max(
             0,
@@ -1777,8 +2284,6 @@ function completeCartSale() {
             paid - total
         );
 
-
-    // CHECK STOCK AGAIN
 
     for (
         const item of saleCart
@@ -1804,7 +2309,9 @@ function completeCartSale() {
 
         if (
             Number(item.qty) >
-            Number(medicine.stock || 0)
+            Number(
+                medicine.stock || 0
+            )
         ) {
 
             alert(
@@ -1814,10 +2321,9 @@ function completeCartSale() {
 
             return;
         }
+
     }
 
-
-    // REDUCE STOCK
 
     saleCart.forEach(
         item => {
@@ -1834,22 +2340,28 @@ function completeCartSale() {
                 Number(
                     medicine.stock || 0
                 ) -
-                Number(item.qty);
+                Number(
+                    item.qty
+                );
+
         }
     );
 
 
     const sale = {
 
-        id: Date.now(),
+        id:
+            Date.now(),
 
         invoice:
             "INV-" +
             Date.now(),
 
-        date: today(),
+        date:
+            today(),
 
-        time: currentTime(),
+        time:
+            currentTime(),
 
         customer:
             customer ||
@@ -1872,8 +2384,12 @@ function completeCartSale() {
                         item.price,
 
                     total:
-                        Number(item.qty) *
-                        Number(item.price)
+                        Number(
+                            item.qty
+                        ) *
+                        Number(
+                            item.price
+                        )
 
                 })
             ),
@@ -1895,10 +2411,12 @@ function completeCartSale() {
 
         change:
             change
+
     };
 
 
     sales.push(sale);
+
 
     saveData();
 
@@ -1913,12 +2431,14 @@ function completeCartSale() {
 
     saleCart = [];
 
+
     showSales();
+
 }
 
 
 // ==========================================
-// SALES HISTORY
+// TODAY SALES
 // ==========================================
 
 function renderSales() {
@@ -1927,6 +2447,7 @@ function renderSales() {
         document.getElementById(
             "salesList"
         );
+
 
     if (!box) return;
 
@@ -1947,6 +2468,7 @@ function renderSales() {
             "<p>আজকে কোনো sale নেই।</p>";
 
         return;
+
     }
 
 
@@ -1980,11 +2502,13 @@ function renderSales() {
                             )}
                         </td>
 
+
                         <td>
                             ${escapeHTML(
                                 s.time || ""
                             )}
                         </td>
+
 
                         <td>
                             ${escapeHTML(
@@ -1992,6 +2516,7 @@ function renderSales() {
                                 "Walk-in Customer"
                             )}
                         </td>
+
 
                         <td>
                             ${
@@ -2001,21 +2526,31 @@ function renderSales() {
                             }
                         </td>
 
-                        <td>
-                            ${money(s.total)}
-                        </td>
 
                         <td>
-                            ${money(s.due)}
+                            ${money(
+                                s.total
+                            )}
                         </td>
+
+
+                        <td>
+                            ${money(
+                                s.due
+                            )}
+                        </td>
+
 
                         <td>
 
                             <button
-                                onclick='printInvoice(${JSON.stringify(s)})'>
-
+                                onclick='
+                                    printInvoice(
+                                        ${JSON.stringify(s)}
+                                    )
+                                '
+                            >
                                 🖨️ Print
-
                             </button>
 
                         </td>
@@ -2028,7 +2563,251 @@ function renderSales() {
             </table>
 
         </div>
+
     `;
+
+}
+
+
+// ==========================================
+// CUSTOMER SALES SEARCH
+// ==========================================
+
+function searchCustomerSales() {
+
+    const box =
+        document.getElementById(
+            "customerSalesResult"
+        );
+
+
+    const searchBox =
+        document.getElementById(
+            "customerSalesSearch"
+        );
+
+
+    if (!box || !searchBox)
+        return;
+
+
+    const search =
+        searchBox.value
+            .trim()
+            .toLowerCase();
+
+
+    if (!search) {
+
+        box.innerHTML = `
+            <p style="color:#666;">
+                Customer-এর নাম লিখুন।
+            </p>
+        `;
+
+        return;
+
+    }
+
+
+    const results =
+        sales.filter(
+            sale => {
+
+                const customer =
+                    (
+                        sale.customer ||
+                        ""
+                    )
+                    .toLowerCase();
+
+
+                return customer.includes(
+                    search
+                );
+
+            }
+        ).reverse();
+
+
+    if (!results.length) {
+
+        box.innerHTML = `
+
+            <div style="
+                padding:12px;
+                background:#fff3cd;
+                border-radius:8px;
+            ">
+
+                ❌ এই নামে কোনো
+                Sales পাওয়া যায়নি।
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    const totalAmount =
+        results.reduce(
+            (sum, sale) =>
+                sum +
+                Number(
+                    sale.total || 0
+                ),
+            0
+        );
+
+
+    box.innerHTML = `
+
+        <div style="
+            margin:15px 0;
+            padding:12px;
+            background:#f1f8ff;
+            border-radius:8px;
+        ">
+
+            <b>
+                মোট ${results.length}
+                টি Invoice
+            </b>
+
+            <br>
+
+            মোট Purchase:
+            <b>
+                ${money(totalAmount)}
+            </b>
+
+        </div>
+
+
+        <div style="overflow:auto;">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Customer</th>
+                        <th>Invoice</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Due</th>
+                        <th>Invoice</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    ${results.map(
+                        sale => `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHTML(
+                                    sale.date || ""
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    sale.time || ""
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    sale.customer ||
+                                    "Walk-in Customer"
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    sale.invoice ||
+                                    "-"
+                                )}
+                            </td>
+
+
+                            <td>
+
+                                ${
+                                    sale.items
+                                        ? sale.items.length
+                                        : 1
+                                }
+
+                            </td>
+
+
+                            <td>
+                                ${money(
+                                    sale.total
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${money(
+                                    sale.paid
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${money(
+                                    sale.due
+                                )}
+                            </td>
+
+
+                            <td>
+
+                                <button
+                                    onclick='
+                                        printInvoice(
+                                            ${JSON.stringify(
+                                                sale
+                                            )}
+                                        )
+                                    '
+                                >
+                                    🖨️ Print
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `
+                    ).join("")}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    `;
+
 }
 
 
@@ -2052,17 +2831,23 @@ function printInvoice(sale) {
         );
 
         return;
+
     }
 
 
     const items =
-        Array.isArray(sale.items) &&
+
+        Array.isArray(
+            sale.items
+        ) &&
         sale.items.length
 
             ? sale.items
 
             : [
+
                 {
+
                     medicine:
                         sale.medicine,
 
@@ -2071,7 +2856,9 @@ function printInvoice(sale) {
 
                     price:
                         sale.price
+
                 }
+
             ];
 
 
@@ -2090,44 +2877,86 @@ function printInvoice(sale) {
                 )}
             </title>
 
+
             <style>
 
                 body {
+
                     font-family:
-                        Arial, sans-serif;
-                    padding:25px;
+                        Arial,
+                        sans-serif;
+
+                    padding:
+                        25px;
+
                 }
 
+
                 .invoice {
-                    max-width:650px;
-                    margin:auto;
+
+                    max-width:
+                        650px;
+
+                    margin:
+                        auto;
+
                 }
+
 
                 h1,
                 h2 {
-                    text-align:center;
+
+                    text-align:
+                        center;
+
                 }
 
+
                 table {
-                    width:100%;
-                    border-collapse:collapse;
-                    margin-top:20px;
+
+                    width:
+                        100%;
+
+                    border-collapse:
+                        collapse;
+
+                    margin-top:
+                        20px;
+
                 }
+
 
                 th,
                 td {
-                    border:1px solid #999;
-                    padding:9px;
-                    text-align:left;
+
+                    border:
+                        1px solid #999;
+
+                    padding:
+                        9px;
+
+                    text-align:
+                        left;
+
                 }
+
 
                 .right {
-                    text-align:right;
+
+                    text-align:
+                        right;
+
                 }
 
+
                 .total {
-                    font-size:18px;
-                    font-weight:bold;
+
+                    font-size:
+                        18px;
+
+                    font-weight:
+                        bold;
+
                 }
 
             </style>
@@ -2135,13 +2964,16 @@ function printInvoice(sale) {
         </head>
 
 
-        <body onload="window.print()">
+        <body
+            onload="window.print()"
+        >
 
             <div class="invoice">
 
                 <h1>
                     💊 Pharmacy
                 </h1>
+
 
                 <h2>
                     Sales Invoice
@@ -2152,24 +2984,30 @@ function printInvoice(sale) {
 
                     <b>Invoice:</b>
                     ${escapeHTML(
-                        sale.invoice || "-"
+                        sale.invoice ||
+                        "-"
                     )}
 
                     <br>
+
 
                     <b>Date:</b>
                     ${escapeHTML(
-                        sale.date || ""
+                        sale.date ||
+                        ""
                     )}
 
                     <br>
+
 
                     <b>Time:</b>
                     ${escapeHTML(
-                        sale.time || ""
+                        sale.time ||
+                        ""
                     )}
 
                     <br>
+
 
                     <b>Customer:</b>
                     ${escapeHTML(
@@ -2184,10 +3022,21 @@ function printInvoice(sale) {
 
                     <tr>
 
-                        <th>Medicine</th>
-                        <th>Qty</th>
-                        <th>Price</th>
-                        <th>Total</th>
+                        <th>
+                            Medicine
+                        </th>
+
+                        <th>
+                            Qty
+                        </th>
+
+                        <th>
+                            Price
+                        </th>
+
+                        <th>
+                            Total
+                        </th>
 
                     </tr>
 
@@ -2199,13 +3048,17 @@ function printInvoice(sale) {
 
                             <td>
                                 ${escapeHTML(
-                                    item.medicine
+                                    item.medicine ||
+                                    item.name ||
+                                    "-"
                                 )}
                             </td>
 
+
                             <td>
-                                ${item.qty}
+                                ${item.qty || item.quantity || 0}
                             </td>
+
 
                             <td>
                                 ${money(
@@ -2213,10 +3066,21 @@ function printInvoice(sale) {
                                 )}
                             </td>
 
+
                             <td>
                                 ${money(
-                                    Number(item.qty) *
-                                    Number(item.price)
+                                    item.total ??
+                                    (
+                                        Number(
+                                            item.qty ||
+                                            item.quantity ||
+                                            0
+                                        ) *
+                                        Number(
+                                            item.price ||
+                                            0
+                                        )
+                                    )
                                 )}
                             </td>
 
@@ -2230,7 +3094,10 @@ function printInvoice(sale) {
 
                 <p class="right">
 
-                    <b>Subtotal:</b>
+                    <b>
+                        Subtotal:
+                    </b>
+
                     ${money(
                         sale.subtotal ??
                         sale.total
@@ -2241,17 +3108,26 @@ function printInvoice(sale) {
 
                 <p class="right">
 
-                    <b>Discount:</b>
+                    <b>
+                        Discount:
+                    </b>
+
                     ${money(
-                        sale.discount || 0
+                        sale.discount ||
+                        0
                     )}
 
                 </p>
 
 
-                <p class="right total">
+                <p
+                    class="right total"
+                >
 
-                    <b>Grand Total:</b>
+                    <b>
+                        Grand Total:
+                    </b>
+
                     ${money(
                         sale.total
                     )}
@@ -2261,9 +3137,13 @@ function printInvoice(sale) {
 
                 <p class="right">
 
-                    <b>Paid:</b>
+                    <b>
+                        Paid:
+                    </b>
+
                     ${money(
-                        sale.paid || 0
+                        sale.paid ||
+                        0
                     )}
 
                 </p>
@@ -2271,9 +3151,13 @@ function printInvoice(sale) {
 
                 <p class="right">
 
-                    <b>Due:</b>
+                    <b>
+                        Due:
+                    </b>
+
                     ${money(
-                        sale.due || 0
+                        sale.due ||
+                        0
                     )}
 
                 </p>
@@ -2281,9 +3165,13 @@ function printInvoice(sale) {
 
                 <p class="right">
 
-                    <b>Change:</b>
+                    <b>
+                        Change:
+                    </b>
+
                     ${money(
-                        sale.change || 0
+                        sale.change ||
+                        0
                     )}
 
                 </p>
@@ -2294,7 +3182,8 @@ function printInvoice(sale) {
                     margin-top:40px;
                 ">
 
-                    Thank you for your purchase!
+                    Thank you for
+                    your purchase!
 
                 </p>
 
@@ -2303,34 +3192,38 @@ function printInvoice(sale) {
         </body>
 
         </html>
+
     `);
 
 
     w.document.close();
+
 }
 
 
 // ==========================================
-// SUPPLIERS
+// SUPPLIERS / COMPANIES
 // ==========================================
 
 function showSuppliers() {
 
     layout(
-        "🚚 Suppliers",
+        "🏢 Suppliers / Companies",
         `
 
         <form id="supplierForm">
 
             ${input(
                 "supplierName",
-                "Supplier Name"
+                "Company / Supplier Name"
             )}
+
 
             ${input(
                 "supplierPhone",
                 "Phone"
             )}
+
 
             ${input(
                 "supplierAddress",
@@ -2340,16 +3233,16 @@ function showSuppliers() {
 
             <button
                 class="btn btn-primary"
-                type="submit">
-
-                💾 Save Supplier
-
+                type="submit"
+            >
+                💾 Save Supplier / Company
             </button>
 
         </form>
 
 
         <hr style="margin:25px 0;">
+
 
         <div id="supplierList"></div>
 
@@ -2377,18 +3270,21 @@ function showSuppliers() {
             if (!name) {
 
                 alert(
-                    "Supplier Name দিন"
+                    "Company / Supplier Name দিন"
                 );
 
                 return;
+
             }
 
 
             suppliers.push({
 
-                id: Date.now(),
+                id:
+                    Date.now(),
 
-                name: name,
+                name:
+                    name,
 
                 phone:
                     document.getElementById(
@@ -2405,8 +3301,16 @@ function showSuppliers() {
 
             saveData();
 
+
+            alert(
+                "Supplier / Company saved!"
+            );
+
+
             showSuppliers();
+
         };
+
 }
 
 
@@ -2417,23 +3321,26 @@ function renderSuppliers() {
             "supplierList"
         );
 
+
     if (!box) return;
 
 
     if (!suppliers.length) {
 
         box.innerHTML =
-            "<p>কোনো Supplier নেই।</p>";
+            "<p>কোনো Supplier / Company নেই।</p>";
 
         return;
+
     }
 
 
     box.innerHTML = `
 
         <h3>
-            Supplier List
+            Supplier / Company List
         </h3>
+
 
         <div style="overflow:auto;">
 
@@ -2444,25 +3351,47 @@ function renderSuppliers() {
                     <th>Name</th>
                     <th>Phone</th>
                     <th>Address</th>
+                    <th>Action</th>
 
                 </tr>
 
 
                 ${suppliers.map(
-                    s => `
+                    (s, i) => `
 
                     <tr>
 
                         <td>
-                            ${escapeHTML(s.name)}
+                            ${escapeHTML(
+                                s.name
+                            )}
                         </td>
 
-                        <td>
-                            ${escapeHTML(s.phone)}
-                        </td>
 
                         <td>
-                            ${escapeHTML(s.address)}
+                            ${escapeHTML(
+                                s.phone
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHTML(
+                                s.address
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            <button
+                                onclick="
+                                    deleteSupplier(${i})
+                                "
+                            >
+                                🗑️ Delete
+                            </button>
+
                         </td>
 
                     </tr>
@@ -2473,7 +3402,34 @@ function renderSuppliers() {
             </table>
 
         </div>
+
     `;
+
+}
+
+
+function deleteSupplier(index) {
+
+    if (
+        !confirm(
+            "এই Supplier / Company delete করবেন?"
+        )
+    ) {
+        return;
+    }
+
+
+    suppliers.splice(
+        index,
+        1
+    );
+
+
+    saveData();
+
+
+    showSuppliers();
+
 }
 
 
@@ -2494,10 +3450,12 @@ function showCustomers() {
                 "Customer Name"
             )}
 
+
             ${input(
                 "custPhone",
                 "Phone"
             )}
+
 
             ${input(
                 "custAddress",
@@ -2507,16 +3465,16 @@ function showCustomers() {
 
             <button
                 class="btn btn-primary"
-                type="submit">
-
+                type="submit"
+            >
                 💾 Save Customer
-
             </button>
 
         </form>
 
 
         <hr style="margin:25px 0;">
+
 
         <div id="customerList"></div>
 
@@ -2548,14 +3506,17 @@ function showCustomers() {
                 );
 
                 return;
+
             }
 
 
             customers.push({
 
-                id: Date.now(),
+                id:
+                    Date.now(),
 
-                name: name,
+                name:
+                    name,
 
                 phone:
                     document.getElementById(
@@ -2572,8 +3533,16 @@ function showCustomers() {
 
             saveData();
 
+
+            alert(
+                "Customer saved!"
+            );
+
+
             showCustomers();
+
         };
+
 }
 
 
@@ -2584,6 +3553,7 @@ function renderCustomers() {
             "customerList"
         );
 
+
     if (!box) return;
 
 
@@ -2593,6 +3563,7 @@ function renderCustomers() {
             "<p>কোনো Customer নেই।</p>";
 
         return;
+
     }
 
 
@@ -2612,25 +3583,47 @@ function renderCustomers() {
                     <th>Name</th>
                     <th>Phone</th>
                     <th>Address</th>
+                    <th>Action</th>
 
                 </tr>
 
 
                 ${customers.map(
-                    c => `
+                    (c, i) => `
 
                     <tr>
 
                         <td>
-                            ${escapeHTML(c.name)}
+                            ${escapeHTML(
+                                c.name
+                            )}
                         </td>
 
-                        <td>
-                            ${escapeHTML(c.phone)}
-                        </td>
 
                         <td>
-                            ${escapeHTML(c.address)}
+                            ${escapeHTML(
+                                c.phone
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHTML(
+                                c.address
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            <button
+                                onclick="
+                                    deleteCustomer(${i})
+                                "
+                            >
+                                🗑️ Delete
+                            </button>
+
                         </td>
 
                     </tr>
@@ -2641,7 +3634,34 @@ function renderCustomers() {
             </table>
 
         </div>
+
     `;
+
+}
+
+
+function deleteCustomer(index) {
+
+    if (
+        !confirm(
+            "এই Customer delete করবেন?"
+        )
+    ) {
+        return;
+    }
+
+
+    customers.splice(
+        index,
+        1
+    );
+
+
+    saveData();
+
+
+    showCustomers();
+
 }
 
 
@@ -2655,7 +3675,9 @@ function showReports() {
         sales.reduce(
             (sum, s) =>
                 sum +
-                Number(s.total || 0),
+                Number(
+                    s.total || 0
+                ),
             0
         );
 
@@ -2664,7 +3686,9 @@ function showReports() {
         purchases.reduce(
             (sum, p) =>
                 sum +
-                Number(p.total || 0),
+                Number(
+                    p.total || 0
+                ),
             0
         );
 
@@ -2679,7 +3703,9 @@ function showReports() {
             .reduce(
                 (sum, s) =>
                     sum +
-                    Number(s.total || 0),
+                    Number(
+                        s.total || 0
+                    ),
                 0
             );
 
@@ -2687,8 +3713,12 @@ function showReports() {
     const low =
         medicines.filter(
             m =>
-                Number(m.stock || 0) <=
-                Number(m.reorder || 0)
+                Number(
+                    m.stock || 0
+                ) <=
+                Number(
+                    m.reorder || 0
+                )
         );
 
 
@@ -2699,16 +3729,22 @@ function showReports() {
                 if (!m.expiry)
                     return false;
 
+
                 const days =
                     (
-                        new Date(m.expiry) -
+                        new Date(
+                            m.expiry
+                        ) -
                         new Date()
-                    ) / 86400000;
+                    ) /
+                    86400000;
+
 
                 return (
                     days >= 0 &&
                     days <= 30
                 );
+
             }
         );
 
@@ -2726,7 +3762,9 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(todaySales)}
+                    ${money(
+                        todaySales
+                    )}
                 </div>
 
             </div>
@@ -2739,7 +3777,9 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(totalSales)}
+                    ${money(
+                        totalSales
+                    )}
                 </div>
 
             </div>
@@ -2752,7 +3792,9 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(totalPurchase)}
+                    ${money(
+                        totalPurchase
+                    )}
                 </div>
 
             </div>
@@ -2790,13 +3832,17 @@ function showReports() {
                     <p>
 
                         <b>
-                            ${escapeHTML(m.name)}
+                            ${escapeHTML(
+                                m.name
+                            )}
                         </b>
 
-                        — Stock:
+                        —
+                        Stock:
                         ${m.stock}
 
                     </p>
+
                 `
                 ).join("")
 
@@ -2825,13 +3871,19 @@ function showReports() {
                     <p>
 
                         <b>
-                            ${escapeHTML(m.name)}
+                            ${escapeHTML(
+                                m.name
+                            )}
                         </b>
 
-                        — Expiry:
-                        ${m.expiry}
+                        —
+                        Expiry:
+                        ${escapeHTML(
+                            m.expiry
+                        )}
 
                     </p>
+
                 `
                 ).join("")
 
@@ -2849,19 +3901,19 @@ function showReports() {
 
         <button
             class="btn btn-primary"
-            onclick="window.print()">
-
+            onclick="window.print()"
+        >
             🖨️ Print Report
-
         </button>
 
         `
     );
+
 }
 
 
 // ==========================================
-// OLD BUTTON COMPATIBILITY
+// COMPATIBILITY
 // ==========================================
 
 function comingSoon(name) {
@@ -2872,35 +3924,48 @@ function comingSoon(name) {
     ) {
 
         showSales();
+
         return;
+
     }
 
 
     if (name === "Purchase") {
 
         showPurchase();
+
         return;
+
     }
 
 
-    if (name === "Suppliers") {
+    if (
+        name === "Suppliers" ||
+        name === "Supplier"
+    ) {
 
         showSuppliers();
+
         return;
+
     }
 
 
     if (name === "Customers") {
 
         showCustomers();
+
         return;
+
     }
 
 
     if (name === "Reports") {
 
         showReports();
+
         return;
+
     }
 
 
@@ -2908,6 +3973,7 @@ function comingSoon(name) {
         name +
         " available soon."
     );
+
 }
 
 
@@ -2926,10 +3992,15 @@ function toggleMenu() {
     if (nav) {
 
         nav.style.display =
-            nav.style.display === "none"
+            nav.style.display ===
+            "none"
+
                 ? "flex"
+
                 : "none";
+
     }
+
 }
 
 
@@ -2941,6 +4012,7 @@ function clearMedicineForm() {
 
     editingMedicineIndex = -1;
 
+
     const form =
         document.getElementById(
             "medicineForm"
@@ -2948,6 +4020,9 @@ function clearMedicineForm() {
 
 
     if (form) {
+
         form.reset();
+
     }
+
 }
