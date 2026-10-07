@@ -7011,7 +7011,7 @@ function showAdminSettings() {
     "
 >
     ⚙️ Admin Settings
-</button>
+                </button>
 
                 <button
                     type="button"
