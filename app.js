@@ -6954,27 +6954,4 @@ function openPharmacySettings() {
 }
 
 
-// ==========================================
-// START APP
-// ==========================================
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        setupDefaultAdmin();
-
-
-        if (isLoggedIn()) {
-
-            setNavVisible(true);
-
-            showDashboard();
-
-        } else {
-
-            showLogin();
-        }
-
-    }
-);
