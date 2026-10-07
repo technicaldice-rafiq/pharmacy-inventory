@@ -801,6 +801,7 @@ layout(
         class="form-control"
         placeholder="Medicine name লিখুন বা তালিকা থেকে নির্বাচন করুন"
         autocomplete="off"
+        onchange="fillMedicineFromDatabase()"
         style="
             width:100%;
             padding:10px;
