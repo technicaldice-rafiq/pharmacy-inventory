@@ -6101,261 +6101,288 @@ if (form) {
 // ==========================================
 // END
 // ==========================================
+
 // ==========================================
-// ADMIN LOGIN + SECURITY
+// PHARMACY LOGIN + DASHBOARD SETTINGS
 // ==========================================
 
 const ADMIN_USERNAME_KEY = "pharmacy_admin_username";
 const ADMIN_PASSWORD_KEY = "pharmacy_admin_password";
 const ADMIN_LOGIN_KEY = "pharmacy_admin_logged_in";
 
+const PHARMACY_NAME_KEY = "pharmacy_name";
+const PHARMACY_LOGO_KEY = "pharmacy_logo";
+
 
 // ==========================================
-// DEFAULT ADMIN ACCOUNT
+// DEFAULT ADMIN
 // ==========================================
 
 function setupDefaultAdmin() {
 
     if (!localStorage.getItem(ADMIN_USERNAME_KEY)) {
-
         localStorage.setItem(
             ADMIN_USERNAME_KEY,
             "admin"
         );
-
     }
 
-
     if (!localStorage.getItem(ADMIN_PASSWORD_KEY)) {
-
         localStorage.setItem(
             ADMIN_PASSWORD_KEY,
             "1234"
         );
-
     }
 
+    if (!localStorage.getItem(PHARMACY_NAME_KEY)) {
+        localStorage.setItem(
+            PHARMACY_NAME_KEY,
+            "Pharmacy Inventory Pro"
+        );
+    }
 }
 
 
 // ==========================================
-// LOGIN STATUS
+// LOGIN CHECK
 // ==========================================
 
 function isLoggedIn() {
 
-    return (
-        localStorage.getItem(
-            ADMIN_LOGIN_KEY
-        ) === "true"
-    );
-
+    return localStorage.getItem(
+        ADMIN_LOGIN_KEY
+    ) === "true";
 }
 
 
 // ==========================================
-// SHOW LOGIN
+// HIDE / SHOW NAVIGATION
+// ==========================================
+
+function setNavVisible(show) {
+
+    const nav = document.querySelector("nav");
+
+    if (nav) {
+        nav.style.display =
+            show ? "" : "none";
+    }
+}
+
+
+// ==========================================
+// LOGIN PAGE
 // ==========================================
 
 function showLogin() {
 
     setupDefaultAdmin();
 
+    setNavVisible(false);
 
-    const root =
+    const app =
         document.getElementById("app");
 
+    if (!app) return;
 
-    if (!root) return;
-
-
-    root.innerHTML = `
+    app.innerHTML = `
 
         <div style="
-            min-height:80vh;
+            min-height:85vh;
             display:flex;
             align-items:center;
             justify-content:center;
             padding:20px;
-            box-sizing:border-box;
         ">
 
             <div style="
                 width:100%;
-                max-width:420px;
+                max-width:400px;
                 background:#fff;
                 padding:30px;
-                border-radius:18px;
-                box-shadow:0 8px 30px rgba(0,0,0,.12);
-                box-sizing:border-box;
+                border-radius:20px;
+                box-shadow:0 8px 30px rgba(0,0,0,.15);
             ">
 
                 <div style="
                     text-align:center;
-                    margin-bottom:25px;
+                    margin-bottom:15px;
                 ">
 
-                    <div style="
-                        font-size:55px;
-                    ">
+                    <div id="loginLogo"
+                        style="
+                            font-size:60px;
+                            margin-bottom:10px;
+                        ">
                         💊
                     </div>
 
-                    <h2 style="
-                        margin:8px 0;
-                    ">
+                    <h2 id="loginPharmacyName">
                         Pharmacy Inventory Pro
                     </h2>
 
-                    <p style="
-                        color:#666;
-                        margin:0;
-                    ">
-                        🔐 Admin Login
+                    <p style="color:#666;">
+                        🔐 Admin Sign In
                     </p>
 
                 </div>
 
 
-                <div style="
-                    margin-bottom:15px;
-                ">
+                <label>
+                    <b>Username</b>
+                </label>
 
-                    <label>
-                        <b>Username</b>
-                    </label>
-
-                    <input
-                        id="loginUsername"
-                        type="text"
-                        autocomplete="username"
-                        placeholder="Username"
-                        class="form-control"
-                        style="
-                            width:100%;
-                            padding:13px;
-                            margin-top:6px;
-                            box-sizing:border-box;
-                            border:1px solid #ccc;
-                            border-radius:8px;
-                        "
-                    >
-
-                </div>
+                <input
+                    id="loginUsername"
+                    type="text"
+                    placeholder="Enter username"
+                    autocomplete="username"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:13px;
+                        margin:7px 0 15px;
+                        border:1px solid #ccc;
+                        border-radius:9px;
+                    "
+                >
 
 
-                <div style="
-                    margin-bottom:18px;
-                ">
+                <label>
+                    <b>Password</b>
+                </label>
 
-                    <label>
-                        <b>Password</b>
-                    </label>
-
-                    <input
-                        id="loginPassword"
-                        type="password"
-                        autocomplete="current-password"
-                        placeholder="Password"
-                        class="form-control"
-                        style="
-                            width:100%;
-                            padding:13px;
-                            margin-top:6px;
-                            box-sizing:border-box;
-                            border:1px solid #ccc;
-                            border-radius:8px;
-                        "
-                        onkeydown="
-                            if(event.key==='Enter'){
-                                adminLogin();
-                            }
-                        "
-                    >
-
-                </div>
+                <input
+                    id="loginPassword"
+                    type="password"
+                    placeholder="Enter password"
+                    autocomplete="current-password"
+                    onkeydown="
+                        if(event.key==='Enter'){
+                            adminLogin();
+                        }
+                    "
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:13px;
+                        margin:7px 0 18px;
+                        border:1px solid #ccc;
+                        border-radius:9px;
+                    "
+                >
 
 
                 <button
                     type="button"
-                    class="btn btn-primary"
                     onclick="adminLogin()"
                     style="
                         width:100%;
-                        padding:13px;
-                        font-size:16px;
+                        padding:14px;
+                        font-size:17px;
+                        border:0;
+                        border-radius:9px;
+                        cursor:pointer;
                     "
                 >
-                    🔐 Login
+                    🔐 Sign In
                 </button>
-
-
-                <div style="
-                    margin-top:18px;
-                    padding:12px;
-                    background:#f5f5f5;
-                    border-radius:8px;
-                    font-size:13px;
-                    color:#666;
-                    text-align:center;
-                ">
-
-                    প্রথম Login-এর জন্য:<br>
-
-                    <b>Username:</b> admin<br>
-                    <b>Password:</b> 1234
-
-                </div>
 
             </div>
 
         </div>
-
     `;
 
 
-    setTimeout(
-        function() {
+    // Saved pharmacy branding
 
-            document
-                .getElementById(
-                    "loginUsername"
-                )
-                ?.focus();
+    const savedName =
+        localStorage.getItem(
+            PHARMACY_NAME_KEY
+        );
 
-        },
-        100
-    );
+    const savedLogo =
+        localStorage.getItem(
+            PHARMACY_LOGO_KEY
+        );
 
+
+    if (savedName) {
+
+        const name =
+            document.getElementById(
+                "loginPharmacyName"
+            );
+
+        if (name) {
+            name.textContent =
+                savedName;
+        }
+    }
+
+
+    if (savedLogo) {
+
+        const logo =
+            document.getElementById(
+                "loginLogo"
+            );
+
+        if (logo) {
+
+            logo.innerHTML = `
+                <img
+                    src="${savedLogo}"
+                    style="
+                        width:80px;
+                        height:80px;
+                        object-fit:contain;
+                        border-radius:15px;
+                    "
+                >
+            `;
+        }
+    }
+
+
+    setTimeout(function() {
+
+        const username =
+            document.getElementById(
+                "loginUsername"
+            );
+
+        if (username) {
+            username.focus();
+        }
+
+    }, 100);
 }
 
 
 // ==========================================
-// LOGIN
+// ADMIN LOGIN
 // ==========================================
 
 function adminLogin() {
 
     setupDefaultAdmin();
 
-
     const username =
         document.getElementById(
             "loginUsername"
-        )?.value.trim();
-
+        )?.value.trim() || "";
 
     const password =
         document.getElementById(
             "loginPassword"
-        )?.value;
+        )?.value || "";
 
 
     const savedUsername =
         localStorage.getItem(
             ADMIN_USERNAME_KEY
         );
-
 
     const savedPassword =
         localStorage.getItem(
@@ -6370,14 +6397,24 @@ function adminLogin() {
         );
 
         return;
-
     }
 
 
     if (
-        username !== savedUsername ||
-        password !== savedPassword
+        username === savedUsername &&
+        password === savedPassword
     ) {
+
+        localStorage.setItem(
+            ADMIN_LOGIN_KEY,
+            "true"
+        );
+
+        setNavVisible(true);
+
+        showDashboard();
+
+    } else {
 
         alert(
             "❌ Username অথবা Password ভুল!"
@@ -6391,28 +6428,10 @@ function adminLogin() {
         if (pass) {
 
             pass.value = "";
+
             pass.focus();
-
         }
-
-        return;
-
     }
-
-
-    localStorage.setItem(
-        ADMIN_LOGIN_KEY,
-        "true"
-    );
-
-
-    alert(
-        "✅ Login successful!"
-    );
-
-
-    showDashboard();
-
 }
 
 
@@ -6427,9 +6446,7 @@ function adminLogout() {
             "আপনি কি Logout করতে চান?"
         )
     ) {
-
         return;
-
     }
 
 
@@ -6438,392 +6455,14 @@ function adminLogout() {
     );
 
 
-    saleCart = [];
+    if (
+        typeof saleCart !== "undefined"
+    ) {
+        saleCart = [];
+    }
 
 
     showLogin();
-
-}
-
-
-// ==========================================
-// CHANGE PASSWORD
-// ==========================================
-
-function showChangePassword() {
-
-    if (!isLoggedIn()) {
-
-        showLogin();
-
-        return;
-
-    }
-
-
-    layout(
-        "🔐 Change Admin Password",
-        `
-
-        <div style="
-            max-width:500px;
-        ">
-
-            <div style="
-                padding:15px;
-                background:#fff3cd;
-                border-radius:10px;
-                margin-bottom:20px;
-            ">
-
-                ⚠️ নতুন Password অবশ্যই
-                মনে রাখবেন।
-
-            </div>
-
-
-            ${input(
-                "oldAdminPassword",
-                "Current Password",
-                "password"
-            )}
-
-
-            ${input(
-                "newAdminPassword",
-                "New Password",
-                "password"
-            )}
-
-
-            ${input(
-                "confirmAdminPassword",
-                "Confirm New Password",
-                "password"
-            )}
-
-
-            <button
-                class="btn btn-primary"
-                onclick="changeAdminPassword()"
-            >
-                🔑 Change Password
-            </button>
-
-        </div>
-
-        `
-    );
-
-}
-
-
-// ==========================================
-// SAVE NEW PASSWORD
-// ==========================================
-
-function changeAdminPassword() {
-
-    if (!isLoggedIn()) {
-
-        showLogin();
-
-        return;
-
-    }
-
-
-    const oldPassword =
-        document.getElementById(
-            "oldAdminPassword"
-        )?.value;
-
-
-    const newPassword =
-        document.getElementById(
-            "newAdminPassword"
-        )?.value;
-
-
-    const confirmPassword =
-        document.getElementById(
-            "confirmAdminPassword"
-        )?.value;
-
-
-    const savedPassword =
-        localStorage.getItem(
-            ADMIN_PASSWORD_KEY
-        );
-
-
-    if (!oldPassword) {
-
-        alert(
-            "Current Password দিন।"
-        );
-
-        return;
-
-    }
-
-
-    if (
-        oldPassword !==
-        savedPassword
-    ) {
-
-        alert(
-            "❌ Current Password ভুল!"
-        );
-
-        return;
-
-    }
-
-
-    if (!newPassword) {
-
-        alert(
-            "New Password দিন।"
-        );
-
-        return;
-
-    }
-
-
-    if (newPassword.length < 4) {
-
-        alert(
-            "Password কমপক্ষে ৪ অক্ষরের হতে হবে।"
-        );
-
-        return;
-
-    }
-
-
-    if (
-        newPassword !==
-        confirmPassword
-    ) {
-
-        alert(
-            "New Password এবং Confirm Password মিলছে না।"
-        );
-
-        return;
-
-    }
-
-
-    if (
-        newPassword ===
-        oldPassword
-    ) {
-
-        alert(
-            "নতুন Password আগের Password-এর মতো হতে পারবে না।"
-        );
-
-        return;
-
-    }
-
-
-    localStorage.setItem(
-        ADMIN_PASSWORD_KEY,
-        newPassword
-    );
-
-
-    alert(
-        "✅ Password successfully changed!"
-    );
-
-
-    showDashboard();
-
-}
-
-
-// ==========================================
-// ADMIN SECURITY PANEL
-// ==========================================
-
-function showAdminSecurity() {
-
-    if (!isLoggedIn()) {
-
-        showLogin();
-
-        return;
-
-    }
-
-
-    const username =
-        localStorage.getItem(
-            ADMIN_USERNAME_KEY
-        ) ||
-        "admin";
-
-
-    layout(
-        "🛡️ Admin Security",
-        `
-
-        <div style="
-            max-width:600px;
-        ">
-
-            <div style="
-                padding:18px;
-                border:1px solid #ddd;
-                border-radius:12px;
-                margin-bottom:20px;
-            ">
-
-                <h3>
-                    👤 Admin Account
-                </h3>
-
-                <p>
-                    <b>Username:</b>
-                    ${escapeHTML(username)}
-                </p>
-
-                <p>
-                    <b>Status:</b>
-                    <span style="
-                        color:green;
-                        font-weight:bold;
-                    ">
-                        ● Logged In
-                    </span>
-                </p>
-
-            </div>
-
-
-            <button
-                class="btn btn-primary"
-                onclick="showChangePassword()"
-                style="
-                    margin-right:8px;
-                    margin-bottom:10px;
-                "
-            >
-                🔑 Change Password
-            </button>
-
-
-            <button
-                onclick="adminLogout()"
-                style="
-                    margin-bottom:10px;
-                "
-            >
-                🚪 Logout
-            </button>
-
-        </div>
-
-        `
-    );
-
-}
-
-
-// ==========================================
-// PROTECT ALL IMPORTANT PAGES
-// ==========================================
-
-(function enableAdminSecurity() {
-
-    setupDefaultAdmin();
-
-
-    const protectedFunctions = [
-
-        "showDashboard",
-
-        "showMedicines",
-
-        "showPurchase",
-
-        "showSales",
-
-        "showSuppliers",
-
-        "showCustomers",
-
-        "showDueCollection",
-
-        "showStockAdjustment",
-
-        "showLowStock",
-
-        "showExpiryAlert",
-
-        "showReports",
-
-        "showBackup"
-
-    ];
-
-
-    protectedFunctions.forEach(
-        function(functionName) {
-
-            const original =
-                window[functionName];
-
-
-            if (
-                typeof original !==
-                "function"
-            ) {
-
-                return;
-
-            }
-
-
-            window[functionName] =
-                function() {
-
-                    if (!isLoggedIn()) {
-
-                        showLogin();
-
-                        return;
-
-                    }
-
-
-                    return original.apply(
-                        this,
-                        arguments
-                    );
-
-                };
-
-        }
-    );
-
-})();
-
-
-// ==========================================
-// SAFE NAVIGATION
-// ==========================================
-
-function openAdminSecurity() {
-
-    showAdminSecurity();
-
 }
 
 
@@ -6838,134 +6477,137 @@ function checkAdminSession() {
         showLogin();
 
         return false;
-
     }
 
-
     return true;
-
 }
 
 
 // ==========================================
-// AUTO LOGOUT WHEN TAB/CLOSE IS NOT USED
-// ==========================================
-// Login থাকবে localStorage-এ,
-// তাই browser refresh করলে Login থাকবে।
-// Logout করলে আবার Login লাগবে.
+// PHARMACY SETTINGS
 // ==========================================
 
-
-// ==========================================
-// END ADMIN SECURITY
-// ==========================================
-// ==========================================
-// ADMIN SETTINGS PAGE
-// ==========================================
-
-function showAdminSettings() {
+function showPharmacySettings() {
 
     if (!checkAdminSession()) return;
 
-    const pharmacyName =
-        localStorage.getItem("pharmacy_name") ||
+
+    const name =
+        localStorage.getItem(
+            PHARMACY_NAME_KEY
+        ) ||
         "Pharmacy Inventory Pro";
 
-    const pharmacyLogo =
-        localStorage.getItem("pharmacy_logo") || "";
 
-    const username =
-        localStorage.getItem(ADMIN_USERNAME_KEY) ||
-        "admin";
+    const logo =
+        localStorage.getItem(
+            PHARMACY_LOGO_KEY
+        ) || "";
+
 
     layout(
-        "⚙️ Admin Settings",
+        "🏥 Pharmacy Settings",
 
         `
+
         <div style="
-            max-width:650px;
+            max-width:600px;
             margin:auto;
         ">
 
-            <!-- PHARMACY BRANDING -->
+
             <div style="
                 background:white;
                 padding:20px;
                 border-radius:15px;
                 margin-bottom:20px;
-                box-shadow:0 3px 12px rgba(0,0,0,.08);
             ">
 
-                <h3>🏥 Pharmacy Information</h3>
+                <h3>
+                    🏥 Pharmacy Information
+                </h3>
+
 
                 <label>
-                    <b>Pharmacy Name</b>
+                    <b>Pharmacy / Company Name</b>
                 </label>
 
+
                 <input
-                    id="settingPharmacyName"
+                    id="pharmacyNameInput"
                     type="text"
-                    value="${escapeHTML(pharmacyName)}"
+                    value="${escapeHTML(name)}"
                     placeholder="Pharmacy Name"
                     style="
                         width:100%;
                         box-sizing:border-box;
-                        padding:12px;
-                        margin:8px 0 15px;
+                        padding:13px;
+                        margin:8px 0 18px;
                         border:1px solid #ccc;
                         border-radius:8px;
                     "
                 >
 
+
                 <label>
                     <b>Pharmacy Logo</b>
                 </label>
 
+
                 <input
-                    id="settingPharmacyLogo"
+                    id="pharmacyLogoInput"
                     type="file"
                     accept="image/*"
                     onchange="previewPharmacyLogo(event)"
                     style="
                         width:100%;
-                        margin:8px 0 15px;
+                        margin:10px 0 15px;
                     "
                 >
+
 
                 <div
                     id="pharmacyLogoPreview"
                     style="
                         text-align:center;
-                        margin:10px 0;
+                        margin:15px 0;
                     "
                 >
+
                     ${
-                        pharmacyLogo
+                        logo
                         ?
-                        `<img
-                            src="${pharmacyLogo}"
+                        `
+                        <img
+                            src="${logo}"
                             style="
-                                width:100px;
-                                height:100px;
+                                width:110px;
+                                height:110px;
                                 object-fit:contain;
-                                border-radius:12px;
+                                border-radius:15px;
                             "
-                        >`
+                        >
+                        `
                         :
-                        `<div style="
+                        `
+                        <div style="
                             font-size:60px;
-                        ">💊</div>`
+                        ">
+                            💊
+                        </div>
+                        `
                     }
+
                 </div>
+
 
                 <button
                     type="button"
                     onclick="savePharmacySettings()"
                     style="
                         width:100%;
-                        padding:13px;
+                        padding:14px;
                         font-size:16px;
-                        cursor:pointer;
                     "
                 >
                     💾 Save Pharmacy Settings
@@ -6974,21 +6616,16 @@ function showAdminSettings() {
             </div>
 
 
-            <!-- ADMIN ACCOUNT -->
             <div style="
                 background:white;
                 padding:20px;
                 border-radius:15px;
-                margin-bottom:20px;
-                box-shadow:0 3px 12px rgba(0,0,0,.08);
             ">
 
-                <h3>🔐 Admin Account</h3>
+                <h3>
+                    🔐 Admin Security
+                </h3>
 
-                <p>
-                    <b>Current Username:</b>
-                    ${escapeHTML(username)}
-                </p>
 
                 <button
                     type="button"
@@ -7001,29 +6638,7 @@ function showAdminSettings() {
                 >
                     🔑 Change Password
                 </button>
-                <button
-    type="button"
-    onclick="showAdminSettings()"
-    style="
-        width:100%;
-        padding:13px;
-        margin:5px 0;
-    "
->
-    ⚙️ Admin Settings
-                </button>
 
-                <button
-                    type="button"
-                    onclick="changeAdminUsername()"
-                    style="
-                        width:100%;
-                        padding:13px;
-                        margin:5px 0;
-                    "
-                >
-                    👤 Change Username
-                </button>
 
                 <button
                     type="button"
@@ -7040,6 +6655,7 @@ function showAdminSettings() {
             </div>
 
         </div>
+
         `
     );
 }
@@ -7051,18 +6667,25 @@ function showAdminSettings() {
 
 function previewPharmacyLogo(event) {
 
-    const file = event.target.files[0];
+    const file =
+        event.target.files[0];
 
     if (!file) return;
 
+
     if (!file.type.startsWith("image/")) {
 
-        alert("শুধু Image File নির্বাচন করুন।");
+        alert(
+            "শুধু Image File নির্বাচন করুন।"
+        );
 
         return;
     }
 
-    const reader = new FileReader();
+
+    const reader =
+        new FileReader();
+
 
     reader.onload = function(e) {
 
@@ -7071,58 +6694,70 @@ function previewPharmacyLogo(event) {
                 "pharmacyLogoPreview"
             );
 
+
         if (preview) {
 
             preview.innerHTML = `
+
                 <img
                     src="${e.target.result}"
                     style="
-                        width:100px;
-                        height:100px;
+                        width:110px;
+                        height:110px;
                         object-fit:contain;
-                        border-radius:12px;
+                        border-radius:15px;
                     "
                 >
+
             `;
+
 
             preview.dataset.logo =
                 e.target.result;
         }
     };
 
+
     reader.readAsDataURL(file);
 }
 
 
 // ==========================================
-// SAVE PHARMACY SETTINGS
+// SAVE PHARMACY NAME + LOGO
 // ==========================================
 
 function savePharmacySettings() {
 
     if (!checkAdminSession()) return;
 
+
     const name =
         document.getElementById(
-            "settingPharmacyName"
+            "pharmacyNameInput"
         )?.value.trim();
+
 
     const preview =
         document.getElementById(
             "pharmacyLogoPreview"
         );
 
+
     if (!name) {
 
-        alert("Pharmacy Name দিন।");
+        alert(
+            "Pharmacy / Company Name দিন।"
+        );
 
         return;
     }
 
+
     localStorage.setItem(
-        "pharmacy_name",
+        PHARMACY_NAME_KEY,
         name
     );
+
 
     if (
         preview &&
@@ -7130,137 +6765,216 @@ function savePharmacySettings() {
     ) {
 
         localStorage.setItem(
-            "pharmacy_logo",
+            PHARMACY_LOGO_KEY,
             preview.dataset.logo
         );
     }
 
+
     alert(
-        "✅ Pharmacy Settings সফলভাবে Save হয়েছে।"
+        "✅ Pharmacy Name এবং Logo Save হয়েছে।"
     );
 
-    showAdminSettings();
+
+    showDashboard();
 }
 
 
 // ==========================================
-// CHANGE ADMIN USERNAME
+// CHANGE PASSWORD
 // ==========================================
 
-function changeAdminUsername() {
+function showChangePassword() {
 
     if (!checkAdminSession()) return;
 
-    const current =
-        localStorage.getItem(
-            ADMIN_USERNAME_KEY
-        ) || "admin";
 
-    const newUsername =
-        prompt(
-            "নতুন Admin Username দিন:",
-            current
+    layout(
+        "🔑 Change Password",
+
+        `
+
+        <div style="
+            max-width:500px;
+            margin:auto;
+        ">
+
+            <label>
+                <b>Current Password</b>
+            </label>
+
+            <input
+                id="oldAdminPassword"
+                type="password"
+                style="
+                    width:100%;
+                    box-sizing:border-box;
+                    padding:12px;
+                    margin:7px 0 15px;
+                "
+            >
+
+
+            <label>
+                <b>New Password</b>
+            </label>
+
+            <input
+                id="newAdminPassword"
+                type="password"
+                style="
+                    width:100%;
+                    box-sizing:border-box;
+                    padding:12px;
+                    margin:7px 0 15px;
+                "
+            >
+
+
+            <label>
+                <b>Confirm New Password</b>
+            </label>
+
+            <input
+                id="confirmAdminPassword"
+                type="password"
+                style="
+                    width:100%;
+                    box-sizing:border-box;
+                    padding:12px;
+                    margin:7px 0 18px;
+                "
+            >
+
+
+            <button
+                type="button"
+                onclick="changeAdminPassword()"
+                style="
+                    width:100%;
+                    padding:13px;
+                "
+            >
+                🔑 Change Password
+            </button>
+
+        </div>
+
+        `
+    );
+}
+
+
+function changeAdminPassword() {
+
+    if (!checkAdminSession()) return;
+
+
+    const oldPassword =
+        document.getElementById(
+            "oldAdminPassword"
+        )?.value || "";
+
+
+    const newPassword =
+        document.getElementById(
+            "newAdminPassword"
+        )?.value || "";
+
+
+    const confirmPassword =
+        document.getElementById(
+            "confirmAdminPassword"
+        )?.value || "";
+
+
+    const savedPassword =
+        localStorage.getItem(
+            ADMIN_PASSWORD_KEY
         );
 
-    if (newUsername === null) return;
 
-    const username =
-        newUsername.trim();
-
-    if (username.length < 3) {
+    if (
+        oldPassword !== savedPassword
+    ) {
 
         alert(
-            "Username কমপক্ষে ৩ অক্ষরের হতে হবে।"
+            "❌ Current Password ভুল!"
         );
 
         return;
     }
 
+
+    if (newPassword.length < 4) {
+
+        alert(
+            "Password কমপক্ষে ৪ অক্ষরের হতে হবে।"
+        );
+
+        return;
+    }
+
+
+    if (
+        newPassword !== confirmPassword
+    ) {
+
+        alert(
+            "New Password এবং Confirm Password মিলছে না।"
+        );
+
+        return;
+    }
+
+
     localStorage.setItem(
-        ADMIN_USERNAME_KEY,
-        username
+        ADMIN_PASSWORD_KEY,
+        newPassword
     );
+
 
     alert(
-        "✅ Admin Username পরিবর্তন হয়েছে।"
+        "✅ Password successfully changed!"
     );
 
-    showAdminSettings();
+
+    showDashboard();
 }
 
 
 // ==========================================
-// UPDATE HEADER PHARMACY NAME + LOGO
+// ADD SETTINGS BUTTON TO DASHBOARD
 // ==========================================
 
-function updatePharmacyBranding() {
+function openPharmacySettings() {
 
-    const name =
-        localStorage.getItem(
-            "pharmacy_name"
-        ) || "Pharmacy Inventory Pro";
-
-    const logo =
-        localStorage.getItem(
-            "pharmacy_logo"
-        ) || "";
-
-    const header =
-        document.querySelector("header");
-
-    if (!header) return;
-
-    const title =
-        header.querySelector("h1");
-
-    if (title) {
-
-        title.innerHTML =
-            logo
-            ?
-            `
-            <img
-                src="${logo}"
-                style="
-                    width:45px;
-                    height:45px;
-                    object-fit:contain;
-                    vertical-align:middle;
-                    margin-right:8px;
-                "
-            >
-            ${escapeHTML(name)}
-            `
-            :
-            `💊 ${escapeHTML(name)}`;
-    }
-}
-
-
-// ==========================================
-// ADMIN SETTINGS BUTTON
-// ==========================================
-
-function openAdminSettings() {
-
-    showAdminSettings();
+    showPharmacySettings();
 
 }
 
 
 // ==========================================
-// LOAD BRANDING
+// START APP
 // ==========================================
 
 document.addEventListener(
     "DOMContentLoaded",
     function() {
 
-        setTimeout(function() {
+        setupDefaultAdmin();
 
-            updatePharmacyBranding();
 
-        }, 300);
+        if (isLoggedIn()) {
+
+            setNavVisible(true);
+
+            showDashboard();
+
+        } else {
+
+            showLogin();
+        }
 
     }
 );
