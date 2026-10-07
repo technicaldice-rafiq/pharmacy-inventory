@@ -107,6 +107,8 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
+        setupDefaultAdmin();
+
         if (isLoggedIn()) {
             showDashboard();
         } else {
@@ -115,7 +117,6 @@ document.addEventListener(
 
     }
 );
-
 
 // ==========================================
 // HELPERS
