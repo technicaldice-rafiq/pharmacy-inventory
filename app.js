@@ -2,40 +2,104 @@
 // PHARMACY INVENTORY PRO - COMPLETE VERSION
 // ==========================================
 
-let medicines = JSON.parse(localStorage.getItem("pharmacy_medicines") || "[]");
-let purchases = JSON.parse(localStorage.getItem("pharmacy_purchases") || "[]");
-let sales = JSON.parse(localStorage.getItem("pharmacy_sales") || "[]");
-let customers = JSON.parse(localStorage.getItem("pharmacy_customers") || "[]");
-let suppliers = JSON.parse(localStorage.getItem("pharmacy_suppliers") || "[]");
+let medicines = JSON.parse(
+    localStorage.getItem("pharmacy_medicines") || "[]"
+);
+
+let purchases = JSON.parse(
+    localStorage.getItem("pharmacy_purchases") || "[]"
+);
+
+let sales = JSON.parse(
+    localStorage.getItem("pharmacy_sales") || "[]"
+);
+
+let customers = JSON.parse(
+    localStorage.getItem("pharmacy_customers") || "[]"
+);
+
+let suppliers = JSON.parse(
+    localStorage.getItem("pharmacy_suppliers") || "[]"
+);
 
 let saleCart = [];
+let editingMedicineIndex = -1;
+
+
+// ==========================================
+// SAVE DATA
+// ==========================================
 
 function saveData() {
-    localStorage.setItem("pharmacy_medicines", JSON.stringify(medicines));
-    localStorage.setItem("pharmacy_purchases", JSON.stringify(purchases));
-    localStorage.setItem("pharmacy_sales", JSON.stringify(sales));
-    localStorage.setItem("pharmacy_customers", JSON.stringify(customers));
-    localStorage.setItem("pharmacy_suppliers", JSON.stringify(suppliers));
+
+    localStorage.setItem(
+        "pharmacy_medicines",
+        JSON.stringify(medicines)
+    );
+
+    localStorage.setItem(
+        "pharmacy_purchases",
+        JSON.stringify(purchases)
+    );
+
+    localStorage.setItem(
+        "pharmacy_sales",
+        JSON.stringify(sales)
+    );
+
+    localStorage.setItem(
+        "pharmacy_customers",
+        JSON.stringify(customers)
+    );
+
+    localStorage.setItem(
+        "pharmacy_suppliers",
+        JSON.stringify(suppliers)
+    );
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    showDashboard();
-});
+
+// ==========================================
+// START
+// ==========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        showDashboard();
+    }
+);
+
 
 // ==========================================
 // HELPERS
 // ==========================================
 
 function money(n) {
-    return "৳ " + Number(n || 0).toFixed(2);
+
+    return "৳ " +
+        Number(n || 0).toFixed(2);
 }
+
 
 function today() {
-    return new Date().toISOString().split("T")[0];
+
+    return new Date()
+        .toISOString()
+        .split("T")[0];
 }
 
+
+function currentTime() {
+
+    return new Date()
+        .toLocaleTimeString();
+}
+
+
 function escapeHTML(value) {
-    return String(value || "")
+
+    return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -43,11 +107,15 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
+
 function app() {
+
     return document.getElementById("app");
 }
 
+
 function layout(title, html) {
+
     app().innerHTML = `
         <div class="panel">
             <h2>${title}</h2>
@@ -56,18 +124,38 @@ function layout(title, html) {
     `;
 }
 
-function input(id, label, type = "text", value = "") {
+
+function input(
+    id,
+    label,
+    type = "text",
+    value = ""
+) {
+
     return `
         <div style="margin-bottom:12px;">
-            <label><b>${label}</b></label>
-            <input id="${id}"
-                   type="${type}"
-                   value="${escapeHTML(value)}"
-                   class="form-control"
-                   style="width:100%;padding:10px;margin-top:5px;box-sizing:border-box;">
+
+            <label>
+                <b>${label}</b>
+            </label>
+
+            <input
+                id="${id}"
+                type="${type}"
+                value="${escapeHTML(value)}"
+                class="form-control"
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin-top:5px;
+                    box-sizing:border-box;
+                "
+            >
+
         </div>
     `;
 }
+
 
 // ==========================================
 // DASHBOARD
@@ -77,10 +165,16 @@ function showDashboard() {
 
     const salesToday = sales
         .filter(s => s.date === today())
-        .reduce((sum, s) => sum + Number(s.total || 0), 0);
+        .reduce(
+            (sum, s) =>
+                sum + Number(s.total || 0),
+            0
+        );
 
-    const lowStock = medicines.filter(m =>
-        Number(m.stock || 0) <= Number(m.reorder || 0)
+    const lowStock = medicines.filter(
+        m =>
+            Number(m.stock || 0) <=
+            Number(m.reorder || 0)
     ).length;
 
     const expiry = medicines.filter(m => {
@@ -90,7 +184,8 @@ function showDashboard() {
         const d = new Date(m.expiry);
         const now = new Date();
 
-        const days = (d - now) / 86400000;
+        const days =
+            (d - now) / 86400000;
 
         return days >= 0 && days <= 30;
 
@@ -102,55 +197,73 @@ function showDashboard() {
 
             <div class="card">
                 <h3>💰 Today's Sales</h3>
-                <div class="card-value">${money(salesToday)}</div>
+                <div class="card-value">
+                    ${money(salesToday)}
+                </div>
             </div>
 
             <div class="card">
                 <h3>💊 Medicines</h3>
-                <div class="card-value">${medicines.length}</div>
+                <div class="card-value">
+                    ${medicines.length}
+                </div>
             </div>
 
             <div class="card">
                 <h3>⚠️ Low Stock</h3>
-                <div class="card-value">${lowStock}</div>
+                <div class="card-value">
+                    ${lowStock}
+                </div>
             </div>
 
             <div class="card">
                 <h3>📅 Near Expiry</h3>
-                <div class="card-value">${expiry}</div>
+                <div class="card-value">
+                    ${expiry}
+                </div>
             </div>
 
         </div>
+
 
         <div class="panel" style="margin-top:20px;">
 
             <h3>⚡ Quick Actions</h3>
 
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div style="
+                display:flex;
+                gap:10px;
+                flex-wrap:wrap;
+            ">
 
-                <button class="btn btn-primary"
-                        onclick="showMedicines()">
+                <button
+                    class="btn btn-primary"
+                    onclick="showMedicines()">
                     💊 Add Medicine
                 </button>
 
-                <button class="btn btn-primary"
-                        onclick="showPurchase()">
+                <button
+                    class="btn btn-primary"
+                    onclick="showPurchase()">
                     📦 Purchase
                 </button>
 
-                <button class="btn btn-primary"
-                        onclick="showSales()">
+                <button
+                    class="btn btn-primary"
+                    onclick="showSales()">
                     🧾 New Sale
                 </button>
 
-                <button class="btn btn-primary"
-                        onclick="showReports()">
+                <button
+                    class="btn btn-primary"
+                    onclick="showReports()">
                     📊 Reports
                 </button>
 
             </div>
 
         </div>
+
 
         <div class="panel" style="margin-top:20px;">
 
@@ -162,55 +275,84 @@ function showDashboard() {
     `;
 }
 
+
 function recentSalesHTML() {
 
-    const recent = [...sales].reverse().slice(0, 5);
+    const recent =
+        [...sales]
+        .reverse()
+        .slice(0, 5);
 
     if (!recent.length) {
-        return "<p>এখনো কোনো বিক্রয় নেই।</p>";
+
+        return `
+            <p>
+                এখনো কোনো বিক্রয় নেই।
+            </p>
+        `;
     }
 
     return `
+
         <div style="overflow:auto;">
 
-        <table>
+            <table>
 
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Medicine</th>
-                    <th>Qty</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                ${recent.map(s => `
+                <thead>
 
                     <tr>
-
-                        <td>${s.date}</td>
-
-                        <td>
-                            ${escapeHTML(s.medicine)}
-                        </td>
-
-                        <td>${s.qty}</td>
-
-                        <td>${money(s.total)}</td>
-
+                        <th>Date</th>
+                        <th>Medicine</th>
+                        <th>Qty</th>
+                        <th>Total</th>
                     </tr>
 
-                `).join("")}
+                </thead>
 
-            </tbody>
+                <tbody>
 
-        </table>
+                    ${recent.map(s => `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHTML(s.date)}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    s.medicine ||
+                                    (
+                                        s.items &&
+                                        s.items.length
+                                            ? s.items
+                                                .map(i => i.medicine)
+                                                .join(", ")
+                                            : "-"
+                                    )
+                                )}
+                            </td>
+
+                            <td>
+                                ${s.qty || "-"}
+                            </td>
+
+                            <td>
+                                ${money(s.total)}
+                            </td>
+
+                        </tr>
+
+                    `).join("")}
+
+                </tbody>
+
+            </table>
 
         </div>
     `;
 }
+
 
 // ==========================================
 // MEDICINES
@@ -218,153 +360,562 @@ function recentSalesHTML() {
 
 function showMedicines() {
 
-    layout("💊 Medicine Management", `
+    layout(
+        "💊 Medicine Management",
+        `
 
         <form id="medicineForm">
 
-            ${input("mName", "Medicine Name *")}
+            ${input(
+                "mName",
+                "Medicine Name *"
+            )}
 
-            ${input("mGeneric", "Generic Name")}
+            ${input(
+                "mGeneric",
+                "Generic Name"
+            )}
 
-            ${input("mCompany", "Company")}
+            ${input(
+                "mCompany",
+                "Company"
+            )}
 
-            ${input("mStrength", "Strength")}
+            ${input(
+                "mStrength",
+                "Strength"
+            )}
 
-            ${input("mBatch", "Batch Number")}
+            ${input(
+                "mBatch",
+                "Batch Number"
+            )}
 
-            ${input("mExpiry", "Expiry Date", "date")}
+            ${input(
+                "mExpiry",
+                "Expiry Date",
+                "date"
+            )}
 
-            ${input("mStock", "Opening Stock", "number", "0")}
+            ${input(
+                "mStock",
+                "Opening Stock",
+                "number",
+                "0"
+            )}
 
-            ${input("mReorder", "Reorder Level", "number", "10")}
+            ${input(
+                "mReorder",
+                "Reorder Level",
+                "number",
+                "10"
+            )}
 
-            ${input("mPurchase", "Purchase Price", "number", "0")}
+            ${input(
+                "mPurchase",
+                "Purchase Price",
+                "number",
+                "0"
+            )}
 
-            ${input("mSale", "Sale Price", "number", "0")}
+            ${input(
+                "mSale",
+                "Sale Price",
+                "number",
+                "0"
+            )}
 
-            <button type="submit"
-                    class="btn btn-primary">
+            <button
+                id="medicineSaveBtn"
+                type="submit"
+                class="btn btn-primary">
 
                 💾 Save Medicine
 
             </button>
 
+            <button
+                id="medicineCancelBtn"
+                type="button"
+                onclick="cancelMedicineEdit()"
+                style="
+                    display:none;
+                    margin-left:8px;
+                ">
+
+                ❌ Cancel Edit
+
+            </button>
+
         </form>
+
 
         <hr style="margin:25px 0;">
 
+
         <h3>📋 Medicine List</h3>
 
-        <input id="medicineSearch"
-               class="form-control"
-               placeholder="🔍 Search medicine..."
-               oninput="renderMedicines()"
-               style="width:100%;padding:10px;box-sizing:border-box;margin-bottom:15px;">
+
+        <input
+            id="medicineSearch"
+            class="form-control"
+            placeholder="🔍 Search medicine..."
+            oninput="renderMedicines()"
+            style="
+                width:100%;
+                padding:10px;
+                box-sizing:border-box;
+                margin-bottom:15px;
+            "
+        >
+
 
         <div id="medicineList"></div>
 
-    `);
+        `
+    );
 
-    document.getElementById("medicineForm").onsubmit = function(e) {
+
+    document.getElementById(
+        "medicineForm"
+    ).onsubmit = function(e) {
 
         e.preventDefault();
 
         const name =
-            document.getElementById("mName").value.trim();
+            document.getElementById(
+                "mName"
+            ).value.trim();
 
         if (!name) {
 
-            alert("Medicine Name দিন");
+            alert(
+                "Medicine Name দিন"
+            );
 
             return;
         }
 
-        medicines.push({
 
-            id: Date.now(),
+        const medicineData = {
 
-            name,
+            name: name,
 
             generic:
-                document.getElementById("mGeneric").value.trim(),
+                document.getElementById(
+                    "mGeneric"
+                ).value.trim(),
 
             company:
-                document.getElementById("mCompany").value.trim(),
+                document.getElementById(
+                    "mCompany"
+                ).value.trim(),
 
             strength:
-                document.getElementById("mStrength").value.trim(),
+                document.getElementById(
+                    "mStrength"
+                ).value.trim(),
 
             batch:
-                document.getElementById("mBatch").value.trim(),
+                document.getElementById(
+                    "mBatch"
+                ).value.trim(),
 
             expiry:
-                document.getElementById("mExpiry").value,
+                document.getElementById(
+                    "mExpiry"
+                ).value,
 
             stock:
-                Number(document.getElementById("mStock").value) || 0,
+                Number(
+                    document.getElementById(
+                        "mStock"
+                    ).value
+                ) || 0,
 
             reorder:
-                Number(document.getElementById("mReorder").value) || 0,
+                Number(
+                    document.getElementById(
+                        "mReorder"
+                    ).value
+                ) || 0,
 
             purchase:
-                Number(document.getElementById("mPurchase").value) || 0,
+                Number(
+                    document.getElementById(
+                        "mPurchase"
+                    ).value
+                ) || 0,
 
             sale:
-                Number(document.getElementById("mSale").value) || 0
-        });
+                Number(
+                    document.getElementById(
+                        "mSale"
+                    ).value
+                ) || 0
+        };
 
-        saveData();
 
-        alert("Medicine successfully saved!");
+        // UPDATE EXISTING MEDICINE
+        if (
+            editingMedicineIndex >= 0 &&
+            medicines[editingMedicineIndex]
+        ) {
+
+            medicineData.id =
+                medicines[
+                    editingMedicineIndex
+                ].id;
+
+            medicines[
+                editingMedicineIndex
+            ] = medicineData;
+
+            saveData();
+
+            alert(
+                "Medicine successfully updated!"
+            );
+
+        }
+
+        // ADD NEW MEDICINE
+        else {
+
+            medicineData.id =
+                Date.now();
+
+            medicines.push(
+                medicineData
+            );
+
+            saveData();
+
+            alert(
+                "Medicine successfully saved!"
+            );
+        }
+
+
+        editingMedicineIndex = -1;
 
         showMedicines();
     };
+
 
     renderMedicines();
 }
 
 
+// ==========================================
+// RENDER MEDICINES
+// ==========================================
+
+function renderMedicines() {
+
+    const list =
+        document.getElementById(
+            "medicineList"
+        );
+
+    if (!list) return;
+
+
+    const searchBox =
+        document.getElementById(
+            "medicineSearch"
+        );
+
+    const search =
+        searchBox
+            ? searchBox.value
+                .trim()
+                .toLowerCase()
+            : "";
+
+
+    const filtered =
+        medicines.filter(m => {
+
+            const text = (
+
+                (m.name || "") +
+                " " +
+                (m.generic || "") +
+                " " +
+                (m.company || "") +
+                " " +
+                (m.batch || "")
+
+            ).toLowerCase();
+
+            return text.includes(search);
+        });
+
+
+    if (!filtered.length) {
+
+        list.innerHTML = `
+            <p>
+                কোনো Medicine পাওয়া যায়নি।
+            </p>
+        `;
+
+        return;
+    }
+
+
+    list.innerHTML = `
+
+        <div style="overflow:auto;">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Medicine</th>
+                        <th>Generic</th>
+                        <th>Company</th>
+                        <th>Stock</th>
+                        <th>Purchase</th>
+                        <th>Sale Price</th>
+                        <th>Expiry</th>
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    ${filtered.map(m => {
+
+                        const realIndex =
+                            medicines.indexOf(m);
+
+                        return `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHTML(
+                                    m.name
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    m.generic
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    m.company
+                                )}
+                            </td>
+
+                            <td>
+                                ${m.stock || 0}
+                            </td>
+
+                            <td>
+                                ${money(
+                                    m.purchase
+                                )}
+                            </td>
+
+                            <td>
+                                ${money(
+                                    m.sale
+                                )}
+                            </td>
+
+                            <td>
+                                ${m.expiry || "-"}
+                            </td>
+
+                            <td>
+
+                                <button
+                                    onclick="editMedicine(${realIndex})">
+                                    ✏️ Edit
+                                </button>
+
+                                <button
+                                    onclick="deleteMedicine(${realIndex})">
+                                    🗑️ Delete
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                        `;
+
+                    }).join("")}
+
+                </tbody>
+
+            </table>
+
+        </div>
+    `;
+}
+
+
+// ==========================================
+// EDIT MEDICINE
+// ==========================================
+
 function editMedicine(index) {
-    const m = medicines[index];
+
+    const m =
+        medicines[index];
 
     if (!m) return;
 
-    document.getElementById("name").value = m.name || "";
-    document.getElementById("generic").value = m.generic || "";
-    document.getElementById("company").value = m.company || "";
-    document.getElementById("strength").value = m.strength || "";
-    document.getElementById("batch").value = m.batch || "";
-    document.getElementById("expiry").value = m.expiry || "";
-    document.getElementById("stock").value = m.stock || 0;
-    document.getElementById("reorder").value = m.reorder || 0;
-    document.getElementById("purchasePrice").value = m.purchasePrice || 0;
-    document.getElementById("salePrice").value = m.salePrice || 0;
 
-    window.editingMedicineIndex = index;
+    editingMedicineIndex =
+        index;
 
-    const btn = document.getElementById("medicineSaveBtn");
 
-    if (btn) {
-        btn.textContent = "💾 Update Medicine";
+    document.getElementById(
+        "mName"
+    ).value =
+        m.name || "";
+
+
+    document.getElementById(
+        "mGeneric"
+    ).value =
+        m.generic || "";
+
+
+    document.getElementById(
+        "mCompany"
+    ).value =
+        m.company || "";
+
+
+    document.getElementById(
+        "mStrength"
+    ).value =
+        m.strength || "";
+
+
+    document.getElementById(
+        "mBatch"
+    ).value =
+        m.batch || "";
+
+
+    document.getElementById(
+        "mExpiry"
+    ).value =
+        m.expiry || "";
+
+
+    document.getElementById(
+        "mStock"
+    ).value =
+        m.stock || 0;
+
+
+    document.getElementById(
+        "mReorder"
+    ).value =
+        m.reorder || 0;
+
+
+    document.getElementById(
+        "mPurchase"
+    ).value =
+        m.purchase || 0;
+
+
+    document.getElementById(
+        "mSale"
+    ).value =
+        m.sale || 0;
+
+
+    const saveBtn =
+        document.getElementById(
+            "medicineSaveBtn"
+        );
+
+    if (saveBtn) {
+
+        saveBtn.textContent =
+            "💾 Update Medicine";
     }
+
+
+    const cancelBtn =
+        document.getElementById(
+            "medicineCancelBtn"
+        );
+
+    if (cancelBtn) {
+
+        cancelBtn.style.display =
+            "inline-block";
+    }
+
 
     window.scrollTo({
         top: 0,
         behavior: "smooth"
     });
 }
-function deleteMedicine(id) {
 
-    if (!confirm("এই medicine delete করবেন?"))
+
+// ==========================================
+// CANCEL EDIT
+// ==========================================
+
+function cancelMedicineEdit() {
+
+    editingMedicineIndex = -1;
+
+    showMedicines();
+}
+
+
+// ==========================================
+// DELETE MEDICINE
+// ==========================================
+
+function deleteMedicine(index) {
+
+    if (
+        !medicines[index]
+    ) return;
+
+
+    if (
+        !confirm(
+            "এই medicine delete করবেন?"
+        )
+    ) {
         return;
+    }
 
-    medicines =
-        medicines.filter(m => m.id !== id);
+
+    medicines.splice(
+        index,
+        1
+    );
 
     saveData();
 
     showMedicines();
 }
+
 
 // ==========================================
 // PURCHASE
@@ -372,7 +923,9 @@ function deleteMedicine(id) {
 
 function showPurchase() {
 
-    layout("📦 Purchase / Stock In", `
+    layout(
+        "📦 Purchase / Stock In",
+        `
 
         <form id="purchaseForm">
 
@@ -382,9 +935,14 @@ function showPurchase() {
                     <b>Medicine</b>
                 </label>
 
-                <select id="purchaseMedicine"
-                        class="form-control"
-                        style="width:100%;padding:10px;margin-top:5px;">
+                <select
+                    id="purchaseMedicine"
+                    class="form-control"
+                    style="
+                        width:100%;
+                        padding:10px;
+                        margin-top:5px;
+                    ">
 
                     <option value="">
                         Select Medicine
@@ -392,9 +950,14 @@ function showPurchase() {
 
                     ${medicines.map(m => `
 
-                        <option value="${m.id}">
+                        <option
+                            value="${m.id}">
 
                             ${escapeHTML(m.name)}
+
+                            |
+                            Stock:
+                            ${m.stock}
 
                         </option>
 
@@ -404,17 +967,32 @@ function showPurchase() {
 
             </div>
 
-            ${input("purchaseQty", "Quantity", "number", "1")}
 
-            ${input("purchasePriceInput",
-                    "Purchase Price",
-                    "number",
-                    "0")}
+            ${input(
+                "purchaseQty",
+                "Quantity",
+                "number",
+                "1"
+            )}
 
-            ${input("purchaseSupplier", "Supplier")}
 
-            <button class="btn btn-primary"
-                    type="submit">
+            ${input(
+                "purchasePriceInput",
+                "Purchase Price",
+                "number",
+                "0"
+            )}
+
+
+            ${input(
+                "purchaseSupplier",
+                "Supplier"
+            )}
+
+
+            <button
+                class="btn btn-primary"
+                type="submit">
 
                 📦 Add Purchase
 
@@ -422,20 +1000,28 @@ function showPurchase() {
 
         </form>
 
+
         <hr style="margin:25px 0;">
+
 
         <h3>Recent Purchases</h3>
 
         <div id="purchaseList"></div>
 
-    `);
+        `
+    );
+
 
     renderPurchases();
 
-    document.getElementById("purchaseForm").onsubmit =
+
+    document.getElementById(
+        "purchaseForm"
+    ).onsubmit =
         function(e) {
 
             e.preventDefault();
+
 
             const id =
                 Number(
@@ -444,12 +1030,14 @@ function showPurchase() {
                     ).value
                 );
 
+
             const qty =
                 Number(
                     document.getElementById(
                         "purchaseQty"
                     ).value
                 );
+
 
             const price =
                 Number(
@@ -458,25 +1046,38 @@ function showPurchase() {
                     ).value
                 );
 
+
             const medicine =
-                medicines.find(m => m.id === id);
+                medicines.find(
+                    m => m.id === id
+                );
+
 
             if (!medicine) {
 
-                alert("Medicine select করুন");
+                alert(
+                    "Medicine select করুন"
+                );
 
                 return;
             }
+
 
             if (qty <= 0) {
 
-                alert("Quantity সঠিক দিন");
+                alert(
+                    "Quantity সঠিক দিন"
+                );
 
                 return;
             }
 
+
             medicine.stock =
-                Number(medicine.stock || 0) + qty;
+                Number(
+                    medicine.stock || 0
+                ) + qty;
+
 
             purchases.push({
 
@@ -484,40 +1085,56 @@ function showPurchase() {
 
                 date: today(),
 
-                medicine: medicine.name,
+                medicine:
+                    medicine.name,
 
-                qty,
+                qty: qty,
 
-                price,
+                price: price,
 
                 supplier:
                     document.getElementById(
                         "purchaseSupplier"
                     ).value.trim(),
 
-                total: qty * price
+                total:
+                    qty * price
 
             });
 
+
             saveData();
+
 
             alert(
                 "Purchase added এবং stock updated!"
             );
 
+
             showPurchase();
         };
 }
 
+
+// ==========================================
+// RENDER PURCHASE
+// ==========================================
+
 function renderPurchases() {
 
     const box =
-        document.getElementById("purchaseList");
+        document.getElementById(
+            "purchaseList"
+        );
 
     if (!box) return;
 
+
     const list =
-        [...purchases].reverse().slice(0, 20);
+        [...purchases]
+        .reverse()
+        .slice(0, 20);
+
 
     if (!list.length) {
 
@@ -527,60 +1144,83 @@ function renderPurchases() {
         return;
     }
 
+
     box.innerHTML = `
 
         <div style="overflow:auto;">
 
-        <table>
-
-            <tr>
-                <th>Date</th>
-                <th>Medicine</th>
-                <th>Qty</th>
-                <th>Total</th>
-                <th>Supplier</th>
-            </tr>
-
-            ${list.map(p => `
+            <table>
 
                 <tr>
 
-                    <td>${p.date}</td>
-
-                    <td>
-                        ${escapeHTML(p.medicine)}
-                    </td>
-
-                    <td>${p.qty}</td>
-
-                    <td>${money(p.total)}</td>
-
-                    <td>
-                        ${escapeHTML(p.supplier)}
-                    </td>
+                    <th>Date</th>
+                    <th>Medicine</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th>Supplier</th>
 
                 </tr>
 
-            `).join("")}
 
-        </table>
+                ${list.map(p => `
+
+                    <tr>
+
+                        <td>
+                            ${escapeHTML(p.date)}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                p.medicine
+                            )}
+                        </td>
+
+                        <td>
+                            ${p.qty}
+                        </td>
+
+                        <td>
+                            ${money(p.total)}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                p.supplier
+                            )}
+                        </td>
+
+                    </tr>
+
+                `).join("")}
+
+            </table>
 
         </div>
     `;
 }
 
+
 // ==========================================
-// SALES / POS - PROFESSIONAL CART
+// SALES / POS
 // ==========================================
 
 function showSales() {
 
     saleCart = [];
 
-    layout("🧾 Sales / POS", `
 
-        <div class="panel"
-             style="padding:0;box-shadow:none;">
+    layout(
+        "🧾 Sales / POS",
+        `
+
+        <div
+            class="panel"
+            style="
+                padding:0;
+                box-shadow:none;
+            ">
+
 
             <div style="margin-bottom:12px;">
 
@@ -588,21 +1228,34 @@ function showSales() {
                     <b>Medicine</b>
                 </label>
 
-                <select id="cartMedicine"
-                        class="form-control"
-                        style="width:100%;padding:10px;margin-top:5px;">
+
+                <select
+                    id="cartMedicine"
+                    class="form-control"
+                    style="
+                        width:100%;
+                        padding:10px;
+                        margin-top:5px;
+                    ">
 
                     <option value="">
                         Select Medicine
                     </option>
 
+
                     ${medicines.map(m => `
 
-                        <option value="${m.id}">
+                        <option
+                            value="${m.id}">
 
-                            ${escapeHTML(m.name)}
+                            ${escapeHTML(
+                                m.name
+                            )}
+
                             |
-                            Stock: ${m.stock}
+                            Stock:
+                            ${m.stock}
+
                             |
                             ${money(m.sale)}
 
@@ -614,9 +1267,11 @@ function showSales() {
 
             </div>
 
+
             <div style="
                 display:grid;
-                grid-template-columns:1fr 1fr;
+                grid-template-columns:
+                    1fr 1fr;
                 gap:10px;
             ">
 
@@ -627,6 +1282,7 @@ function showSales() {
                     "1"
                 )}
 
+
                 ${input(
                     "cartPrice",
                     "Sale Price",
@@ -636,19 +1292,25 @@ function showSales() {
 
             </div>
 
-            <button type="button"
-                    class="btn btn-primary"
-                    onclick="addToCart()">
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="addToCart()">
 
                 ➕ Add to Cart
 
             </button>
 
+
             <hr style="margin:25px 0;">
+
 
             <h3>🛒 Sale Cart</h3>
 
+
             <div id="cartList"></div>
+
 
             <div style="margin-top:15px;">
 
@@ -657,12 +1319,14 @@ function showSales() {
                     "Customer Name"
                 )}
 
+
                 ${input(
                     "saleDiscount",
                     "Discount",
                     "number",
                     "0"
                 )}
+
 
                 ${input(
                     "salePaid",
@@ -673,52 +1337,77 @@ function showSales() {
 
             </div>
 
-            <div id="saleSummary"
-                 style="margin-top:15px;">
+
+            <div
+                id="saleSummary"
+                style="margin-top:15px;">
             </div>
 
-            <button type="button"
-                    class="btn btn-primary"
-                    onclick="completeCartSale()">
 
-                💰 Complete Sale & Print Invoice
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="completeCartSale()">
+
+                💰 Complete Sale &
+                Print Invoice
 
             </button>
 
+
             <hr style="margin:25px 0;">
 
+
             <h3>📋 Today's Sales</h3>
+
 
             <div id="salesList"></div>
 
         </div>
 
-    `);
+        `
+    );
 
-    document.getElementById("cartMedicine").onchange =
+
+    document.getElementById(
+        "cartMedicine"
+    ).onchange =
         function() {
 
             const medicine =
                 medicines.find(
-                    m => m.id === Number(this.value)
+                    m =>
+                        m.id ===
+                        Number(this.value)
                 );
+
 
             document.getElementById(
                 "cartPrice"
             ).value =
-                medicine ? medicine.sale : 0;
+                medicine
+                    ? medicine.sale
+                    : 0;
         };
 
-    document.getElementById("saleDiscount").oninput =
+
+    document.getElementById(
+        "saleDiscount"
+    ).oninput =
         renderCart;
 
-    document.getElementById("salePaid").oninput =
+
+    document.getElementById(
+        "salePaid"
+    ).oninput =
         renderCart;
+
 
     renderCart();
 
     renderSales();
 }
+
 
 // ==========================================
 // ADD TO CART
@@ -733,12 +1422,14 @@ function addToCart() {
             ).value
         );
 
+
     const qty =
         Number(
             document.getElementById(
                 "cartQty"
             ).value
         );
+
 
     const price =
         Number(
@@ -747,47 +1438,68 @@ function addToCart() {
             ).value
         );
 
+
     const medicine =
-        medicines.find(m => m.id === id);
+        medicines.find(
+            m => m.id === id
+        );
+
 
     if (!medicine) {
 
-        alert("Medicine select করুন");
+        alert(
+            "Medicine select করুন"
+        );
 
         return;
     }
+
 
     if (qty <= 0) {
 
-        alert("Quantity সঠিক দিন");
+        alert(
+            "Quantity সঠিক দিন"
+        );
 
         return;
     }
 
-    if (qty > Number(medicine.stock)) {
 
-        alert("পর্যাপ্ত stock নেই!");
+    if (
+        qty >
+        Number(medicine.stock || 0)
+    ) {
+
+        alert(
+            "পর্যাপ্ত stock নেই!"
+        );
 
         return;
     }
+
 
     if (price < 0) {
 
-        alert("Price সঠিক দিন");
+        alert(
+            "Price সঠিক দিন"
+        );
 
         return;
     }
 
+
     const existing =
         saleCart.find(
-            i => i.medicineId === id
+            i =>
+                i.medicineId === id
         );
+
 
     if (existing) {
 
         if (
             existing.qty + qty >
-            Number(medicine.stock)
+            Number(medicine.stock || 0)
         ) {
 
             alert(
@@ -797,69 +1509,48 @@ function addToCart() {
             return;
         }
 
+
         existing.qty += qty;
 
         existing.price = price;
 
-    } else {
+    }
+
+    else {
 
         saleCart.push({
 
             medicineId: id,
 
-            medicine: medicine.name,
+            medicine:
+                medicine.name,
 
-            qty,
+            qty: qty,
 
-            price
+            price: price
 
         });
-
     }
+
 
     document.getElementById(
         "cartQty"
     ).value = 1;
 
+
     document.getElementById(
         "cartMedicine"
     ).value = "";
+
 
     document.getElementById(
         "cartPrice"
     ).value = 0;
 
-    renderCart();
-}
-
-// ==========================================
-// REMOVE CART ITEM
-// ==========================================
-
-function removeFromCart(index) {
-
-    saleCart.splice(index, 1);
 
     renderCart();
 }
 
-// ==========================================
-// CART TOTAL
-// ==========================================
-
-function cartSubtotal() {
-
-    return saleCart.reduce(
-
-        (sum, item) =>
-
-            sum +
-            Number(item.qty) *
-            Number(item.price),
-
-        0
-    );
-}
 
 // ==========================================
 // RENDER CART
@@ -872,167 +1563,206 @@ function renderCart() {
             "cartList"
         );
 
-    const summary =
-        document.getElementById(
-            "saleSummary"
-        );
+    if (!box) return;
 
-    if (!box || !summary)
-        return;
 
     if (!saleCart.length) {
 
-        box.innerHTML =
-            "<p>Cart এখনো খালি। Medicine যোগ করুন।</p>";
+        box.innerHTML = `
+            <p>
+                Cart এখনো খালি।
+            </p>
+        `;
 
-    } else {
+    }
+
+    else {
 
         box.innerHTML = `
 
             <div style="overflow:auto;">
 
-            <table>
-
-                <tr>
-
-                    <th>Medicine</th>
-
-                    <th>Qty</th>
-
-                    <th>Price</th>
-
-                    <th>Total</th>
-
-                    <th>Action</th>
-
-                </tr>
-
-                ${saleCart.map(
-                    (item, index) => `
+                <table>
 
                     <tr>
 
-                        <td>
-                            ${escapeHTML(item.medicine)}
-                        </td>
-
-                        <td>
-                            ${item.qty}
-                        </td>
-
-                        <td>
-                            ${money(item.price)}
-                        </td>
-
-                        <td>
-                            ${money(
-                                item.qty *
-                                item.price
-                            )}
-                        </td>
-
-                        <td>
-
-                            <button
-                                onclick="removeFromCart(${index})">
-
-                                ❌ Remove
-
-                            </button>
-
-                        </td>
+                        <th>Medicine</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Action</th>
 
                     </tr>
 
-                `).join("")}
 
-            </table>
+                    ${saleCart.map(
+                        (item, index) => `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHTML(
+                                    item.medicine
+                                )}
+                            </td>
+
+                            <td>
+                                ${item.qty}
+                            </td>
+
+                            <td>
+                                ${money(
+                                    item.price
+                                )}
+                            </td>
+
+                            <td>
+                                ${money(
+                                    item.qty *
+                                    item.price
+                                )}
+                            </td>
+
+                            <td>
+
+                                <button
+                                    onclick="removeFromCart(${index})">
+
+                                    🗑️ Remove
+
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `
+                    ).join("")}
+
+                </table>
 
             </div>
         `;
     }
 
-    const subtotal =
-        cartSubtotal();
 
-    const discount =
-        Math.max(
-            0,
-            Number(
-                document.getElementById(
-                    "saleDiscount"
-                )?.value || 0
-            )
+    const subtotal =
+        saleCart.reduce(
+            (sum, item) =>
+                sum +
+                (
+                    Number(item.qty) *
+                    Number(item.price)
+                ),
+            0
         );
 
-    const grandTotal =
+
+    const discount =
+        Number(
+            document.getElementById(
+                "saleDiscount"
+            )?.value || 0
+        );
+
+
+    const total =
         Math.max(
             0,
             subtotal - discount
         );
 
+
     const paid =
-        Math.max(
-            0,
-            Number(
-                document.getElementById(
-                    "salePaid"
-                )?.value || 0
-            )
+        Number(
+            document.getElementById(
+                "salePaid"
+            )?.value || 0
         );
+
 
     const due =
         Math.max(
             0,
-            grandTotal - paid
+            total - paid
         );
+
 
     const change =
         Math.max(
             0,
-            paid - grandTotal
+            paid - total
         );
 
-    summary.innerHTML = `
 
-        <div class="panel"
-             style="background:#f7f7f7;">
+    const summary =
+        document.getElementById(
+            "saleSummary"
+        );
 
-            <p>
-                <b>Subtotal:</b>
-                ${money(subtotal)}
-            </p>
 
-            <p>
-                <b>Discount:</b>
-                ${money(discount)}
-            </p>
+    if (summary) {
 
-            <p style="font-size:20px;">
+        summary.innerHTML = `
 
-                <b>Grand Total:</b>
-                ${money(grandTotal)}
+            <div style="
+                border:1px solid #ddd;
+                padding:15px;
+                border-radius:8px;
+            ">
 
-            </p>
+                <p>
+                    <b>Subtotal:</b>
+                    ${money(subtotal)}
+                </p>
 
-            <p>
-                <b>Paid:</b>
-                ${money(paid)}
-            </p>
+                <p>
+                    <b>Discount:</b>
+                    ${money(discount)}
+                </p>
 
-            <p>
-                <b>Due:</b>
-                ${money(due)}
-            </p>
+                <p style="
+                    font-size:20px;
+                ">
+                    <b>Grand Total:</b>
+                    ${money(total)}
+                </p>
 
-            <p>
-                <b>Change:</b>
-                ${money(change)}
-            </p>
+                <p>
+                    <b>Paid:</b>
+                    ${money(paid)}
+                </p>
 
-        </div>
-    `;
+                <p>
+                    <b>Due:</b>
+                    ${money(due)}
+                </p>
+
+                <p>
+                    <b>Change:</b>
+                    ${money(change)}
+                </p>
+
+            </div>
+        `;
+    }
 }
+
+
+// ==========================================
+// REMOVE CART
+// ==========================================
+
+function removeFromCart(index) {
+
+    saleCart.splice(
+        index,
+        1
+    );
+
+    renderCart();
+}
+
 
 // ==========================================
 // COMPLETE SALE
@@ -1043,69 +1773,70 @@ function completeCartSale() {
     if (!saleCart.length) {
 
         alert(
-            "আগে Cart-এ medicine যোগ করুন"
+            "Cart-এ কোনো medicine নেই!"
         );
 
         return;
     }
 
-    for (const item of saleCart) {
-
-        const medicine =
-            medicines.find(
-                m =>
-                    m.id ===
-                    item.medicineId
-            );
-
-        if (
-            !medicine ||
-            item.qty >
-            Number(medicine.stock)
-        ) {
-
-            alert(
-                "একটি medicine-এর stock আর পর্যাপ্ত নেই। Cart আবার তৈরি করুন।"
-            );
-
-            return;
-        }
-    }
-
-    const subtotal =
-        cartSubtotal();
 
     const discount =
-        Math.max(
-            0,
-            Number(
-                document.getElementById(
-                    "saleDiscount"
-                ).value || 0
-            )
+        Number(
+            document.getElementById(
+                "saleDiscount"
+            ).value
+        ) || 0;
+
+
+    const paid =
+        Number(
+            document.getElementById(
+                "salePaid"
+            ).value
+        ) || 0;
+
+
+    const customer =
+        document.getElementById(
+            "saleCustomer"
+        ).value.trim();
+
+
+    const subtotal =
+        saleCart.reduce(
+            (sum, item) =>
+                sum +
+                (
+                    Number(item.qty) *
+                    Number(item.price)
+                ),
+            0
         );
+
+
+    if (discount < 0) {
+
+        alert(
+            "Discount সঠিক দিন"
+        );
+
+        return;
+    }
+
 
     if (discount > subtotal) {
 
         alert(
-            "Discount subtotal-এর চেয়ে বেশি হতে পারবে না"
+            "Discount subtotal-এর চেয়ে বেশি হতে পারবে না!"
         );
 
         return;
     }
 
+
     const total =
         subtotal - discount;
 
-    const paid =
-        Math.max(
-            0,
-            Number(
-                document.getElementById(
-                    "salePaid"
-                ).value || 0
-            )
-        );
 
     const due =
         Math.max(
@@ -1113,16 +1844,18 @@ function completeCartSale() {
             total - paid
         );
 
+
     const change =
         Math.max(
             0,
             paid - total
         );
 
-    const now =
-        new Date();
 
-    saleCart.forEach(item => {
+    // CHECK STOCK AGAIN
+    for (
+        const item of saleCart
+    ) {
 
         const medicine =
             medicines.find(
@@ -1131,10 +1864,52 @@ function completeCartSale() {
                     item.medicineId
             );
 
-        medicine.stock -=
-            item.qty;
 
-    });
+        if (!medicine) {
+
+            alert(
+                "একটি medicine পাওয়া যাচ্ছে না!"
+            );
+
+            return;
+        }
+
+
+        if (
+            Number(item.qty) >
+            Number(medicine.stock || 0)
+        ) {
+
+            alert(
+                medicine.name +
+                " এর পর্যাপ্ত stock নেই!"
+            );
+
+            return;
+        }
+    }
+
+
+    // REDUCE STOCK
+    saleCart.forEach(
+        item => {
+
+            const medicine =
+                medicines.find(
+                    m =>
+                        m.id ===
+                        item.medicineId
+                );
+
+
+            medicine.stock =
+                Number(
+                    medicine.stock || 0
+                ) -
+                Number(item.qty);
+        }
+    );
+
 
     const sale = {
 
@@ -1144,69 +1919,73 @@ function completeCartSale() {
             "INV-" +
             Date.now(),
 
-        date:
-            today(),
+        date: today(),
 
-        time:
-            now.toLocaleTimeString(),
+        time: currentTime(),
 
         customer:
-            document.getElementById(
-                "saleCustomer"
-            ).value.trim() ||
+            customer ||
             "Walk-in Customer",
 
         items:
             saleCart.map(
                 item => ({
-                    ...item
+                    medicineId:
+                        item.medicineId,
+
+                    medicine:
+                        item.medicine,
+
+                    qty:
+                        item.qty,
+
+                    price:
+                        item.price,
+
+                    total:
+                        Number(item.qty) *
+                        Number(item.price)
                 })
             ),
 
-        medicine:
-            saleCart.length === 1
-                ? saleCart[0].medicine
-                : saleCart.length +
-                  " items",
+        subtotal:
+            subtotal,
 
-        qty:
-            saleCart.reduce(
-                (sum, item) =>
-                    sum + item.qty,
-                0
-            ),
+        discount:
+            discount,
 
-        price:
-            saleCart.length === 1
-                ? saleCart[0].price
-                : 0,
+        total:
+            total,
 
-        subtotal,
+        paid:
+            paid,
 
-        discount,
+        due:
+            due,
 
-        total,
-
-        paid,
-
-        due,
-
-        change
-
+        change:
+            change
     };
+
 
     sales.push(sale);
 
     saveData();
 
+
     alert(
         "Sale completed successfully!"
     );
 
+
     printInvoice(sale);
+
+
+    saleCart = [];
 
     showSales();
 }
+
 
 // ==========================================
 // SALES HISTORY
@@ -1219,17 +1998,18 @@ function renderSales() {
             "salesList"
         );
 
-    if (!box)
-        return;
+    if (!box) return;
+
 
     const list =
         sales
-            .filter(
-                s =>
-                    s.date ===
-                    today()
-            )
-            .reverse();
+        .filter(
+            s =>
+                s.date ===
+                today()
+        )
+        .reverse();
+
 
     if (!list.length) {
 
@@ -1239,92 +2019,92 @@ function renderSales() {
         return;
     }
 
+
     box.innerHTML = `
 
         <div style="overflow:auto;">
 
-        <table>
-
-            <tr>
-
-                <th>Invoice</th>
-
-                <th>Time</th>
-
-                <th>Customer</th>
-
-                <th>Items</th>
-
-                <th>Total</th>
-
-                <th>Due</th>
-
-                <th>Action</th>
-
-            </tr>
-
-            ${list.map(
-                s => `
+            <table>
 
                 <tr>
 
-                    <td>
-                        ${escapeHTML(
-                            s.invoice ||
-                            "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            s.time ||
-                            ""
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            s.customer ||
-                            "Walk-in Customer"
-                        )}
-                    </td>
-
-                    <td>
-                        ${
-                            s.items
-                                ? s.items.length
-                                : 1
-                        }
-                    </td>
-
-                    <td>
-                        ${money(s.total)}
-                    </td>
-
-                    <td>
-                        ${money(s.due)}
-                    </td>
-
-                    <td>
-
-                        <button
-                            onclick='printInvoice(${JSON.stringify(s)})'>
-
-                            🖨️ Print
-
-                        </button>
-
-                    </td>
+                    <th>Invoice</th>
+                    <th>Time</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Due</th>
+                    <th>Action</th>
 
                 </tr>
 
-            `).join("")}
 
-        </table>
+                ${list.map(
+                    s => `
+
+                    <tr>
+
+                        <td>
+                            ${escapeHTML(
+                                s.invoice || "-"
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                s.time || ""
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                s.customer ||
+                                "Walk-in Customer"
+                            )}
+                        </td>
+
+                        <td>
+                            ${
+                                s.items
+                                    ? s.items.length
+                                    : 1
+                            }
+                        </td>
+
+                        <td>
+                            ${money(
+                                s.total
+                            )}
+                        </td>
+
+                        <td>
+                            ${money(
+                                s.due
+                            )}
+                        </td>
+
+                        <td>
+
+                            <button
+                                onclick='printInvoice(${JSON.stringify(s)})'>
+
+                                🖨️ Print
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                `
+                ).join("")}
+
+            </table>
 
         </div>
     `;
 }
+
 
 // ==========================================
 // PRINT INVOICE
@@ -1338,6 +2118,7 @@ function printInvoice(sale) {
             "_blank"
         );
 
+
     if (!w) {
 
         alert(
@@ -1347,27 +2128,28 @@ function printInvoice(sale) {
         return;
     }
 
+
     const items =
-        Array.isArray(sale.items) &&
+        Array.isArray(
+            sale.items
+        ) &&
         sale.items.length
 
             ? sale.items
 
-            : [{
+            : [
+                {
+                    medicine:
+                        sale.medicine,
 
-                medicine:
-                    sale.medicine,
+                    qty:
+                        sale.qty,
 
-                qty:
-                    sale.qty,
+                    price:
+                        sale.price
+                }
+            ];
 
-                price:
-                    sale.price,
-
-                medicineId:
-                    null
-
-            }];
 
     w.document.write(`
 
@@ -1384,81 +2166,109 @@ function printInvoice(sale) {
                 )}
             </title>
 
+
             <style>
 
                 body {
-                    font-family: Arial, sans-serif;
-                    padding: 25px;
+
+                    font-family:
+                        Arial, sans-serif;
+
+                    padding:25px;
                 }
 
+
                 .invoice {
-                    max-width: 650px;
-                    margin: auto;
+
+                    max-width:650px;
+
+                    margin:auto;
                 }
+
 
                 h1,
                 h2 {
-                    text-align: center;
+
+                    text-align:center;
                 }
 
+
                 table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 20px;
+
+                    width:100%;
+
+                    border-collapse:
+                        collapse;
+
+                    margin-top:20px;
                 }
+
 
                 th,
                 td {
-                    border: 1px solid #999;
-                    padding: 9px;
-                    text-align: left;
+
+                    border:
+                        1px solid #999;
+
+                    padding:9px;
+
+                    text-align:left;
                 }
+
 
                 .right {
-                    text-align: right;
+
+                    text-align:right;
                 }
 
+
                 .total {
-                    font-size: 18px;
-                    font-weight: bold;
+
+                    font-size:18px;
+
+                    font-weight:bold;
                 }
 
             </style>
 
         </head>
 
-        <body onload="window.print()">
+
+        <body
+            onload="window.print()">
+
 
             <div class="invoice">
 
-                <h1>💊 Pharmacy</h1>
+                <h1>
+                    💊 Pharmacy
+                </h1>
+
 
                 <h2>
                     Sales Invoice
                 </h2>
 
+
                 <p>
 
                     <b>Invoice:</b>
                     ${escapeHTML(
-                        sale.invoice ||
-                        "-"
+                        sale.invoice || "-"
                     )}
 
                     <br>
 
                     <b>Date:</b>
                     ${escapeHTML(
-                        sale.date ||
-                        ""
+                        sale.date || ""
                     )}
 
                     <br>
 
                     <b>Time:</b>
                     ${escapeHTML(
-                        sale.time ||
-                        ""
+                        sale.time || ""
                     )}
 
                     <br>
@@ -1470,6 +2280,7 @@ function printInvoice(sale) {
                     )}
 
                 </p>
+
 
                 <table>
 
@@ -1492,6 +2303,7 @@ function printInvoice(sale) {
                         </th>
 
                     </tr>
+
 
                     ${items.map(
                         item => `
@@ -1527,9 +2339,11 @@ function printInvoice(sale) {
 
                         </tr>
 
-                    `).join("")}
+                    `
+                    ).join("")}
 
                 </table>
+
 
                 <p class="right">
 
@@ -1542,16 +2356,17 @@ function printInvoice(sale) {
 
                 </p>
 
+
                 <p class="right">
 
                     <b>Discount:</b>
 
                     ${money(
-                        sale.discount ||
-                        0
+                        sale.discount || 0
                     )}
 
                 </p>
+
 
                 <p class="right total">
 
@@ -1563,38 +2378,39 @@ function printInvoice(sale) {
 
                 </p>
 
+
                 <p class="right">
 
                     <b>Paid:</b>
 
                     ${money(
-                        sale.paid ||
-                        0
+                        sale.paid || 0
                     )}
 
                 </p>
+
 
                 <p class="right">
 
                     <b>Due:</b>
 
                     ${money(
-                        sale.due ||
-                        0
+                        sale.due || 0
                     )}
 
                 </p>
+
 
                 <p class="right">
 
                     <b>Change:</b>
 
                     ${money(
-                        sale.change ||
-                        0
+                        sale.change || 0
                     )}
 
                 </p>
+
 
                 <p style="
                     text-align:center;
@@ -1610,11 +2426,12 @@ function printInvoice(sale) {
         </body>
 
         </html>
-
     `);
+
 
     w.document.close();
 }
+
 
 // ==========================================
 // SUPPLIERS
@@ -1622,7 +2439,9 @@ function printInvoice(sale) {
 
 function showSuppliers() {
 
-    layout("🚚 Suppliers", `
+    layout(
+        "🚚 Suppliers",
+        `
 
         <form id="supplierForm">
 
@@ -1641,6 +2460,7 @@ function showSuppliers() {
                 "Address"
             )}
 
+
             <button
                 class="btn btn-primary"
                 type="submit">
@@ -1651,57 +2471,68 @@ function showSuppliers() {
 
         </form>
 
+
         <hr style="margin:25px 0;">
+
 
         <div id="supplierList"></div>
 
-    `);
+        `
+    );
+
 
     renderSuppliers();
 
+
     document.getElementById(
         "supplierForm"
-    ).onsubmit = function(e) {
+    ).onsubmit =
+        function(e) {
 
-        e.preventDefault();
+            e.preventDefault();
 
-        const name =
-            document.getElementById(
-                "supplierName"
-            ).value.trim();
 
-        if (!name) {
-
-            alert(
-                "Supplier Name দিন"
-            );
-
-            return;
-        }
-
-        suppliers.push({
-
-            id: Date.now(),
-
-            name,
-
-            phone:
+            const name =
                 document.getElementById(
-                    "supplierPhone"
-                ).value.trim(),
+                    "supplierName"
+                ).value.trim();
 
-            address:
-                document.getElementById(
-                    "supplierAddress"
-                ).value.trim()
 
-        });
+            if (!name) {
 
-        saveData();
+                alert(
+                    "Supplier Name দিন"
+                );
 
-        showSuppliers();
-    };
+                return;
+            }
+
+
+            suppliers.push({
+
+                id: Date.now(),
+
+                name: name,
+
+                phone:
+                    document.getElementById(
+                        "supplierPhone"
+                    ).value.trim(),
+
+                address:
+                    document.getElementById(
+                        "supplierAddress"
+                    ).value.trim()
+
+            });
+
+
+            saveData();
+
+            showSuppliers();
+        };
 }
+
 
 function renderSuppliers() {
 
@@ -1712,52 +2543,70 @@ function renderSuppliers() {
 
     if (!box) return;
 
+
+    if (!suppliers.length) {
+
+        box.innerHTML =
+            "<p>কোনো Supplier নেই।</p>";
+
+        return;
+    }
+
+
     box.innerHTML = `
 
         <h3>
             Supplier List
         </h3>
 
+
         <div style="overflow:auto;">
 
-        <table>
-
-            <tr>
-
-                <th>Name</th>
-
-                <th>Phone</th>
-
-                <th>Address</th>
-
-            </tr>
-
-            ${suppliers.map(
-                s => `
+            <table>
 
                 <tr>
 
-                    <td>
-                        ${escapeHTML(s.name)}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(s.phone)}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(s.address)}
-                    </td>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Address</th>
 
                 </tr>
 
-            `).join("")}
 
-        </table>
+                ${suppliers.map(
+                    s => `
+
+                    <tr>
+
+                        <td>
+                            ${escapeHTML(
+                                s.name
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                s.phone
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                s.address
+                            )}
+                        </td>
+
+                    </tr>
+
+                `
+                ).join("")}
+
+            </table>
 
         </div>
     `;
 }
+
 
 // ==========================================
 // CUSTOMERS
@@ -1765,7 +2614,9 @@ function renderSuppliers() {
 
 function showCustomers() {
 
-    layout("👤 Customers", `
+    layout(
+        "👤 Customers",
+        `
 
         <form id="customerForm">
 
@@ -1784,6 +2635,7 @@ function showCustomers() {
                 "Address"
             )}
 
+
             <button
                 class="btn btn-primary"
                 type="submit">
@@ -1794,57 +2646,68 @@ function showCustomers() {
 
         </form>
 
+
         <hr style="margin:25px 0;">
+
 
         <div id="customerList"></div>
 
-    `);
+        `
+    );
+
 
     renderCustomers();
 
+
     document.getElementById(
         "customerForm"
-    ).onsubmit = function(e) {
+    ).onsubmit =
+        function(e) {
 
-        e.preventDefault();
+            e.preventDefault();
 
-        const name =
-            document.getElementById(
-                "custName"
-            ).value.trim();
 
-        if (!name) {
-
-            alert(
-                "Customer Name দিন"
-            );
-
-            return;
-        }
-
-        customers.push({
-
-            id: Date.now(),
-
-            name,
-
-            phone:
+            const name =
                 document.getElementById(
-                    "custPhone"
-                ).value.trim(),
+                    "custName"
+                ).value.trim();
 
-            address:
-                document.getElementById(
-                    "custAddress"
-                ).value.trim()
 
-        });
+            if (!name) {
 
-        saveData();
+                alert(
+                    "Customer Name দিন"
+                );
 
-        showCustomers();
-    };
+                return;
+            }
+
+
+            customers.push({
+
+                id: Date.now(),
+
+                name: name,
+
+                phone:
+                    document.getElementById(
+                        "custPhone"
+                    ).value.trim(),
+
+                address:
+                    document.getElementById(
+                        "custAddress"
+                    ).value.trim()
+
+            });
+
+
+            saveData();
+
+            showCustomers();
+        };
 }
+
 
 function renderCustomers() {
 
@@ -1855,52 +2718,70 @@ function renderCustomers() {
 
     if (!box) return;
 
+
+    if (!customers.length) {
+
+        box.innerHTML =
+            "<p>কোনো Customer নেই।</p>";
+
+        return;
+    }
+
+
     box.innerHTML = `
 
         <h3>
             Customer List
         </h3>
 
+
         <div style="overflow:auto;">
 
-        <table>
-
-            <tr>
-
-                <th>Name</th>
-
-                <th>Phone</th>
-
-                <th>Address</th>
-
-            </tr>
-
-            ${customers.map(
-                c => `
+            <table>
 
                 <tr>
 
-                    <td>
-                        ${escapeHTML(c.name)}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(c.phone)}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(c.address)}
-                    </td>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Address</th>
 
                 </tr>
 
-            `).join("")}
 
-        </table>
+                ${customers.map(
+                    c => `
+
+                    <tr>
+
+                        <td>
+                            ${escapeHTML(
+                                c.name
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                c.phone
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                c.address
+                            )}
+                        </td>
+
+                    </tr>
+
+                `
+                ).join("")}
+
+            </table>
 
         </div>
     `;
 }
+
 
 // ==========================================
 // REPORTS
@@ -1918,6 +2799,7 @@ function showReports() {
             0
         );
 
+
     const totalPurchase =
         purchases.reduce(
             (sum, p) =>
@@ -1928,21 +2810,23 @@ function showReports() {
             0
         );
 
+
     const todaySales =
         sales
-            .filter(
-                s =>
-                    s.date ===
-                    today()
-            )
-            .reduce(
-                (sum, s) =>
-                    sum +
-                    Number(
-                        s.total || 0
-                    ),
-                0
-            );
+        .filter(
+            s =>
+                s.date ===
+                today()
+        )
+        .reduce(
+            (sum, s) =>
+                sum +
+                Number(
+                    s.total || 0
+                ),
+            0
+        );
+
 
     const low =
         medicines.filter(
@@ -1955,12 +2839,14 @@ function showReports() {
                 )
         );
 
+
     const expiry =
         medicines.filter(
             m => {
 
                 if (!m.expiry)
                     return false;
+
 
                 const days =
                     (
@@ -1970,6 +2856,7 @@ function showReports() {
                         new Date()
                     ) / 86400000;
 
+
                 return (
                     days >= 0 &&
                     days <= 30
@@ -1977,7 +2864,10 @@ function showReports() {
             }
         );
 
-    layout("📈 Reports", `
+
+    layout(
+        "📈 Reports",
+        `
 
         <div class="cards">
 
@@ -1988,10 +2878,13 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(todaySales)}
+                    ${money(
+                        todaySales
+                    )}
                 </div>
 
             </div>
+
 
             <div class="card">
 
@@ -2000,10 +2893,13 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(totalSales)}
+                    ${money(
+                        totalSales
+                    )}
                 </div>
 
             </div>
+
 
             <div class="card">
 
@@ -2012,10 +2908,13 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(totalPurchase)}
+                    ${money(
+                        totalPurchase
+                    )}
                 </div>
 
             </div>
+
 
             <div class="card">
 
@@ -2031,11 +2930,14 @@ function showReports() {
 
         </div>
 
+
         <hr style="margin:25px 0;">
+
 
         <h3>
             ⚠️ Low Stock
         </h3>
+
 
         ${
             low.length
@@ -2055,12 +2957,16 @@ function showReports() {
                         ${m.stock}
 
                     </p>
-
                 `
                 ).join("")
 
-                : "<p>কোনো Low Stock নেই।</p>"
+                : `
+                    <p>
+                        কোনো Low Stock নেই।
+                    </p>
+                `
         }
+
 
         <h3 style="margin-top:25px;">
 
@@ -2068,6 +2974,7 @@ function showReports() {
             (30 days)
 
         </h3>
+
 
         ${
             expiry.length
@@ -2087,14 +2994,20 @@ function showReports() {
                         ${m.expiry}
 
                     </p>
-
                 `
                 ).join("")
 
-                : "<p>আগামী ৩০ দিনের মধ্যে কোনো expiry নেই।</p>"
+                : `
+                    <p>
+                        আগামী ৩০ দিনের মধ্যে
+                        কোনো expiry নেই।
+                    </p>
+                `
         }
 
+
         <hr style="margin:25px 0;">
+
 
         <button
             class="btn btn-primary"
@@ -2104,8 +3017,10 @@ function showReports() {
 
         </button>
 
-    `);
+        `
+    );
 }
+
 
 // ==========================================
 // OLD BUTTON COMPATIBILITY
@@ -2123,39 +3038,53 @@ function comingSoon(name) {
         return;
     }
 
-    if (name === "Purchase") {
+
+    if (
+        name === "Purchase"
+    ) {
 
         showPurchase();
 
         return;
     }
 
-    if (name === "Suppliers") {
+
+    if (
+        name === "Suppliers"
+    ) {
 
         showSuppliers();
 
         return;
     }
 
-    if (name === "Customers") {
+
+    if (
+        name === "Customers"
+    ) {
 
         showCustomers();
 
         return;
     }
 
-    if (name === "Reports") {
+
+    if (
+        name === "Reports"
+    ) {
 
         showReports();
 
         return;
     }
 
+
     alert(
         name +
         " available soon."
     );
 }
+
 
 // ==========================================
 // MOBILE MENU
@@ -2168,6 +3097,7 @@ function toggleMenu() {
             "nav"
         );
 
+
     if (nav) {
 
         nav.style.display =
@@ -2177,17 +3107,23 @@ function toggleMenu() {
     }
 }
 
+
 // ==========================================
-// OLD MEDICINE FORM COMPATIBILITY
+// CLEAR MEDICINE FORM
 // ==========================================
 
 function clearMedicineForm() {
+
+    editingMedicineIndex = -1;
 
     const form =
         document.getElementById(
             "medicineForm"
         );
 
-    if (form)
+
+    if (form) {
+
         form.reset();
+    }
 }
