@@ -366,7 +366,7 @@ function updateDashboard() {
 
 
     if (total) {
-              total.textContent = medicines.length;
+        total.textContent = medicines.length;
     }
 
 
