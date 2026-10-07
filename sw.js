@@ -1,9 +1,10 @@
-const CACHE_NAME = "pharmacy-inventory-pro-v2";
+const CACHE_NAME = const CACHE_NAME = "pharmacy-inventory-pro-v3";
 const FILES = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
+  "./medicine-database.js",
   "./manifest.json"
 ];
 
