@@ -12,8 +12,7 @@
 
 <body>
 
-  <!-- ================= SIDEBAR ================= -->
-
+  <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
 
     <div class="brand">
@@ -60,8 +59,7 @@
   </aside>
 
 
-  <!-- ================= MAIN ================= -->
-
+  <!-- MAIN -->
   <main>
 
     <header>
@@ -83,12 +81,10 @@
     </header>
 
 
-    <!-- ================= CONTENT ================= -->
-
+    <!-- CONTENT -->
     <section class="content" id="content">
 
       <!-- DASHBOARD -->
-
       <div id="dashboardPage">
 
         <div class="cards">
@@ -107,44 +103,56 @@
 
 
           <div class="card">
+
             <div class="card-icon">💊</div>
 
             <div class="card-title">
               Total Medicines
             </div>
 
-            <div class="card-value"
-                 id="totalMedicines">
+            <div
+              class="card-value"
+              id="totalMedicines"
+            >
               0
             </div>
+
           </div>
 
 
           <div class="card">
+
             <div class="card-icon">⚠️</div>
 
             <div class="card-title">
               Low Stock
             </div>
 
-            <div class="card-value"
-                 id="lowStockCount">
+            <div
+              class="card-value"
+              id="lowStockCount"
+            >
               0
             </div>
+
           </div>
 
 
           <div class="card">
+
             <div class="card-icon">📅</div>
 
             <div class="card-title">
               Near Expiry
             </div>
 
-            <div class="card-value"
-                 id="expiryCount">
+            <div
+              class="card-value"
+              id="expiryCount"
+            >
               0
             </div>
+
           </div>
 
         </div>
@@ -173,23 +181,31 @@
 
             <div class="quick-actions">
 
-              <button class="quick-btn"
-                      onclick="showMedicines()">
+              <button
+                class="quick-btn"
+                onclick="showMedicines()"
+              >
                 Add Medicine
               </button>
 
-              <button class="quick-btn"
-                      onclick="comingSoon('New Sale')">
+              <button
+                class="quick-btn"
+                onclick="comingSoon('New Sale')"
+              >
                 New Sale
               </button>
 
-              <button class="quick-btn"
-                      onclick="comingSoon('Purchase')">
+              <button
+                class="quick-btn"
+                onclick="comingSoon('Purchase')"
+              >
                 Purchase
               </button>
 
-              <button class="quick-btn"
-                      onclick="comingSoon('Reports')">
+              <button
+                class="quick-btn"
+                onclick="comingSoon('Reports')"
+              >
                 Reports
               </button>
 
@@ -202,9 +218,11 @@
       </div>
 
 
-      <!-- ================= MEDICINE PAGE ================= -->
-
-      <div id="medicinePage" style="display:none;">
+      <!-- MEDICINE PAGE -->
+      <div
+        id="medicinePage"
+        style="display:none;"
+      >
 
         <div class="panel">
 
@@ -218,11 +236,9 @@
 
 
           <!-- MEDICINE FORM -->
-
           <form id="medicineForm">
 
             <div class="form-grid">
-
 
               <div class="form-group">
 
@@ -472,11 +488,13 @@
             </div>
 
 
-            <div style="margin-top:20px;">
+            <!-- BUTTONS -->
+            <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
 
               <button
                 type="submit"
                 class="btn btn-primary"
+                style="display:inline-flex;visibility:visible;opacity:1;"
               >
                 💾 Save Medicine
               </button>
@@ -496,9 +514,11 @@
         </div>
 
 
-        <!-- ================= MEDICINE LIST ================= -->
-
-        <div class="panel" style="margin-top:18px;">
+        <!-- MEDICINE LIST -->
+        <div
+          class="panel"
+          style="margin-top:18px;"
+        >
 
           <h3>
             📋 Medicine List
@@ -542,7 +562,6 @@
 
 
               <tbody id="medicineTableBody">
-
               </tbody>
 
             </table>
@@ -558,476 +577,8 @@
   </main>
 
 
-  <!-- ================= JAVASCRIPT ================= -->
-
+  <!-- ONLY ONE JAVASCRIPT FILE -->
   <script src="app.js"></script>
-
-
-  <script>
-
-    // ================================
-    // Page Navigation
-    // ================================
-
-    function showDashboard() {
-
-      document.getElementById(
-        "dashboardPage"
-      ).style.display = "block";
-
-      document.getElementById(
-        "medicinePage"
-      ).style.display = "none";
-
-      document.getElementById(
-        "pageTitle"
-      ).innerText = "Dashboard";
-
-      updateDashboard();
-
-    }
-
-
-    function showMedicines() {
-
-      document.getElementById(
-        "dashboardPage"
-      ).style.display = "none";
-
-      document.getElementById(
-        "medicinePage"
-      ).style.display = "block";
-
-      document.getElementById(
-        "pageTitle"
-      ).innerText = "Medicines";
-
-      renderMedicines();
-
-      updateDashboard();
-
-    }
-
-
-    // ================================
-    // Medicine Save
-    // ================================
-
-    document.getElementById(
-      "medicineForm"
-    ).addEventListener(
-      "submit",
-      function(event) {
-
-        event.preventDefault();
-
-
-        const medicine = {
-
-          id: Date.now(),
-
-          name:
-            document.getElementById(
-              "medicineName"
-            ).value.trim(),
-
-          generic:
-            document.getElementById(
-              "genericName"
-            ).value.trim(),
-
-          company:
-            document.getElementById(
-              "companyName"
-            ).value.trim(),
-
-          strength:
-            document.getElementById(
-              "strength"
-            ).value.trim(),
-
-          dosageForm:
-            document.getElementById(
-              "dosageForm"
-            ).value,
-
-          barcode:
-            document.getElementById(
-              "barcode"
-            ).value.trim(),
-
-          packSize:
-            document.getElementById(
-              "packSize"
-            ).value.trim(),
-
-          stock:
-            Number(
-              document.getElementById(
-                "stock"
-              ).value
-            ) || 0,
-
-          reorderLevel:
-            Number(
-              document.getElementById(
-                "reorderLevel"
-              ).value
-            ) || 0,
-
-          batchNumber:
-            document.getElementById(
-              "batchNumber"
-            ).value.trim(),
-
-          manufacturingDate:
-            document.getElementById(
-              "manufacturingDate"
-            ).value,
-
-          expiryDate:
-            document.getElementById(
-              "expiryDate"
-            ).value,
-
-          purchasePrice:
-            Number(
-              document.getElementById(
-                "purchasePrice"
-              ).value
-            ) || 0,
-
-          salePrice:
-            Number(
-              document.getElementById(
-                "salePrice"
-              ).value
-            ) || 0,
-
-          createdAt:
-            new Date().toISOString()
-
-        };
-
-
-        medicines.push(medicine);
-
-        saveLocalData();
-
-        alert(
-          "✅ Medicine সফলভাবে Save হয়েছে।"
-        );
-
-
-        clearMedicineForm();
-
-        renderMedicines();
-
-        updateDashboard();
-
-      }
-    );
-
-
-    // ================================
-    // Clear Form
-    // ================================
-
-    function clearMedicineForm() {
-
-      document.getElementById(
-        "medicineForm"
-      ).reset();
-
-      document.getElementById(
-        "stock"
-      ).value = 0;
-
-      document.getElementById(
-        "reorderLevel"
-      ).value = 10;
-
-    }
-
-
-    // ================================
-    // Render Medicines
-    // ================================
-
-    function renderMedicines() {
-
-      const tbody =
-        document.getElementById(
-          "medicineTableBody"
-        );
-
-      if (!tbody) return;
-
-
-      const search =
-        (
-          document.getElementById(
-            "medicineSearch"
-          )?.value || ""
-        )
-        .toLowerCase()
-        .trim();
-
-
-      const filtered =
-        medicines.filter(
-          medicine => {
-
-            const text =
-              (
-                medicine.name +
-                " " +
-                medicine.generic +
-                " " +
-                medicine.company +
-                " " +
-                medicine.barcode
-              )
-              .toLowerCase();
-
-            return text.includes(search);
-
-          }
-        );
-
-
-      if (filtered.length === 0) {
-
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="10"
-                style="text-align:center;padding:30px;color:#777;">
-              কোনো Medicine পাওয়া যায়নি।
-            </td>
-          </tr>
-        `;
-
-        return;
-
-      }
-
-
-      tbody.innerHTML =
-        filtered.map(
-          (medicine, index) => {
-
-            const stock =
-              Number(medicine.stock) || 0;
-
-            const reorder =
-              Number(medicine.reorderLevel) || 0;
-
-
-            let status =
-              `<span class="status status-success">
-                In Stock
-              </span>`;
-
-
-            if (stock <= reorder) {
-
-              status =
-                `<span class="status status-warning">
-                  Low Stock
-                </span>`;
-
-            }
-
-
-            if (stock === 0) {
-
-              status =
-                `<span class="status status-danger">
-                  Out of Stock
-                </span>`;
-
-            }
-
-
-            return `
-
-              <tr>
-
-                <td>
-                  ${index + 1}
-                </td>
-
-                <td>
-                  <strong>
-                    ${escapeHTML(medicine.name)}
-                  </strong>
-
-                  <br>
-
-                  <small>
-                    ${escapeHTML(medicine.strength || "")}
-                  </small>
-                </td>
-
-                <td>
-                  ${escapeHTML(medicine.generic || "-")}
-                </td>
-
-                <td>
-                  ${escapeHTML(medicine.company || "-")}
-                </td>
-
-                <td>
-                  ${escapeHTML(medicine.batchNumber || "-")}
-                </td>
-
-                <td>
-                  ${medicine.expiryDate || "-"}
-                </td>
-
-                <td>
-                  <strong>
-                    ${stock}
-                  </strong>
-                </td>
-
-                <td>
-                  ৳ ${Number(
-                    medicine.salePrice || 0
-                  ).toFixed(2)}
-                </td>
-
-                <td>
-                  ${status}
-                </td>
-
-                <td>
-
-                  <button
-                    class="btn btn-danger"
-                    onclick="deleteMedicine(${medicine.id})"
-                  >
-                    Delete
-                  </button>
-
-                </td>
-
-              </tr>
-
-            `;
-
-          }
-        ).join("");
-
-    }
-
-
-    // ================================
-    // Delete Medicine
-    // ================================
-
-    function deleteMedicine(id) {
-
-      const medicine =
-        findMedicine(id);
-
-      if (!medicine) return;
-
-
-      const confirmDelete =
-        confirm(
-          "আপনি কি এই Medicine Delete করতে চান?"
-        );
-
-
-      if (!confirmDelete) return;
-
-
-      medicines =
-        medicines.filter(
-          item =>
-            item.id !== Number(id)
-        );
-
-
-      saveLocalData();
-
-      renderMedicines();
-
-      updateDashboard();
-
-    }
-
-
-    // ================================
-    // Dashboard Update
-    // ================================
-
-    function updateDashboard() {
-
-      const total =
-        document.getElementById(
-          "totalMedicines"
-        );
-
-      const low =
-        document.getElementById(
-          "lowStockCount"
-        );
-
-      const expiry =
-        document.getElementById(
-          "expiryCount"
-        );
-
-
-      if (total) {
-
-        total.innerText =
-          medicines.length;
-
-      }
-
-
-      if (low) {
-
-        low.innerText =
-          getLowStockMedicines().length;
-
-      }
-
-
-      if (expiry) {
-
-        expiry.innerText =
-          getExpiringMedicines(30).length;
-
-      }
-
-    }
-
-
-    // ================================
-    // Safe HTML
-    // ================================
-
-    function escapeHTML(value) {
-
-      return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-    }
-
-
-    // Initial Dashboard
-
-    updateDashboard();
-
-  </script>
 
 </body>
 </html>
