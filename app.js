@@ -76,26 +76,18 @@ document.addEventListener(
 // ==========================================
 
 function money(n) {
-
-    return "৳ " +
-        Number(n || 0).toFixed(2);
+    return "৳ " + Number(n || 0).toFixed(2);
 }
 
-
 function today() {
-
     return new Date()
         .toISOString()
         .split("T")[0];
 }
 
-
 function currentTime() {
-
-    return new Date()
-        .toLocaleTimeString();
+    return new Date().toLocaleTimeString();
 }
-
 
 function escapeHTML(value) {
 
@@ -107,12 +99,9 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
-
 function app() {
-
     return document.getElementById("app");
 }
-
 
 function layout(title, html) {
 
@@ -123,7 +112,6 @@ function layout(title, html) {
         </div>
     `;
 }
-
 
 function input(
     id,
@@ -163,33 +151,36 @@ function input(
 
 function showDashboard() {
 
-    const salesToday = sales
-        .filter(s => s.date === today())
-        .reduce(
-            (sum, s) =>
-                sum + Number(s.total || 0),
-            0
-        );
+    const salesToday =
+        sales
+            .filter(s => s.date === today())
+            .reduce(
+                (sum, s) =>
+                    sum + Number(s.total || 0),
+                0
+            );
 
-    const lowStock = medicines.filter(
-        m =>
-            Number(m.stock || 0) <=
-            Number(m.reorder || 0)
-    ).length;
+    const lowStock =
+        medicines.filter(
+            m =>
+                Number(m.stock || 0) <=
+                Number(m.reorder || 0)
+        ).length;
 
-    const expiry = medicines.filter(m => {
+    const expiry =
+        medicines.filter(m => {
 
-        if (!m.expiry) return false;
+            if (!m.expiry) return false;
 
-        const d = new Date(m.expiry);
-        const now = new Date();
+            const d = new Date(m.expiry);
+            const now = new Date();
 
-        const days =
-            (d - now) / 86400000;
+            const days =
+                (d - now) / 86400000;
 
-        return days >= 0 && days <= 30;
+            return days >= 0 && days <= 30;
 
-    }).length;
+        }).length;
 
     app().innerHTML = `
 
@@ -452,9 +443,7 @@ function showMedicines() {
 
         <hr style="margin:25px 0;">
 
-
         <h3>📋 Medicine List</h3>
-
 
         <input
             id="medicineSearch"
@@ -468,7 +457,6 @@ function showMedicines() {
                 margin-bottom:15px;
             "
         >
-
 
         <div id="medicineList"></div>
 
@@ -495,7 +483,6 @@ function showMedicines() {
 
             return;
         }
-
 
         const medicineData = {
 
@@ -556,7 +543,6 @@ function showMedicines() {
         };
 
 
-        // UPDATE EXISTING MEDICINE
         if (
             editingMedicineIndex >= 0 &&
             medicines[editingMedicineIndex]
@@ -577,10 +563,7 @@ function showMedicines() {
                 "Medicine successfully updated!"
             );
 
-        }
-
-        // ADD NEW MEDICINE
-        else {
+        } else {
 
             medicineData.id =
                 Date.now();
@@ -620,7 +603,6 @@ function renderMedicines() {
 
     if (!list) return;
 
-
     const searchBox =
         document.getElementById(
             "medicineSearch"
@@ -632,7 +614,6 @@ function renderMedicines() {
                 .trim()
                 .toLowerCase()
             : "";
-
 
     const filtered =
         medicines.filter(m => {
@@ -674,7 +655,6 @@ function renderMedicines() {
                 <thead>
 
                     <tr>
-
                         <th>Medicine</th>
                         <th>Generic</th>
                         <th>Company</th>
@@ -683,11 +663,9 @@ function renderMedicines() {
                         <th>Sale Price</th>
                         <th>Expiry</th>
                         <th>Action</th>
-
                     </tr>
 
                 </thead>
-
 
                 <tbody>
 
@@ -701,21 +679,15 @@ function renderMedicines() {
                         <tr>
 
                             <td>
-                                ${escapeHTML(
-                                    m.name
-                                )}
+                                ${escapeHTML(m.name)}
                             </td>
 
                             <td>
-                                ${escapeHTML(
-                                    m.generic
-                                )}
+                                ${escapeHTML(m.generic)}
                             </td>
 
                             <td>
-                                ${escapeHTML(
-                                    m.company
-                                )}
+                                ${escapeHTML(m.company)}
                             </td>
 
                             <td>
@@ -723,15 +695,11 @@ function renderMedicines() {
                             </td>
 
                             <td>
-                                ${money(
-                                    m.purchase
-                                )}
+                                ${money(m.purchase)}
                             </td>
 
                             <td>
-                                ${money(
-                                    m.sale
-                                )}
+                                ${money(m.sale)}
                             </td>
 
                             <td>
@@ -778,64 +746,53 @@ function editMedicine(index) {
 
     if (!m) return;
 
-
     editingMedicineIndex =
         index;
-
 
     document.getElementById(
         "mName"
     ).value =
         m.name || "";
 
-
     document.getElementById(
         "mGeneric"
     ).value =
         m.generic || "";
-
 
     document.getElementById(
         "mCompany"
     ).value =
         m.company || "";
 
-
     document.getElementById(
         "mStrength"
     ).value =
         m.strength || "";
-
 
     document.getElementById(
         "mBatch"
     ).value =
         m.batch || "";
 
-
     document.getElementById(
         "mExpiry"
     ).value =
         m.expiry || "";
-
 
     document.getElementById(
         "mStock"
     ).value =
         m.stock || 0;
 
-
     document.getElementById(
         "mReorder"
     ).value =
         m.reorder || 0;
 
-
     document.getElementById(
         "mPurchase"
     ).value =
         m.purchase || 0;
-
 
     document.getElementById(
         "mSale"
@@ -892,10 +849,7 @@ function cancelMedicineEdit() {
 
 function deleteMedicine(index) {
 
-    if (
-        !medicines[index]
-    ) return;
-
+    if (!medicines[index]) return;
 
     if (
         !confirm(
@@ -904,7 +858,6 @@ function deleteMedicine(index) {
     ) {
         return;
     }
-
 
     medicines.splice(
         index,
@@ -950,15 +903,9 @@ function showPurchase() {
 
                     ${medicines.map(m => `
 
-                        <option
-                            value="${m.id}">
-
+                        <option value="${m.id}">
                             ${escapeHTML(m.name)}
-
-                            |
-                            Stock:
-                            ${m.stock}
-
+                            | Stock: ${m.stock}
                         </option>
 
                     `).join("")}
@@ -975,7 +922,6 @@ function showPurchase() {
                 "1"
             )}
 
-
             ${input(
                 "purchasePriceInput",
                 "Purchase Price",
@@ -983,12 +929,10 @@ function showPurchase() {
                 "0"
             )}
 
-
             ${input(
                 "purchaseSupplier",
                 "Supplier"
             )}
-
 
             <button
                 class="btn btn-primary"
@@ -1000,9 +944,7 @@ function showPurchase() {
 
         </form>
 
-
         <hr style="margin:25px 0;">
-
 
         <h3>Recent Purchases</h3>
 
@@ -1022,14 +964,12 @@ function showPurchase() {
 
             e.preventDefault();
 
-
             const id =
                 Number(
                     document.getElementById(
                         "purchaseMedicine"
                     ).value
                 );
-
 
             const qty =
                 Number(
@@ -1038,14 +978,12 @@ function showPurchase() {
                     ).value
                 );
 
-
             const price =
                 Number(
                     document.getElementById(
                         "purchasePriceInput"
                     ).value
                 );
-
 
             const medicine =
                 medicines.find(
@@ -1061,7 +999,6 @@ function showPurchase() {
 
                 return;
             }
-
 
             if (qty <= 0) {
 
@@ -1105,20 +1042,14 @@ function showPurchase() {
 
             saveData();
 
-
             alert(
                 "Purchase added এবং stock updated!"
             );
-
 
             showPurchase();
         };
 }
 
-
-// ==========================================
-// RENDER PURCHASE
-// ==========================================
 
 function renderPurchases() {
 
@@ -1152,15 +1083,12 @@ function renderPurchases() {
             <table>
 
                 <tr>
-
                     <th>Date</th>
                     <th>Medicine</th>
                     <th>Qty</th>
                     <th>Total</th>
                     <th>Supplier</th>
-
                 </tr>
-
 
                 ${list.map(p => `
 
@@ -1171,9 +1099,7 @@ function renderPurchases() {
                         </td>
 
                         <td>
-                            ${escapeHTML(
-                                p.medicine
-                            )}
+                            ${escapeHTML(p.medicine)}
                         </td>
 
                         <td>
@@ -1185,9 +1111,7 @@ function renderPurchases() {
                         </td>
 
                         <td>
-                            ${escapeHTML(
-                                p.supplier
-                            )}
+                            ${escapeHTML(p.supplier)}
                         </td>
 
                     </tr>
@@ -1209,7 +1133,6 @@ function showSales() {
 
     saleCart = [];
 
-
     layout(
         "🧾 Sales / POS",
         `
@@ -1221,13 +1144,11 @@ function showSales() {
                 box-shadow:none;
             ">
 
-
             <div style="margin-bottom:12px;">
 
                 <label>
                     <b>Medicine</b>
                 </label>
-
 
                 <select
                     id="cartMedicine"
@@ -1242,20 +1163,13 @@ function showSales() {
                         Select Medicine
                     </option>
 
-
                     ${medicines.map(m => `
 
-                        <option
-                            value="${m.id}">
+                        <option value="${m.id}">
 
-                            ${escapeHTML(
-                                m.name
-                            )}
-
+                            ${escapeHTML(m.name)}
                             |
-                            Stock:
-                            ${m.stock}
-
+                            Stock: ${m.stock}
                             |
                             ${money(m.sale)}
 
@@ -1270,8 +1184,7 @@ function showSales() {
 
             <div style="
                 display:grid;
-                grid-template-columns:
-                    1fr 1fr;
+                grid-template-columns:1fr 1fr;
                 gap:10px;
             ">
 
@@ -1281,7 +1194,6 @@ function showSales() {
                     "number",
                     "1"
                 )}
-
 
                 ${input(
                     "cartPrice",
@@ -1305,19 +1217,57 @@ function showSales() {
 
             <hr style="margin:25px 0;">
 
-
             <h3>🛒 Sale Cart</h3>
-
 
             <div id="cartList"></div>
 
 
             <div style="margin-top:15px;">
 
-                ${input(
-                    "saleCustomer",
-                    "Customer Name"
-                )}
+                <!-- CUSTOMER DROPDOWN -->
+
+                <div style="margin-bottom:12px;">
+
+                    <label>
+                        <b>Customer</b>
+                    </label>
+
+                    <select
+                        id="saleCustomer"
+                        class="form-control"
+                        style="
+                            width:100%;
+                            padding:10px;
+                            margin-top:5px;
+                            box-sizing:border-box;
+                        ">
+
+                        <option value="">
+                            Walk-in Customer
+                        </option>
+
+                        ${
+                            customers.map(c => `
+
+                                <option value="${escapeHTML(c.name)}">
+
+                                    ${escapeHTML(c.name)}
+
+                                    ${
+                                        c.phone
+                                            ? " - " +
+                                              escapeHTML(c.phone)
+                                            : ""
+                                    }
+
+                                </option>
+
+                            `).join("")
+                        }
+
+                    </select>
+
+                </div>
 
 
                 ${input(
@@ -1326,7 +1276,6 @@ function showSales() {
                     "number",
                     "0"
                 )}
-
 
                 ${input(
                     "salePaid",
@@ -1357,9 +1306,7 @@ function showSales() {
 
             <hr style="margin:25px 0;">
 
-
             <h3>📋 Today's Sales</h3>
-
 
             <div id="salesList"></div>
 
@@ -1380,7 +1327,6 @@ function showSales() {
                         m.id ===
                         Number(this.value)
                 );
-
 
             document.getElementById(
                 "cartPrice"
@@ -1422,7 +1368,6 @@ function addToCart() {
             ).value
         );
 
-
     const qty =
         Number(
             document.getElementById(
@@ -1430,14 +1375,12 @@ function addToCart() {
             ).value
         );
 
-
     const price =
         Number(
             document.getElementById(
                 "cartPrice"
             ).value
         );
-
 
     const medicine =
         medicines.find(
@@ -1454,7 +1397,6 @@ function addToCart() {
         return;
     }
 
-
     if (qty <= 0) {
 
         alert(
@@ -1463,7 +1405,6 @@ function addToCart() {
 
         return;
     }
-
 
     if (
         qty >
@@ -1476,7 +1417,6 @@ function addToCart() {
 
         return;
     }
-
 
     if (price < 0) {
 
@@ -1509,14 +1449,10 @@ function addToCart() {
             return;
         }
 
-
         existing.qty += qty;
-
         existing.price = price;
 
-    }
-
-    else {
+    } else {
 
         saleCart.push({
 
@@ -1537,11 +1473,9 @@ function addToCart() {
         "cartQty"
     ).value = 1;
 
-
     document.getElementById(
         "cartMedicine"
     ).value = "";
-
 
     document.getElementById(
         "cartPrice"
@@ -1574,9 +1508,7 @@ function renderCart() {
             </p>
         `;
 
-    }
-
-    else {
+    } else {
 
         box.innerHTML = `
 
@@ -1585,13 +1517,11 @@ function renderCart() {
                 <table>
 
                     <tr>
-
                         <th>Medicine</th>
                         <th>Qty</th>
                         <th>Price</th>
                         <th>Total</th>
                         <th>Action</th>
-
                     </tr>
 
 
@@ -1611,9 +1541,7 @@ function renderCart() {
                             </td>
 
                             <td>
-                                ${money(
-                                    item.price
-                                )}
+                                ${money(item.price)}
                             </td>
 
                             <td>
@@ -1721,9 +1649,7 @@ function renderCart() {
                     ${money(discount)}
                 </p>
 
-                <p style="
-                    font-size:20px;
-                ">
+                <p style="font-size:20px;">
                     <b>Grand Total:</b>
                     ${money(total)}
                 </p>
@@ -1853,6 +1779,7 @@ function completeCartSale() {
 
 
     // CHECK STOCK AGAIN
+
     for (
         const item of saleCart
     ) {
@@ -1891,6 +1818,7 @@ function completeCartSale() {
 
 
     // REDUCE STOCK
+
     saleCart.forEach(
         item => {
 
@@ -1930,6 +1858,7 @@ function completeCartSale() {
         items:
             saleCart.map(
                 item => ({
+
                     medicineId:
                         item.medicineId,
 
@@ -1945,6 +1874,7 @@ function completeCartSale() {
                     total:
                         Number(item.qty) *
                         Number(item.price)
+
                 })
             ),
 
@@ -2003,12 +1933,12 @@ function renderSales() {
 
     const list =
         sales
-        .filter(
-            s =>
-                s.date ===
-                today()
-        )
-        .reverse();
+            .filter(
+                s =>
+                    s.date ===
+                    today()
+            )
+            .reverse();
 
 
     if (!list.length) {
@@ -2072,15 +2002,11 @@ function renderSales() {
                         </td>
 
                         <td>
-                            ${money(
-                                s.total
-                            )}
+                            ${money(s.total)}
                         </td>
 
                         <td>
-                            ${money(
-                                s.due
-                            )}
+                            ${money(s.due)}
                         </td>
 
                         <td>
@@ -2130,9 +2056,7 @@ function printInvoice(sale) {
 
 
     const items =
-        Array.isArray(
-            sale.items
-        ) &&
+        Array.isArray(sale.items) &&
         sale.items.length
 
             ? sale.items
@@ -2166,66 +2090,43 @@ function printInvoice(sale) {
                 )}
             </title>
 
-
             <style>
 
                 body {
-
                     font-family:
                         Arial, sans-serif;
-
                     padding:25px;
                 }
 
-
                 .invoice {
-
                     max-width:650px;
-
                     margin:auto;
                 }
 
-
                 h1,
                 h2 {
-
                     text-align:center;
                 }
 
-
                 table {
-
                     width:100%;
-
-                    border-collapse:
-                        collapse;
-
+                    border-collapse:collapse;
                     margin-top:20px;
                 }
 
-
                 th,
                 td {
-
-                    border:
-                        1px solid #999;
-
+                    border:1px solid #999;
                     padding:9px;
-
                     text-align:left;
                 }
 
-
                 .right {
-
                     text-align:right;
                 }
 
-
                 .total {
-
                     font-size:18px;
-
                     font-weight:bold;
                 }
 
@@ -2234,16 +2135,13 @@ function printInvoice(sale) {
         </head>
 
 
-        <body
-            onload="window.print()">
-
+        <body onload="window.print()">
 
             <div class="invoice">
 
                 <h1>
                     💊 Pharmacy
                 </h1>
-
 
                 <h2>
                     Sales Invoice
@@ -2286,21 +2184,10 @@ function printInvoice(sale) {
 
                     <tr>
 
-                        <th>
-                            Medicine
-                        </th>
-
-                        <th>
-                            Qty
-                        </th>
-
-                        <th>
-                            Price
-                        </th>
-
-                        <th>
-                            Total
-                        </th>
+                        <th>Medicine</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
 
                     </tr>
 
@@ -2328,12 +2215,8 @@ function printInvoice(sale) {
 
                             <td>
                                 ${money(
-                                    Number(
-                                        item.qty
-                                    ) *
-                                    Number(
-                                        item.price
-                                    )
+                                    Number(item.qty) *
+                                    Number(item.price)
                                 )}
                             </td>
 
@@ -2348,7 +2231,6 @@ function printInvoice(sale) {
                 <p class="right">
 
                     <b>Subtotal:</b>
-
                     ${money(
                         sale.subtotal ??
                         sale.total
@@ -2360,7 +2242,6 @@ function printInvoice(sale) {
                 <p class="right">
 
                     <b>Discount:</b>
-
                     ${money(
                         sale.discount || 0
                     )}
@@ -2371,7 +2252,6 @@ function printInvoice(sale) {
                 <p class="right total">
 
                     <b>Grand Total:</b>
-
                     ${money(
                         sale.total
                     )}
@@ -2382,7 +2262,6 @@ function printInvoice(sale) {
                 <p class="right">
 
                     <b>Paid:</b>
-
                     ${money(
                         sale.paid || 0
                     )}
@@ -2393,7 +2272,6 @@ function printInvoice(sale) {
                 <p class="right">
 
                     <b>Due:</b>
-
                     ${money(
                         sale.due || 0
                     )}
@@ -2404,7 +2282,6 @@ function printInvoice(sale) {
                 <p class="right">
 
                     <b>Change:</b>
-
                     ${money(
                         sale.change || 0
                     )}
@@ -2473,7 +2350,6 @@ function showSuppliers() {
 
 
         <hr style="margin:25px 0;">
-
 
         <div id="supplierList"></div>
 
@@ -2559,7 +2435,6 @@ function renderSuppliers() {
             Supplier List
         </h3>
 
-
         <div style="overflow:auto;">
 
             <table>
@@ -2579,21 +2454,15 @@ function renderSuppliers() {
                     <tr>
 
                         <td>
-                            ${escapeHTML(
-                                s.name
-                            )}
+                            ${escapeHTML(s.name)}
                         </td>
 
                         <td>
-                            ${escapeHTML(
-                                s.phone
-                            )}
+                            ${escapeHTML(s.phone)}
                         </td>
 
                         <td>
-                            ${escapeHTML(
-                                s.address
-                            )}
+                            ${escapeHTML(s.address)}
                         </td>
 
                     </tr>
@@ -2648,7 +2517,6 @@ function showCustomers() {
 
 
         <hr style="margin:25px 0;">
-
 
         <div id="customerList"></div>
 
@@ -2754,21 +2622,15 @@ function renderCustomers() {
                     <tr>
 
                         <td>
-                            ${escapeHTML(
-                                c.name
-                            )}
+                            ${escapeHTML(c.name)}
                         </td>
 
                         <td>
-                            ${escapeHTML(
-                                c.phone
-                            )}
+                            ${escapeHTML(c.phone)}
                         </td>
 
                         <td>
-                            ${escapeHTML(
-                                c.address
-                            )}
+                            ${escapeHTML(c.address)}
                         </td>
 
                     </tr>
@@ -2793,9 +2655,7 @@ function showReports() {
         sales.reduce(
             (sum, s) =>
                 sum +
-                Number(
-                    s.total || 0
-                ),
+                Number(s.total || 0),
             0
         );
 
@@ -2804,39 +2664,31 @@ function showReports() {
         purchases.reduce(
             (sum, p) =>
                 sum +
-                Number(
-                    p.total || 0
-                ),
+                Number(p.total || 0),
             0
         );
 
 
     const todaySales =
         sales
-        .filter(
-            s =>
-                s.date ===
-                today()
-        )
-        .reduce(
-            (sum, s) =>
-                sum +
-                Number(
-                    s.total || 0
-                ),
-            0
-        );
+            .filter(
+                s =>
+                    s.date ===
+                    today()
+            )
+            .reduce(
+                (sum, s) =>
+                    sum +
+                    Number(s.total || 0),
+                0
+            );
 
 
     const low =
         medicines.filter(
             m =>
-                Number(
-                    m.stock || 0
-                ) <=
-                Number(
-                    m.reorder || 0
-                )
+                Number(m.stock || 0) <=
+                Number(m.reorder || 0)
         );
 
 
@@ -2847,15 +2699,11 @@ function showReports() {
                 if (!m.expiry)
                     return false;
 
-
                 const days =
                     (
-                        new Date(
-                            m.expiry
-                        ) -
+                        new Date(m.expiry) -
                         new Date()
                     ) / 86400000;
-
 
                 return (
                     days >= 0 &&
@@ -2878,9 +2726,7 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(
-                        todaySales
-                    )}
+                    ${money(todaySales)}
                 </div>
 
             </div>
@@ -2893,9 +2739,7 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(
-                        totalSales
-                    )}
+                    ${money(totalSales)}
                 </div>
 
             </div>
@@ -2908,9 +2752,7 @@ function showReports() {
                 </h3>
 
                 <div class="card-value">
-                    ${money(
-                        totalPurchase
-                    )}
+                    ${money(totalPurchase)}
                 </div>
 
             </div>
@@ -2948,9 +2790,7 @@ function showReports() {
                     <p>
 
                         <b>
-                            ${escapeHTML(
-                                m.name
-                            )}
+                            ${escapeHTML(m.name)}
                         </b>
 
                         — Stock:
@@ -2985,9 +2825,7 @@ function showReports() {
                     <p>
 
                         <b>
-                            ${escapeHTML(
-                                m.name
-                            )}
+                            ${escapeHTML(m.name)}
                         </b>
 
                         — Expiry:
@@ -3034,47 +2872,34 @@ function comingSoon(name) {
     ) {
 
         showSales();
-
         return;
     }
 
 
-    if (
-        name === "Purchase"
-    ) {
+    if (name === "Purchase") {
 
         showPurchase();
-
         return;
     }
 
 
-    if (
-        name === "Suppliers"
-    ) {
+    if (name === "Suppliers") {
 
         showSuppliers();
-
         return;
     }
 
 
-    if (
-        name === "Customers"
-    ) {
+    if (name === "Customers") {
 
         showCustomers();
-
         return;
     }
 
 
-    if (
-        name === "Reports"
-    ) {
+    if (name === "Reports") {
 
         showReports();
-
         return;
     }
 
@@ -3123,7 +2948,6 @@ function clearMedicineForm() {
 
 
     if (form) {
-
         form.reset();
     }
 }
