@@ -28,7 +28,15 @@
 </nav>
 
 <main id="app"></main>
-
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js")
+            .then(() => console.log("PWA ready"))
+            .catch(error => console.log("PWA error:", error));
+    });
+}
+</script>
 <script src="app.js"></script>
 
 </body>
