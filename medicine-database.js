@@ -1,9 +1,106 @@
 // ==========================================
 // BANGLADESH MEDICINE DATABASE
 // Pharmacy Inventory Pro
+// Batch 2
 // ==========================================
 
 const MEDICINE_DATABASE = [
+
+    // =========================
+    // ACI LIMITED
+    // =========================
+
+    {
+        brand: "Indever",
+        generic: "Propranolol Hydrochloride",
+        company: "ACI Limited",
+        strength: "40 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Flamex",
+        generic: "Ibuprofen",
+        company: "ACI Limited",
+        strength: "400 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Flamex Duo",
+        generic: "Ibuprofen + Paracetamol",
+        company: "ACI Limited",
+        strength: "400 mg + 325 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Othera",
+        generic: "Esomeprazole",
+        company: "ACI Limited",
+        strength: "20 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Micoral",
+        generic: "Miconazole",
+        company: "ACI Limited",
+        strength: "2%",
+        form: "Cream"
+    },
+
+    {
+        brand: "Itogut",
+        generic: "Itopride Hydrochloride",
+        company: "ACI Limited",
+        strength: "50 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Fluver",
+        generic: "Flunarizine",
+        company: "ACI Limited",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Febus",
+        generic: "Febuxostat",
+        company: "ACI Limited",
+        strength: "40 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Abecab",
+        generic: "Amlodipine + Olmesartan",
+        company: "ACI Limited",
+        strength: "5 mg + 20 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Cefim-3",
+        generic: "Cefixime",
+        company: "ACI Limited",
+        strength: "200 mg",
+        form: "Capsule"
+    },
+
+    {
+        brand: "Reversair",
+        generic: "Montelukast Sodium",
+        company: "ACI Limited",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    // =========================
+    // BEXIMCO PHARMACEUTICALS
+    // =========================
 
     {
         brand: "Napa",
@@ -30,6 +127,26 @@ const MEDICINE_DATABASE = [
     },
 
     {
+        brand: "DP",
+        generic: "Paracetamol",
+        company: "Drug International Ltd.",
+        strength: "500 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "DP Plus",
+        generic: "Paracetamol + Caffeine",
+        company: "Drug International Ltd.",
+        strength: "500 mg + 65 mg",
+        form: "Tablet"
+    },
+
+    // =========================
+    // SQUARE PHARMACEUTICALS
+    // =========================
+
+    {
         brand: "Ace",
         generic: "Paracetamol",
         company: "Square Pharmaceuticals PLC",
@@ -54,22 +171,6 @@ const MEDICINE_DATABASE = [
     },
 
     {
-        brand: "DP",
-        generic: "Paracetamol",
-        company: "Drug International Ltd.",
-        strength: "500 mg",
-        form: "Tablet"
-    },
-
-    {
-        brand: "DP Plus",
-        generic: "Paracetamol + Caffeine",
-        company: "Drug International Ltd.",
-        strength: "500 mg + 65 mg",
-        form: "Tablet"
-    },
-
-    {
         brand: "Seclo",
         generic: "Omeprazole",
         company: "Square Pharmaceuticals PLC",
@@ -83,38 +184,6 @@ const MEDICINE_DATABASE = [
         company: "Square Pharmaceuticals PLC",
         strength: "40 mg",
         form: "Capsule"
-    },
-
-    {
-        brand: "Losectil",
-        generic: "Omeprazole",
-        company: "Renata Limited",
-        strength: "20 mg",
-        form: "Capsule"
-    },
-
-    {
-        brand: "DP-20",
-        generic: "Omeprazole",
-        company: "Drug International Ltd.",
-        strength: "20 mg",
-        form: "Capsule"
-    },
-
-    {
-        brand: "Esotid",
-        generic: "Esomeprazole",
-        company: "Square Pharmaceuticals PLC",
-        strength: "20 mg",
-        form: "Tablet"
-    },
-
-    {
-        brand: "Esotid 40",
-        generic: "Esomeprazole",
-        company: "Square Pharmaceuticals PLC",
-        strength: "40 mg",
-        form: "Tablet"
     },
 
     {
@@ -134,19 +203,51 @@ const MEDICINE_DATABASE = [
     },
 
     {
-        brand: "DP-S",
-        generic: "Domperidone",
-        company: "Drug International Ltd.",
-        strength: "10 mg",
-        form: "Tablet"
+        brand: "Cef-3",
+        generic: "Cefixime",
+        company: "Square Pharmaceuticals PLC",
+        strength: "200 mg",
+        form: "Capsule"
     },
 
     {
-        brand: "DP-S Plus",
-        generic: "Domperidone",
+        brand: "Cef-3 400",
+        generic: "Cefixime",
+        company: "Square Pharmaceuticals PLC",
+        strength: "400 mg",
+        form: "Capsule"
+    },
+
+    // =========================
+    // RENATA
+    // =========================
+
+    {
+        brand: "Losectil",
+        generic: "Omeprazole",
+        company: "Renata PLC",
+        strength: "20 mg",
+        form: "Capsule"
+    },
+
+    {
+        brand: "Losectil 40",
+        generic: "Omeprazole",
+        company: "Renata PLC",
+        strength: "40 mg",
+        form: "Capsule"
+    },
+
+    // =========================
+    // DRUG INTERNATIONAL
+    // =========================
+
+    {
+        brand: "DP-20",
+        generic: "Omeprazole",
         company: "Drug International Ltd.",
-        strength: "10 mg",
-        form: "Tablet"
+        strength: "20 mg",
+        form: "Capsule"
     },
 
     {
@@ -190,14 +291,6 @@ const MEDICINE_DATABASE = [
     },
 
     {
-        brand: "DP-M 500",
-        generic: "Metformin",
-        company: "Drug International Ltd.",
-        strength: "500 mg",
-        form: "Tablet"
-    },
-
-    {
         brand: "DP-L",
         generic: "Losartan",
         company: "Drug International Ltd.",
@@ -235,38 +328,6 @@ const MEDICINE_DATABASE = [
         company: "Drug International Ltd.",
         strength: "400 mg",
         form: "Tablet"
-    },
-
-    {
-        brand: "Cef-3",
-        generic: "Cefixime",
-        company: "Square Pharmaceuticals PLC",
-        strength: "200 mg",
-        form: "Capsule"
-    },
-
-    {
-        brand: "Cef-3 400",
-        generic: "Cefixime",
-        company: "Square Pharmaceuticals PLC",
-        strength: "400 mg",
-        form: "Capsule"
-    },
-
-    {
-        brand: "DP-Cef",
-        generic: "Cefixime",
-        company: "Drug International Ltd.",
-        strength: "200 mg",
-        form: "Capsule"
-    },
-
-    {
-        brand: "DP-Cef 400",
-        generic: "Cefixime",
-        company: "Drug International Ltd.",
-        strength: "400 mg",
-        form: "Capsule"
     },
 
     {
