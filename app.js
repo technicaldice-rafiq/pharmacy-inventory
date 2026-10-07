@@ -7001,6 +7001,17 @@ function showAdminSettings() {
                 >
                     🔑 Change Password
                 </button>
+                <button
+    type="button"
+    onclick="showAdminSettings()"
+    style="
+        width:100%;
+        padding:13px;
+        margin:5px 0;
+    "
+>
+    ⚙️ Admin Settings
+</button>
 
                 <button
                     type="button"
