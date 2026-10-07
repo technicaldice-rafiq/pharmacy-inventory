@@ -6859,3 +6859,397 @@ function checkAdminSession() {
 // ==========================================
 // END ADMIN SECURITY
 // ==========================================
+// ==========================================
+// ADMIN SETTINGS PAGE
+// ==========================================
+
+function showAdminSettings() {
+
+    if (!checkAdminSession()) return;
+
+    const pharmacyName =
+        localStorage.getItem("pharmacy_name") ||
+        "Pharmacy Inventory Pro";
+
+    const pharmacyLogo =
+        localStorage.getItem("pharmacy_logo") || "";
+
+    const username =
+        localStorage.getItem(ADMIN_USERNAME_KEY) ||
+        "admin";
+
+    layout(
+        "⚙️ Admin Settings",
+
+        `
+        <div style="
+            max-width:650px;
+            margin:auto;
+        ">
+
+            <!-- PHARMACY BRANDING -->
+            <div style="
+                background:white;
+                padding:20px;
+                border-radius:15px;
+                margin-bottom:20px;
+                box-shadow:0 3px 12px rgba(0,0,0,.08);
+            ">
+
+                <h3>🏥 Pharmacy Information</h3>
+
+                <label>
+                    <b>Pharmacy Name</b>
+                </label>
+
+                <input
+                    id="settingPharmacyName"
+                    type="text"
+                    value="${escapeHTML(pharmacyName)}"
+                    placeholder="Pharmacy Name"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px;
+                        margin:8px 0 15px;
+                        border:1px solid #ccc;
+                        border-radius:8px;
+                    "
+                >
+
+                <label>
+                    <b>Pharmacy Logo</b>
+                </label>
+
+                <input
+                    id="settingPharmacyLogo"
+                    type="file"
+                    accept="image/*"
+                    onchange="previewPharmacyLogo(event)"
+                    style="
+                        width:100%;
+                        margin:8px 0 15px;
+                    "
+                >
+
+                <div
+                    id="pharmacyLogoPreview"
+                    style="
+                        text-align:center;
+                        margin:10px 0;
+                    "
+                >
+                    ${
+                        pharmacyLogo
+                        ?
+                        `<img
+                            src="${pharmacyLogo}"
+                            style="
+                                width:100px;
+                                height:100px;
+                                object-fit:contain;
+                                border-radius:12px;
+                            "
+                        >`
+                        :
+                        `<div style="
+                            font-size:60px;
+                        ">💊</div>`
+                    }
+                </div>
+
+                <button
+                    type="button"
+                    onclick="savePharmacySettings()"
+                    style="
+                        width:100%;
+                        padding:13px;
+                        font-size:16px;
+                        cursor:pointer;
+                    "
+                >
+                    💾 Save Pharmacy Settings
+                </button>
+
+            </div>
+
+
+            <!-- ADMIN ACCOUNT -->
+            <div style="
+                background:white;
+                padding:20px;
+                border-radius:15px;
+                margin-bottom:20px;
+                box-shadow:0 3px 12px rgba(0,0,0,.08);
+            ">
+
+                <h3>🔐 Admin Account</h3>
+
+                <p>
+                    <b>Current Username:</b>
+                    ${escapeHTML(username)}
+                </p>
+
+                <button
+                    type="button"
+                    onclick="showChangePassword()"
+                    style="
+                        width:100%;
+                        padding:13px;
+                        margin:5px 0;
+                    "
+                >
+                    🔑 Change Password
+                </button>
+
+                <button
+                    type="button"
+                    onclick="changeAdminUsername()"
+                    style="
+                        width:100%;
+                        padding:13px;
+                        margin:5px 0;
+                    "
+                >
+                    👤 Change Username
+                </button>
+
+                <button
+                    type="button"
+                    onclick="adminLogout()"
+                    style="
+                        width:100%;
+                        padding:13px;
+                        margin:5px 0;
+                    "
+                >
+                    🚪 Logout
+                </button>
+
+            </div>
+
+        </div>
+        `
+    );
+}
+
+
+// ==========================================
+// LOGO PREVIEW
+// ==========================================
+
+function previewPharmacyLogo(event) {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+
+        alert("শুধু Image File নির্বাচন করুন।");
+
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+
+        const preview =
+            document.getElementById(
+                "pharmacyLogoPreview"
+            );
+
+        if (preview) {
+
+            preview.innerHTML = `
+                <img
+                    src="${e.target.result}"
+                    style="
+                        width:100px;
+                        height:100px;
+                        object-fit:contain;
+                        border-radius:12px;
+                    "
+                >
+            `;
+
+            preview.dataset.logo =
+                e.target.result;
+        }
+    };
+
+    reader.readAsDataURL(file);
+}
+
+
+// ==========================================
+// SAVE PHARMACY SETTINGS
+// ==========================================
+
+function savePharmacySettings() {
+
+    if (!checkAdminSession()) return;
+
+    const name =
+        document.getElementById(
+            "settingPharmacyName"
+        )?.value.trim();
+
+    const preview =
+        document.getElementById(
+            "pharmacyLogoPreview"
+        );
+
+    if (!name) {
+
+        alert("Pharmacy Name দিন।");
+
+        return;
+    }
+
+    localStorage.setItem(
+        "pharmacy_name",
+        name
+    );
+
+    if (
+        preview &&
+        preview.dataset.logo
+    ) {
+
+        localStorage.setItem(
+            "pharmacy_logo",
+            preview.dataset.logo
+        );
+    }
+
+    alert(
+        "✅ Pharmacy Settings সফলভাবে Save হয়েছে।"
+    );
+
+    showAdminSettings();
+}
+
+
+// ==========================================
+// CHANGE ADMIN USERNAME
+// ==========================================
+
+function changeAdminUsername() {
+
+    if (!checkAdminSession()) return;
+
+    const current =
+        localStorage.getItem(
+            ADMIN_USERNAME_KEY
+        ) || "admin";
+
+    const newUsername =
+        prompt(
+            "নতুন Admin Username দিন:",
+            current
+        );
+
+    if (newUsername === null) return;
+
+    const username =
+        newUsername.trim();
+
+    if (username.length < 3) {
+
+        alert(
+            "Username কমপক্ষে ৩ অক্ষরের হতে হবে।"
+        );
+
+        return;
+    }
+
+    localStorage.setItem(
+        ADMIN_USERNAME_KEY,
+        username
+    );
+
+    alert(
+        "✅ Admin Username পরিবর্তন হয়েছে।"
+    );
+
+    showAdminSettings();
+}
+
+
+// ==========================================
+// UPDATE HEADER PHARMACY NAME + LOGO
+// ==========================================
+
+function updatePharmacyBranding() {
+
+    const name =
+        localStorage.getItem(
+            "pharmacy_name"
+        ) || "Pharmacy Inventory Pro";
+
+    const logo =
+        localStorage.getItem(
+            "pharmacy_logo"
+        ) || "";
+
+    const header =
+        document.querySelector("header");
+
+    if (!header) return;
+
+    const title =
+        header.querySelector("h1");
+
+    if (title) {
+
+        title.innerHTML =
+            logo
+            ?
+            `
+            <img
+                src="${logo}"
+                style="
+                    width:45px;
+                    height:45px;
+                    object-fit:contain;
+                    vertical-align:middle;
+                    margin-right:8px;
+                "
+            >
+            ${escapeHTML(name)}
+            `
+            :
+            `💊 ${escapeHTML(name)}`;
+    }
+}
+
+
+// ==========================================
+// ADMIN SETTINGS BUTTON
+// ==========================================
+
+function openAdminSettings() {
+
+    showAdminSettings();
+
+}
+
+
+// ==========================================
+// LOAD BRANDING
+// ==========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        setTimeout(function() {
+
+            updatePharmacyBranding();
+
+        }, 300);
+
+    }
+);
