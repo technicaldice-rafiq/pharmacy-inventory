@@ -554,12 +554,59 @@ app().innerHTML = `
     </div>  
 
 
-    <div  
-        class="panel"  
-        style="margin-top:20px;"  
-    >  
+        <div
+        class="panel"
+        style="margin-top:20px;"
+    >
 
-        <h3>  
+        <h3>
+            ⚙️ Pharmacy & Admin Settings
+        </h3>
+
+        <div style="
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+        ">
+
+            <button
+                class="btn btn-primary"
+                onclick="showPharmacySettings()"
+            >
+                🏥 Pharmacy / Company
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="showPharmacySettings()"
+            >
+                🖼️ Logo
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="showPharmacySettings()"
+            >
+                🔐 Admin Security
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="showChangePassword()"
+            >
+                🔑 Change Password
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="adminLogout()"
+            >
+                🚪 Logout
+            </button>
+
+        </div>
+
+    </div>
             📋 Recent Sales  
         </h3>  
 
