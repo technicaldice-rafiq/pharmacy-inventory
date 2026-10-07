@@ -105,15 +105,18 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
+        setupDefaultAdmin();
+
         if (isLoggedIn()) {
+            setNavVisible(true);
             showDashboard();
         } else {
+            setNavVisible(false);
             showLogin();
         }
 
     }
 );
-
 // ==========================================
 // HELPERS
 // ==========================================
