@@ -3228,11 +3228,53 @@ w.document.write(`
         onload="window.print()"  
     >  
 
-        <div class="invoice">  
+        <div style="
+    text-align:center;
+    margin-bottom:20px;
+">
 
-            <h1>  
-                💊 Pharmacy  
-            </h1>  
+    ${
+        localStorage.getItem(PHARMACY_LOGO_KEY)
+        ? `
+            <img
+                src="${localStorage.getItem(PHARMACY_LOGO_KEY)}"
+                style="
+                    width:80px;
+                    height:80px;
+                    object-fit:contain;
+                    margin-bottom:8px;
+                "
+            >
+        `
+        : `
+            <div style="
+                font-size:50px;
+                margin-bottom:8px;
+            ">
+                💊
+            </div>
+        `
+    }
+
+    <h1 style="
+        margin:5px 0;
+        font-size:24px;
+    ">
+        ${
+            escapeHTML(
+                localStorage.getItem(PHARMACY_NAME_KEY)
+                || "Pharmacy Inventory Pro"
+            )
+        }
+    </h1>
+
+    <h2 style="
+        margin:5px 0 15px;
+    ">
+        Sales Invoice
+    </h2>
+
+</div>
 
 
             <h2>  
