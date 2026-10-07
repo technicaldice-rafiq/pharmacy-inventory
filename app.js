@@ -323,105 +323,36 @@ function showMedicines() {
     renderMedicines();
 }
 
-function renderMedicines() {
 
-    const box =
-        document.getElementById("medicineList");
+function editMedicine(index) {
+    const m = medicines[index];
 
-    if (!box) return;
+    if (!m) return;
 
-    const search =
-        (document.getElementById("medicineSearch")?.value || "")
-        .toLowerCase();
+    document.getElementById("name").value = m.name || "";
+    document.getElementById("generic").value = m.generic || "";
+    document.getElementById("company").value = m.company || "";
+    document.getElementById("strength").value = m.strength || "";
+    document.getElementById("batch").value = m.batch || "";
+    document.getElementById("expiry").value = m.expiry || "";
+    document.getElementById("stock").value = m.stock || 0;
+    document.getElementById("reorder").value = m.reorder || 0;
+    document.getElementById("purchasePrice").value = m.purchasePrice || 0;
+    document.getElementById("salePrice").value = m.salePrice || 0;
 
-    const list = medicines.filter(m =>
+    window.editingMedicineIndex = index;
 
-        (m.name || "").toLowerCase().includes(search) ||
+    const btn = document.getElementById("medicineSaveBtn");
 
-        (m.generic || "").toLowerCase().includes(search) ||
-
-        (m.company || "").toLowerCase().includes(search)
-
-    );
-
-    if (!list.length) {
-
-        box.innerHTML =
-            "<p>কোনো medicine পাওয়া যায়নি।</p>";
-
-        return;
+    if (btn) {
+        btn.textContent = "💾 Update Medicine";
     }
 
-    box.innerHTML = `
-
-        <div style="overflow:auto;">
-
-        <table>
-
-            <thead>
-
-                <tr>
-                    <th>Medicine</th>
-                    <th>Company</th>
-                    <th>Batch</th>
-                    <th>Expiry</th>
-                    <th>Stock</th>
-                    <th>Sale Price</th>
-                    <th>Action</th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                ${list.map(m => `
-
-                    <tr>
-
-                        <td>
-                            ${escapeHTML(m.name)}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(m.company)}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(m.batch)}
-                        </td>
-
-                        <td>
-                            ${m.expiry || "-"}
-                        </td>
-
-                        <td>
-                            ${m.stock}
-                        </td>
-
-                        <td>
-                            ${money(m.sale)}
-                        </td>
-
-                        <td>
-
-                            <button onclick="deleteMedicine(${m.id})">
-                                Delete
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                `).join("")}
-
-            </tbody>
-
-        </table>
-
-        </div>
-    `;
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
-
 function deleteMedicine(id) {
 
     if (!confirm("এই medicine delete করবেন?"))
