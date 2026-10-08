@@ -642,18 +642,27 @@ function showInstallAppButton() {
 
         </div>
 
+            </div>
+
     </div>
-            📋 Recent Sales  
-        </h3>  
 
-        ${recentSalesHTML()}  
 
-    </div>  
+    <!-- ==============================
+         RECENT SALES
+    =============================== -->
 
-`;
+    <div
+        class="panel"
+        style="margin-top:20px;"
+    >
 
-}
+        <h3>
+            📋 Recent Sales
+        </h3>
 
+        ${recentSalesHTML()}
+
+    </div>
 function recentSalesHTML() {
 
 const recent =  
