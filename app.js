@@ -7328,27 +7328,13 @@ function adminLogin() {
 // ==========================================
 
 function adminLogout() {
+    const ok = confirm("আপনি কি Logout করতে চান?");
+    
+    if (!ok) return;
 
-    if (
-        !confirm(
-            "আপনি কি Logout করতে চান?"
-        )
-    ) {
-        return;
-    }
+    localStorage.removeItem(ADMIN_LOGIN_KEY);
 
-
-    localStorage.removeItem(
-        ADMIN_LOGIN_KEY
-    );
-
-
-    if (
-        typeof saleCart !== "undefined"
-    ) {
-        saleCart = [];
-    }
-
+    setNavVisible(false);
 
     showLogin();
 }
