@@ -714,6 +714,98 @@ return `
 // ==========================================
 // MEDICINE DATABASE AUTO FILL
 // ==========================================
+// ==========================================
+// COMPANY → MEDICINE → STRENGTH
+// ==========================================
+
+function loadCompanyMedicines() {
+
+    const companySelect =
+        document.getElementById("medicineCompanySelect");
+
+    const medicineSelect =
+        document.getElementById("medicinePresetSelect");
+
+    if (!companySelect || !medicineSelect) return;
+
+    const company =
+        companySelect.value;
+
+    medicineSelect.innerHTML = `
+        <option value="">
+            Select Medicine
+        </option>
+    `;
+
+    if (!company) return;
+
+    const list =
+        MEDICINE_DATABASE.filter(
+            m => m.company === company
+        );
+
+    list.forEach((m, index) => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            index;
+
+        option.textContent =
+            `${m.brand} — ${m.strength} — ${m.form}`;
+
+        option.dataset.brand =
+            m.brand;
+
+        option.dataset.generic =
+            m.generic;
+
+        option.dataset.company =
+            m.company;
+
+        option.dataset.strength =
+            m.strength;
+
+        option.dataset.form =
+            m.form || "";
+
+        medicineSelect.appendChild(option);
+
+    });
+
+}
+
+
+function selectDatabaseMedicine() {
+
+    const select =
+        document.getElementById(
+            "medicinePresetSelect"
+        );
+
+    if (!select) return;
+
+    const option =
+        select.options[select.selectedIndex];
+
+    if (!option || !option.dataset.brand) {
+        return;
+    }
+
+    document.getElementById("mName").value =
+        option.dataset.brand || "";
+
+    document.getElementById("mGeneric").value =
+        option.dataset.generic || "";
+
+    document.getElementById("mCompany").value =
+        option.dataset.company || "";
+
+    document.getElementById("mStrength").value =
+        option.dataset.strength || "";
+
+}
 
 function fillMedicineFromDatabase() {
 
