@@ -7181,64 +7181,130 @@ function showLogin() {
 
 }
 
+// ==========================================
+// LOGIN PAGE
+// ==========================================
 
-    // Saved pharmacy branding
+function showLogin() {
+
+    setupDefaultAdmin();
+
+    setNavVisible(false);
+
+    const app = document.getElementById("app");
+
+    if (!app) return;
 
     const savedName =
-        localStorage.getItem(
-            PHARMACY_NAME_KEY
-        );
+        localStorage.getItem(PHARMACY_NAME_KEY) ||
+        "Pharmacy Inventory Pro";
 
     const savedLogo =
-        localStorage.getItem(
-            PHARMACY_LOGO_KEY
-        );
+        localStorage.getItem(PHARMACY_LOGO_KEY) ||
+        "";
 
+    app.innerHTML = `
 
-    if (savedName) {
+        <div class="login-container">
 
-        const name =
-            document.getElementById(
-                "loginPharmacyName"
-            );
+            <div style="
+                text-align:center;
+                margin-bottom:25px;
+            ">
 
-        if (name) {
-            name.textContent =
-                savedName;
-        }
-    }
+                <div id="loginLogo" style="
+                    width:90px;
+                    height:90px;
+                    margin:0 auto 15px;
+                    border-radius:20px;
+                    background:#f0fdfa;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    overflow:hidden;
+                    font-size:55px;
+                ">
+                    ${
+                        savedLogo
+                        ? `<img src="${savedLogo}"
+                            style="width:100%;height:100%;object-fit:contain;">`
+                        : `💊`
+                    }
+                </div>
 
+                <h2 id="loginPharmacyName"
+                    style="color:#0f766e;margin-bottom:7px;">
+                    ${escapeHTML(savedName)}
+                </h2>
 
-    if (savedLogo) {
+                <p style="
+                    color:#6b7280;
+                    font-size:14px;
+                ">
+                    🔐 Admin Sign In
+                </p>
 
-        const logo =
-            document.getElementById(
-                "loginLogo"
-            );
+            </div>
 
-        if (logo) {
+            <div class="form-group" style="margin-bottom:16px;">
 
-            logo.innerHTML = `
-                <img
-                    src="${savedLogo}"
-                    style="
-                        width:80px;
-                        height:80px;
-                        object-fit:contain;
-                        border-radius:15px;
-                    "
+                <label>👤 Username</label>
+
+                <input
+                    id="loginUsername"
+                    type="text"
+                    placeholder="Enter username"
+                    autocomplete="username"
+                    class="form-control"
                 >
-            `;
-        }
-    }
 
+            </div>
+
+            <div class="form-group" style="margin-bottom:20px;">
+
+                <label>🔑 Password</label>
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    placeholder="Enter password"
+                    autocomplete="current-password"
+                    class="form-control"
+                    onkeydown="if(event.key === 'Enter'){ adminLogin(); }"
+                >
+
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                style="
+                    width:100%;
+                    min-height:48px;
+                    font-size:16px;
+                "
+                onclick="adminLogin()"
+            >
+                🔐 Sign In
+            </button>
+
+            <p style="
+                text-align:center;
+                color:#9ca3af;
+                font-size:12px;
+                margin-top:18px;
+            ">
+                Pharmacy Inventory Pro
+            </p>
+
+        </div>
+
+    `;
 
     setTimeout(function() {
 
         const username =
-            document.getElementById(
-                "loginUsername"
-            );
+            document.getElementById("loginUsername");
 
         if (username) {
             username.focus();
@@ -7248,6 +7314,9 @@ function showLogin() {
 }
 
 
+// ==========================================
+// ADMIN LOGIN
+// ==========================================
 // ==========================================
 // ADMIN LOGIN
 // ==========================================
