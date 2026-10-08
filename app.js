@@ -471,7 +471,43 @@ app().innerHTML = `
         <h3>  
             ⚡ Quick Actions  
         </h3>  
+// ==========================================
+// INSTALL PHARMACY APP BUTTON
+// ==========================================
 
+function showInstallAppButton() {
+
+    return `
+        <div class="panel"
+             style="
+                margin-top:20px;
+                text-align:center;
+                padding:20px;
+             ">
+
+            <h3>
+                📲 Pharmacy App
+            </h3>
+
+            <p>
+                ফোনে Pharmacy Inventory Pro
+                Install করুন।
+            </p>
+
+            <button
+                class="btn btn-primary"
+                onclick="installPharmacyApp()"
+                style="
+                    font-size:16px;
+                    padding:12px 20px;
+                "
+            >
+                📲 Install App
+            </button>
+
+        </div>
+    `;
+}
         <div style="  
             display:flex;  
             gap:10px;  
