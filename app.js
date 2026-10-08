@@ -1899,7 +1899,44 @@ function getPurchases() {
   window.showLogin = showLogin;
   window.adminLogin = adminLogin;
   window.adminLogout = adminLogout;
+function loadMedicineDatabase() {
+    if (
+        typeof MEDICINE_DATABASE === "undefined" ||
+        !Array.isArray(MEDICINE_DATABASE)
+    ) {
+        alert("Medicine database load হয়নি।");
+        return;
+    }
 
+    const medicines = getMedicines();
+
+    const existing = new Set(
+        medicines.map(m => m.name.toLowerCase())
+    );
+
+    const imported = MEDICINE_DATABASE
+        .filter(m => !existing.has(m.brand.toLowerCase()))
+        .map(m => ({
+            id: uid("MED"),
+            name: m.brand,
+            generic: m.generic || "",
+            company: m.company || "",
+            strength: m.strength || "",
+            form: m.form || "",
+            buyPrice: 0,
+            salePrice: 0,
+            stock: 0,
+            minStock: 5,
+            expiry: ""
+        }));
+
+    write(DB.medicines, medicines.concat(imported));
+
+    alert(imported.length + " টি নতুন medicine যোগ হয়েছে।");
+    showMedicines();
+}
+
+window.loadMedicineDatabase = loadMedicineDatabase;
   window.showDashboard = showDashboard;
   window.showMedicines = showMedicines;
   window.showPurchase = showPurchase;
