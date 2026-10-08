@@ -1170,6 +1170,141 @@ onclick="window.loadMedicineDatabase()">
     showInvoice(sale.id);
 
 
+  }
+
+  function showInvoice(saleId) {
+    if (!loggedIn()) return showLogin();
+
+    const sale = getSales().find(s => s.id === saleId);
+
+    if (!sale) {
+      alert("Invoice পাওয়া যায়নি!");
+      return showSales();
+    }
+
+    const settings = read(DB.settings, {
+      name: "My Pharmacy",
+      phone: "",
+      address: "",
+      logo: ""
+    });
+
+    app().innerHTML = `
+      <style>
+        .invoice-paper {
+          max-width: 800px;
+          margin: 20px auto;
+          padding: 25px;
+          background: white;
+          color: #111;
+          border: 1px solid #ddd;
+        }
+        .invoice-paper table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+        }
+        .invoice-paper th,
+        .invoice-paper td {
+          border: 1px solid #ccc;
+          padding: 9px;
+          text-align: left;
+        }
+        .invoice-paper th {
+          background: #f2f2f2;
+        }
+        .no-print {
+          margin: 10px 0;
+        }
+        @media print {
+          body {
+            background: white !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .invoice-paper {
+            border: none;
+            margin: 0;
+            padding: 0;
+            max-width: none;
+          }
+          .invoice-paper th {
+            background: #eee !important;
+            print-color-adjust: exact;
+          }
+        }
+      </style>
+
+      <div class="invoice-paper">
+        <div style="text-align:center;">
+          ${settings.logo ? `
+            <img src="${esc(settings.logo)}"
+              style="max-width:100px;max-height:100px;object-fit:contain;">
+          ` : ""}
+
+          <h2>${esc(settings.name || "My Pharmacy")}</h2>
+          <p>${esc(settings.address || "")}</p>
+          <p>${esc(settings.phone || "")}</p>
+          <h3>SALES INVOICE</h3>
+        </div>
+
+        <hr>
+
+        <p><b>Invoice No:</b> ${esc(sale.id)}</p>
+        <p><b>Date:</b> ${esc(sale.date || "")}</p>
+        <p><b>Customer:</b> ${esc(sale.customer || "Walk-in Customer")}</p>
+        <p><b>Payment:</b> ${esc(sale.payment || "Cash")}</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Medicine</th>
+              <th>Qty</th>
+              <th>Unit Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(sale.items || []).map(item => `
+              <tr>
+                <td>${esc(item.name || "")}</td>
+                <td>${Number(item.qty || 0)}</td>
+                <td>${money(item.price)}</td>
+                <td>${money(item.total)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+
+        <h2 style="text-align:right;margin-top:20px;">
+          Grand Total: ${money(sale.total)}
+        </h2>
+
+        <p style="text-align:center;margin-top:35px;">
+          Thank you for your purchase!
+        </p>
+      </div>
+
+      <div class="no-print" style="text-align:center;">
+        <button class="btn btn-primary"
+          onclick="window.print()">
+          🖨️ Print Invoice
+        </button>
+
+        <button class="btn"
+          onclick="showSales()">
+          ➕ New Sale
+        </button>
+
+        <button class="btn"
+          onclick="showReports()">
+          📊 Reports
+        </button>
+      </div>
+    `;
+  }
+
   /* =========================================================
      SUPPLIERS
      ========================================================= */
