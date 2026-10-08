@@ -54,9 +54,10 @@ function normalizeDatabaseMedicine(m) {
 
 function importMedicineDatabase(force = false) {
     if (
-        !Array.isArray(MEDICINE_DATABASE) ||
-        !window.MEDICINE_DATABASE.length
-    ) {
+    typeof MEDICINE_DATABASE === "undefined" ||
+    !Array.isArray(MEDICINE_DATABASE) ||
+    !MEDICINE_DATABASE.length
+) {
         alert("Medicine database পাওয়া যায়নি।");
         return 0;
     }
