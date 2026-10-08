@@ -1164,15 +1164,11 @@ onclick="window.loadMedicineDatabase()">
 
     write(DB.sales, sales);
 
-    alert(
-      "Sale সফলভাবে Complete হয়েছে!\nTotal: " +
-      money(total)
-    );
-
+    
     cart = [];
 
-    showSales();
-  }
+    showInvoice(sale.id);
+
 
   /* =========================================================
      SUPPLIERS
