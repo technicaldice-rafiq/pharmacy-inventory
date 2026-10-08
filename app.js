@@ -448,17 +448,21 @@ app().innerHTML = `
         </div>  
 
 
-        <div class="card">  
+        
+            <div class="card">
 
-            <h3>  
-                ❌ Expired  
-            </h3>  
+            <h3>
+                ❌ Expired
+            </h3>
 
-            <div class="card-value">  
-                ${expired}  
-            </div>  
+            <div class="card-value">
+                ${expired}
+            </div>
+
+        </div>
 
     </div>
+
 
     <div
         class="panel"
@@ -477,7 +481,6 @@ app().innerHTML = `
 }
 
 function recentSalesHTML() {
-    
         <h3>  
             ⚡ Quick Actions  
         </h3>  
