@@ -1,7579 +1,1833 @@
-// ==========================================
-// PHARMACY INVENTORY PRO
-// COMPLETE VERSION
-// ==========================================
-// Medicine Management
-// Purchase / Supplier
-// Sales / POS
-// Customer Search
-// Invoice Print
-// Due Collection
-// Payment History
-// Stock Adjustment
-// Low Stock Alert
-// Expiry Alert
-// Purchase History
-// Profit / Loss
-// Date-wise Report
-// Backup / Restore
-// ==========================================
+/* =========================================================
+   PHARMACY INVENTORY - CLEAN APP.JS
+   ========================================================= */
 
-// ==========================================
-// DATA
-// ==========================================
+(function () {
+  "use strict";
 
-let medicines = JSON.parse(
-localStorage.getItem("pharmacy_medicines") || "[]"
-);
+  /* ---------- STORAGE ---------- */
 
-let purchases = JSON.parse(
-localStorage.getItem("pharmacy_purchases") || "[]"
-);
+  const DB = {
+    medicines: "pharmacy_medicines",
+    purchases: "pharmacy_purchases",
+    sales: "pharmacy_sales",
+    suppliers: "pharmacy_suppliers",
+    customers: "pharmacy_customers",
+    payments: "pharmacy_payments",
+    settings: "pharmacy_settings",
+    adminUser: "pharmacy_admin_user",
+    adminPass: "pharmacy_admin_pass",
+    loggedIn: "pharmacy_logged_in"
+  };
 
-let sales = JSON.parse(
-localStorage.getItem("pharmacy_sales") || "[]"
-);
-
-let customers = JSON.parse(
-localStorage.getItem("pharmacy_customers") || "[]"
-);
-
-let suppliers = JSON.parse(
-localStorage.getItem("pharmacy_suppliers") || "[]"
-);
-
-let payments = JSON.parse(
-localStorage.getItem("pharmacy_payments") || "[]"
-);
-
-let stockAdjustments = JSON.parse(
-localStorage.getItem("pharmacy_stock_adjustments") || "[]"
-);
-
-let saleCart = [];
-
-let editingMedicineIndex = -1;
-
-// ==========================================
-// SAVE DATA
-// ==========================================
-
-function saveData() {
-
-localStorage.setItem(  
-    "pharmacy_medicines",  
-    JSON.stringify(medicines)  
-);  
-
-localStorage.setItem(  
-    "pharmacy_purchases",  
-    JSON.stringify(purchases)  
-);  
-
-localStorage.setItem(  
-    "pharmacy_sales",  
-    JSON.stringify(sales)  
-);  
-
-localStorage.setItem(  
-    "pharmacy_customers",  
-    JSON.stringify(customers)  
-);  
-
-localStorage.setItem(  
-    "pharmacy_suppliers",  
-    JSON.stringify(suppliers)  
-);  
-
-localStorage.setItem(  
-    "pharmacy_payments",  
-    JSON.stringify(payments)  
-);  
-
-localStorage.setItem(  
-    "pharmacy_stock_adjustments",  
-    JSON.stringify(stockAdjustments)  
-);
-
-}
-
-// ==========================================
-// START
-// ==========================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-        setupDefaultAdmin();
-
-        if (isLoggedIn()) {
-            setNavVisible(true);
-            showDashboard();
-        } else {
-            setNavVisible(false);
-            showLogin();
-        }
-
+  function read(key, fallback) {
+    try {
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : fallback;
+    } catch (e) {
+      return fallback;
     }
-);
-
-// ==========================================
-// HELPERS
-// ==========================================
-
-function money(n) {
-
-return "৳ " +  
-    Number(n || 0).toFixed(2);
-
-}
-
-function today() {
-
-return new Date()  
-    .toISOString()  
-    .split("T")[0];
-
-}
-
-function currentTime() {
-
-return new Date()  
-    .toLocaleTimeString();
-
-}
-
-function escapeHTML(value) {
-
-return String(value ?? "")  
-    .replace(/&/g, "&amp;")  
-    .replace(/</g, "&lt;")  
-    .replace(/>/g, "&gt;")  
-    .replace(/"/g, "&quot;")  
-    .replace(/'/g, "&#039;");
-
-}
-
-function app() {
-
-return document.getElementById("app");
-
-}
-
-function layout(title, html) {
-
-app().innerHTML = `  
-
-    <div class="panel">  
-
-        <h2>${title}</h2>  
-
-        ${html}  
-
-    </div>  
-
-`;
-
-}
-
-function input(
-id,
-label,
-type = "text",
-value = ""
-) {
-
-return `  
-
-    <div style="margin-bottom:12px;">  
-
-        <label>  
-            <b>${label}</b>  
-        </label>  
-
-        <input  
-            id="${id}"  
-            type="${type}"  
-            value="${escapeHTML(value)}"  
-            class="form-control"  
-            style="  
-                width:100%;  
-                padding:10px;  
-                margin-top:5px;  
-                box-sizing:border-box;  
-            "  
-        >  
-
-    </div>  
-
-`;
-
-}
-
-function getMedicineById(id) {
-
-return medicines.find(  
-    m => Number(m.id) === Number(id)  
-);
-
-}
-
-function getCustomerName(sale) {
-
-return sale.customer ||  
-    "Walk-in Customer";
-
-}
-
-function saleCost(sale) {
-
-return (sale.items || []).reduce(  
-    (sum, item) => {  
-
-        let buy =  
-            Number(  
-                item.purchasePrice ??  
-                item.buyPrice ??  
-                0  
-            );  
-
-        if (  
-            buy === 0 &&  
-            item.medicineId  
-        ) {  
-
-            const medicine =  
-                getMedicineById(  
-                    item.medicineId  
-                );  
-
-            buy =  
-                Number(  
-                    medicine?.purchase || 0  
-                );  
-
-        }  
-
-        if (  
-            buy === 0 &&  
-            item.medicine  
-        ) {  
-
-            const medicine =  
-                medicines.find(  
-                    m =>  
-                        m.name ===  
-                        item.medicine  
-                );  
-
-            buy =  
-                Number(  
-                    medicine?.purchase || 0  
-                );  
-
-        }  
-
-        return sum +  
-            (  
-                buy *  
-                Number(  
-                    item.qty ||  
-                    item.quantity ||  
-                    0  
-                )  
-            );  
-
-    },  
-    0  
-);
-
-}
-
-function saleProfit(sale) {
-
-const cost =  
-    saleCost(sale);  
-
-return Number(  
-    sale.total || 0  
-) - cost;
-
-}
-
-// ==========================================
-// DASHBOARD
-// ==========================================
-
-function showDashboard() {
-
-const salesToday =  
-
-    sales  
-        .filter(  
-            s =>  
-                s.date === today()  
-        )  
-        .reduce(  
-            (sum, s) =>  
-                sum +  
-                Number(s.total || 0),  
-            0  
-        );  
-
-
-const lowStock =  
-
-    medicines.filter(  
-        m =>  
-            Number(m.stock || 0) <=  
-            Number(m.reorder || 0)  
-    ).length;  
-
-
-const nearExpiry =  
-
-    medicines.filter(  
-        m => {  
-
-            if (!m.expiry)  
-                return false;  
-
-            const d =  
-                new Date(m.expiry);  
-
-            const now =  
-                new Date();  
-
-            const days =  
-                (d - now) /  
-                86400000;  
-
-            return (  
-                days >= 0 &&  
-                days <= 30  
-            );  
-
-        }  
-    ).length;  
-
-
-const expired =  
-
-    medicines.filter(  
-        m => {  
-
-            if (!m.expiry)  
-                return false;  
-
-            return (  
-                new Date(m.expiry) <  
-                new Date()  
-            );  
-
-        }  
-    ).length;  
-
-
-const totalDue =  
-    getTotalDue();  
-
-
-app().innerHTML = `  
-
-    <div class="cards">  
-
-        <div class="card">  
-
-            <h3>  
-                💰 Today's Sales  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(salesToday)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                💊 Medicines  
-            </h3>  
-
-            <div class="card-value">  
-                ${medicines.length}  
-            </div>  
-
-        </div>  
-// ==========================================
-// DASHBOARD
-// ==========================================
-
-function showDashboard() {
-
-    const salesToday =
-        sales
-            .filter(
-                s => s.date === today()
-            )
-            .reduce(
-                (sum, s) =>
-                    sum + Number(s.total || 0),
-                0
-            );
-
-
-    const lowStock =
-        medicines.filter(
-            m =>
-                Number(m.stock || 0) <=
-                Number(m.reorder || 0)
-        ).length;
-
-
-    const nearExpiry =
-        medicines.filter(
-            m => {
-
-                if (!m.expiry) {
-                    return false;
-                }
-
-                const d =
-                    new Date(m.expiry);
-
-                const now =
-                    new Date();
-
-                const days =
-                    (d - now) / 86400000;
-
-                return (
-                    days >= 0 &&
-                    days <= 30
-                );
-
-            }
-        ).length;
-
-
-    const expired =
-        medicines.filter(
-            m => {
-
-                if (!m.expiry) {
-                    return false;
-                }
-
-                return (
-                    new Date(m.expiry) <
-                    new Date()
-                );
-
-            }
-        ).length;
-
-
-    const totalDue =
-        getTotalDue();
-
+  }
+
+  function write(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function getMedicines() {
+    return read(DB.medicines, []);
+  }
+
+  function getPurchases() {
+    return read(DB.purchases, []);
+  }
+
+  function getSales() {
+    return read(DB.sales, []);
+  }
+
+  function getSuppliers() {
+    return read(DB.suppliers, []);
+  }
+
+  function getCustomers() {
+    return read(DB.customers, []);
+  }
+
+  function getPayments() {
+    return read(DB.payments, []);
+  }
+
+  function uid(prefix) {
+    return prefix + Date.now() + Math.floor(Math.random() * 1000);
+  }
+
+  function money(n) {
+    return "৳ " + Number(n || 0).toFixed(2);
+  }
+
+  function esc(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function today() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function app() {
+    return document.getElementById("app");
+  }
+
+  function loggedIn() {
+    return localStorage.getItem(DB.loggedIn) === "true";
+  }
+
+  /* =========================================================
+     LOGIN
+     ========================================================= */
+
+  function showLogin() {
+    if (!app()) return;
+
+    app().innerHTML = `
+      <div style="
+        max-width:420px;
+        margin:60px auto;
+        padding:30px;
+        background:#fff;
+        border-radius:15px;
+        box-shadow:0 5px 25px rgba(0,0,0,.12);
+      ">
+        <h2 style="text-align:center;margin-bottom:10px;">
+          🏥 Pharmacy Inventory
+        </h2>
+
+        <p style="text-align:center;color:#777;margin-bottom:25px;">
+          Admin Login
+        </p>
+
+        <form id="loginForm">
+
+          <label>Username</label>
+          <input
+            id="loginUsername"
+            class="form-control"
+            type="text"
+            value="admin"
+            required
+            style="width:100%;margin:8px 0 15px;padding:12px;"
+          >
+
+          <label>Password</label>
+          <input
+            id="loginPassword"
+            class="form-control"
+            type="password"
+            required
+            style="width:100%;margin:8px 0 20px;padding:12px;"
+          >
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="width:100%;padding:13px;"
+          >
+            🔐 Login
+          </button>
+
+          <p id="loginError"
+             style="color:red;text-align:center;margin-top:15px;">
+          </p>
+
+        </form>
+
+        <p style="text-align:center;color:#888;font-size:13px;margin-top:20px;">
+          Default: admin / 1234
+        </p>
+      </div>
+    `;
+
+    const form = document.getElementById("loginForm");
+
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        adminLogin();
+      });
+    }
+  }
+
+  function adminLogin() {
+    const username =
+      document.getElementById("loginUsername")?.value.trim();
+
+    const password =
+      document.getElementById("loginPassword")?.value;
+
+    const savedUser =
+      localStorage.getItem(DB.adminUser) || "admin";
+
+    const savedPass =
+      localStorage.getItem(DB.adminPass) || "1234";
+
+    if (username === savedUser && password === savedPass) {
+      localStorage.setItem(DB.loggedIn, "true");
+      showDashboard();
+    } else {
+      const error = document.getElementById("loginError");
+
+      if (error) {
+        error.textContent = "Username অথবা Password ভুল!";
+      }
+    }
+  }
+
+  function adminLogout() {
+    localStorage.removeItem(DB.loggedIn);
+    showLogin();
+  }
+
+  function changeAdminPassword() {
+    const oldPass = prompt("বর্তমান Password দিন:");
+
+    if (oldPass === null) return;
+
+    const savedPass =
+      localStorage.getItem(DB.adminPass) || "1234";
+
+    if (oldPass !== savedPass) {
+      alert("বর্তমান Password সঠিক নয়!");
+      return;
+    }
+
+    const newPass = prompt("নতুন Password দিন:");
+
+    if (!newPass || newPass.length < 4) {
+      alert("কমপক্ষে ৪ অক্ষরের Password দিন!");
+      return;
+    }
+
+    localStorage.setItem(DB.adminPass, newPass);
+
+    alert("Password সফলভাবে পরিবর্তন হয়েছে।");
+  }
+
+  /* =========================================================
+     PAGE HEADER
+     ========================================================= */
+
+  function page(title, content) {
+    if (!app()) return;
+
+    app().innerHTML = `
+      <div style="margin-bottom:20px;">
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:10px;
+          flex-wrap:wrap;
+        ">
+          <h2>${title}</h2>
+
+          <button
+            class="btn"
+            onclick="showDashboard()"
+          >
+            🏠 Dashboard
+          </button>
+        </div>
+      </div>
+
+      ${content}
+    `;
+  }
+
+  /* =========================================================
+     DASHBOARD
+     ========================================================= */
+
+  function showDashboard() {
+
+    if (!loggedIn()) {
+      showLogin();
+      return;
+    }
+
+    const medicines = getMedicines();
+    const purchases = getPurchases();
+    const sales = getSales();
+
+    let stockValue = 0;
+    let lowStock = 0;
+
+    medicines.forEach(m => {
+      const stock = Number(m.stock || 0);
+      const buy = Number(m.buyPrice || 0);
+
+      stockValue += stock * buy;
+
+      if (stock <= Number(m.minStock || 5)) {
+        lowStock++;
+      }
+    });
+
+    const todaySales = sales
+      .filter(s => s.date === today())
+      .reduce((sum, s) => sum + Number(s.total || 0), 0);
+
+    const todayPurchase = purchases
+      .filter(p => p.date === today())
+      .reduce((sum, p) => sum + Number(p.total || 0), 0);
 
     app().innerHTML = `
 
-        <!-- ==============================
-             DASHBOARD CARDS
-        =============================== -->
+      <div style="margin-bottom:25px;">
+        <h2>📊 Dashboard</h2>
+        <p style="color:#777;">
+          Pharmacy Inventory Management
+        </p>
+      </div>
 
-        <div class="cards">
+      <div class="cards" style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:15px;
+      ">
 
-
-            <div class="card">
-
-                <h3>
-                    💰 Today's Sales
-                </h3>
-
-                <div class="card-value">
-                    ${money(salesToday)}
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <h3>
-                    💊 Medicines
-                </h3>
-
-                <div class="card-value">
-                    ${medicines.length}
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <h3>
-                    ⚠️ Low Stock
-                </h3>
-
-                <div class="card-value">
-                    ${lowStock}
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <h3>
-                    📅 Near Expiry
-                </h3>
-
-                <div class="card-value">
-                    ${nearExpiry}
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <h3>
-                    💵 Total Due
-                </h3>
-
-                <div class="card-value">
-                    ${money(totalDue)}
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <h3>
-                    ❌ Expired
-                </h3>
-
-                <div class="card-value">
-                    ${expired}
-                </div>
-
-            </div>
-
-
+        <div class="card">
+          <h3>💊 Medicines</h3>
+          <h2>${medicines.length}</h2>
         </div>
 
-
-        <!-- ==============================
-             QUICK ACTIONS
-        =============================== -->
-
-        <div
-            class="panel"
-            style="margin-top:20px;"
-        >
-
-            <h3>
-                ⚡ Quick Actions
-            </h3>
-
-
-            <div
-                style="
-                    display:flex;
-                    gap:10px;
-                    flex-wrap:wrap;
-                "
-            >
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showMedicines()"
-                >
-                    💊 Medicines
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showPurchase()"
-                >
-                    📦 Purchase
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showSales()"
-                >
-                    🧾 New Sale
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showSuppliers()"
-                >
-                    🏢 Suppliers
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showCustomers()"
-                >
-                    👤 Customers
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showDueCollection()"
-                >
-                    💰 Due
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showStockAdjustment()"
-                >
-                    📦 Stock
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showReports()"
-                >
-                    📊 Reports
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showBackup()"
-                >
-                    💾 Backup
-                </button>
-
-
-            </div>
-
+        <div class="card">
+          <h3>📦 Stock Value</h3>
+          <h2>${money(stockValue)}</h2>
         </div>
 
-
-        <!-- ==============================
-             PHARMACY & ADMIN SETTINGS
-        =============================== -->
-
-        <div
-            class="panel"
-            style="margin-top:20px;"
-        >
-
-            <h3>
-                ⚙️ Pharmacy & Admin Settings
-            </h3>
-
-
-            <div
-                style="
-                    display:flex;
-                    gap:10px;
-                    flex-wrap:wrap;
-                "
-            >
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showPharmacySettings()"
-                >
-                    🏥 Pharmacy / Company
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showPharmacySettings()"
-                >
-                    🖼️ Logo
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showPharmacySettings()"
-                >
-                    🔐 Admin Security
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="showChangePassword()"
-                >
-                    🔑 Change Password
-                </button>
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="adminLogout()"
-                >
-                    🚪 Logout
-                </button>
-
-
-            </div>
-
+        <div class="card">
+          <h3>💰 Today's Sale</h3>
+          <h2>${money(todaySales)}</h2>
         </div>
 
-
-        <!-- ==============================
-             RECENT SALES
-        =============================== -->
-
-        <div
-            class="panel"
-            style="margin-top:20px;"
-        >
-
-            <h3>
-                📋 Recent Sales
-            </h3>
-
-            ${recentSalesHTML()}
-
+        <div class="card">
+          <h3>🛒 Today's Purchase</h3>
+          <h2>${money(todayPurchase)}</h2>
         </div>
 
+        <div class="card">
+          <h3>⚠️ Low Stock</h3>
+          <h2>${lowStock}</h2>
+        </div>
+
+      </div>
+
+      <div style="
+        margin-top:25px;
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+        gap:12px;
+      ">
+
+        <button class="btn btn-primary"
+          onclick="showMedicines()">
+          💊 Medicines
+        </button>
+
+        <button class="btn"
+          onclick="showPurchase()">
+          📦 Purchase
+        </button>
+
+        <button class="btn"
+          onclick="showSales()">
+          💰 Sale / POS
+        </button>
+
+        <button class="btn"
+          onclick="showSuppliers()">
+          🚚 Suppliers
+        </button>
+
+        <button class="btn"
+          onclick="showCustomers()">
+          👥 Customers
+        </button>
+
+        <button class="btn"
+          onclick="showReports()">
+          📊 Reports
+        </button>
+
+        <button class="btn"
+          onclick="showPharmacySettings()">
+          ⚙️ Settings
+        </button>
+
+        <button class="btn"
+          onclick="changeAdminPassword()">
+          🔑 Password
+        </button>
+
+        <button class="btn"
+          onclick="adminLogout()">
+          🚪 Logout
+        </button>
+
+      </div>
+
+      <div class="panel" style="margin-top:25px;">
+        <h3>⚠️ Low Stock Medicines</h3>
+        ${renderLowStock()}
+      </div>
     `;
-}
+  }
 
+  function renderLowStock() {
+    const medicines = getMedicines();
 
-// ==========================================
-// RECENT SALES
-// ==========================================
+    const low = medicines.filter(
+      m => Number(m.stock || 0) <= Number(m.minStock || 5)
+    );
 
-function recentSalesHTML() {
-
-    const recent =
-        [...sales]
-            .reverse()
-            .slice(0, 5);
-
-
-    if (!recent.length) {
-
-        return `
-            <p>
-                এখনো কোনো বিক্রয় নেই।
-            </p>
-        `;
-
+    if (!low.length) {
+      return `<p style="color:green;">সব Medicine-এর Stock ঠিক আছে।</p>`;
     }
 
+    return `
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <th style="padding:8px;text-align:left;">Medicine</th>
+            <th style="padding:8px;">Stock</th>
+            <th style="padding:8px;">Minimum</th>
+          </tr>
+
+          ${low.map(m => `
+            <tr>
+              <td style="padding:8px;">${esc(m.name)}</td>
+              <td style="padding:8px;text-align:center;">
+                ${Number(m.stock || 0)}
+              </td>
+              <td style="padding:8px;text-align:center;">
+                ${Number(m.minStock || 5)}
+              </td>
+            </tr>
+          `).join("")}
+        </table>
+      </div>
+    `;
+  }
+
+  /* =========================================================
+     MEDICINES
+     ========================================================= */
+
+  function showMedicines() {
+
+    if (!loggedIn()) return showLogin();
+
+    const medicines = getMedicines();
+
+    page("💊 Medicines", `
+
+      <div class="panel">
+
+        <h3>Add New Medicine</h3>
+
+        <form id="medicineForm">
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            gap:12px;
+          ">
+
+            <input
+              id="medName"
+              class="form-control"
+              placeholder="Medicine Name"
+              required
+            >
+
+            <input
+              id="medGeneric"
+              class="form-control"
+              placeholder="Generic Name"
+            >
+
+            <input
+              id="medCompany"
+              class="form-control"
+              placeholder="Company"
+            >
+
+            <input
+              id="medBuy"
+              class="form-control"
+              type="number"
+              step="0.01"
+              placeholder="Buy Price"
+              required
+            >
+
+            <input
+              id="medSale"
+              class="form-control"
+              type="number"
+              step="0.01"
+              placeholder="Sale Price"
+              required
+            >
+
+            <input
+              id="medStock"
+              class="form-control"
+              type="number"
+              placeholder="Stock"
+              value="0"
+            >
+
+            <input
+              id="medMin"
+              class="form-control"
+              type="number"
+              placeholder="Minimum Stock"
+              value="5"
+            >
+
+            <input
+              id="medExpiry"
+              class="form-control"
+              type="date"
+            >
+
+          </div>
+
+          <br>
+
+          <button class="btn btn-primary" type="submit">
+            ➕ Add Medicine
+          </button>
+
+        </form>
+
+      </div>
+
+      <div class="panel" style="margin-top:20px;">
+
+        <h3>Medicine List</h3>
+
+        <input
+          id="medicineSearch"
+          class="form-control"
+          placeholder="🔎 Search medicine..."
+          style="max-width:400px;margin-bottom:15px;"
+        >
+
+        <div style="overflow-x:auto;">
+          <table id="medicineTable"
+            style="width:100%;border-collapse:collapse;">
+
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Generic</th>
+                <th>Company</th>
+                <th>Buy</th>
+                <th>Sale</th>
+                <th>Stock</th>
+                <th>Expiry</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${medicineRows(medicines)}
+            </tbody>
+
+          </table>
+        </div>
+
+      </div>
+    `);
+
+    document
+      .getElementById("medicineForm")
+      ?.addEventListener("submit", function (e) {
+        e.preventDefault();
+        addMedicine();
+      });
+
+    document
+      .getElementById("medicineSearch")
+      ?.addEventListener("input", function () {
+        filterMedicines(this.value);
+      });
+  }
+
+  function medicineRows(list) {
+
+    if (!list.length) {
+      return `
+        <tr>
+          <td colspan="9" style="text-align:center;padding:20px;">
+            কোনো Medicine নেই।
+          </td>
+        </tr>
+      `;
+    }
+
+    return list.map((m, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${esc(m.name)}</td>
+        <td>${esc(m.generic)}</td>
+        <td>${esc(m.company)}</td>
+        <td>${money(m.buyPrice)}</td>
+        <td>${money(m.salePrice)}</td>
+        <td>${Number(m.stock || 0)}</td>
+        <td>${esc(m.expiry || "-")}</td>
+        <td>
+          <button
+            class="btn"
+            onclick="editMedicine('${m.id}')">
+            ✏️
+          </button>
+
+          <button
+            class="btn"
+            onclick="deleteMedicine('${m.id}')">
+            🗑️
+          </button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function addMedicine() {
+
+    const medicines = getMedicines();
+
+    const medicine = {
+      id: uid("MED"),
+      name: document.getElementById("medName").value.trim(),
+      generic: document.getElementById("medGeneric").value.trim(),
+      company: document.getElementById("medCompany").value.trim(),
+      buyPrice: Number(document.getElementById("medBuy").value || 0),
+      salePrice: Number(document.getElementById("medSale").value || 0),
+      stock: Number(document.getElementById("medStock").value || 0),
+      minStock: Number(document.getElementById("medMin").value || 5),
+      expiry: document.getElementById("medExpiry").value,
+      createdAt: new Date().toISOString()
+    };
+
+    medicines.push(medicine);
+    write(DB.medicines, medicines);
+
+    alert("Medicine যোগ হয়েছে।");
+
+    showMedicines();
+  }
+
+  function deleteMedicine(id) {
+
+    if (!confirm("এই Medicine Delete করতে চান?")) return;
+
+    const medicines =
+      getMedicines().filter(m => m.id !== id);
+
+    write(DB.medicines, medicines);
+
+    showMedicines();
+  }
+
+  function editMedicine(id) {
+
+    const medicines = getMedicines();
+
+    const m = medicines.find(x => x.id === id);
+
+    if (!m) return;
+
+    const name = prompt("Medicine Name:", m.name);
+    if (name === null) return;
+
+    const buy = prompt("Buy Price:", m.buyPrice);
+    if (buy === null) return;
+
+    const sale = prompt("Sale Price:", m.salePrice);
+    if (sale === null) return;
+
+    const stock = prompt("Stock:", m.stock);
+    if (stock === null) return;
+
+    m.name = name.trim();
+    m.buyPrice = Number(buy);
+    m.salePrice = Number(sale);
+    m.stock = Number(stock);
+
+    write(DB.medicines, medicines);
+
+    alert("Medicine update হয়েছে.");
+
+    showMedicines();
+  }
+
+  function filterMedicines(value) {
+
+    const search = value.toLowerCase();
+
+    const medicines = getMedicines().filter(m =>
+      String(m.name).toLowerCase().includes(search) ||
+      String(m.generic).toLowerCase().includes(search) ||
+      String(m.company).toLowerCase().includes(search)
+    );
+
+    const tbody =
+      document.querySelector("#medicineTable tbody");
+
+    if (tbody) {
+      tbody.innerHTML = medicineRows(medicines);
+    }
+  }
+
+  /* =========================================================
+     PURCHASE
+     ========================================================= */
+
+  function showPurchase() {
+
+    if (!loggedIn()) return showLogin();
+
+    const medicines = getMedicines();
+    const suppliers = getSuppliers();
+
+    page("📦 Medicine Purchase", `
+
+      <div class="panel">
+
+        <form id="purchaseForm">
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            gap:12px;
+          ">
+
+            <select id="purchaseMedicine"
+              class="form-control" required>
+              <option value="">Select Medicine</option>
+
+              ${medicines.map(m => `
+                <option value="${m.id}">
+                  ${esc(m.name)}
+                </option>
+              `).join("")}
+
+            </select>
+
+            <select id="purchaseSupplier"
+              class="form-control">
+              <option value="">Select Supplier</option>
+
+              ${suppliers.map(s => `
+                <option value="${s.id}">
+                  ${esc(s.name)}
+                </option>
+              `).join("")}
+
+            </select>
+
+            <input
+              id="purchaseQty"
+              class="form-control"
+              type="number"
+              min="1"
+              placeholder="Quantity"
+              required
+            >
+
+            <input
+              id="purchasePrice"
+              class="form-control"
+              type="number"
+              step="0.01"
+              placeholder="Purchase Price"
+              required
+            >
+
+            <input
+              id="purchaseDate"
+              class="form-control"
+              type="date"
+              value="${today()}"
+            >
+
+          </div>
+
+          <br>
+
+          <button class="btn btn-primary" type="submit">
+            💾 Save Purchase
+          </button>
+
+        </form>
+
+      </div>
+
+      <div class="panel" style="margin-top:20px;">
+
+        <h3>Recent Purchases</h3>
+
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+
+            <tr>
+              <th>Date</th>
+              <th>Medicine</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+
+            ${purchaseRows()}
+
+          </table>
+        </div>
+
+      </div>
+    `);
+
+    document
+      .getElementById("purchaseMedicine")
+      ?.addEventListener("change", function () {
+
+        const m = medicines.find(x => x.id === this.value);
+
+        if (m) {
+          document.getElementById("purchasePrice").value =
+            m.buyPrice || "";
+        }
+      });
+
+    document
+      .getElementById("purchaseForm")
+      ?.addEventListener("submit", function (e) {
+        e.preventDefault();
+        addPurchase();
+      });
+  }
+
+  function addPurchase() {
+
+    const medicineId =
+      document.getElementById("purchaseMedicine").value;
+
+    const qty =
+      Number(document.getElementById("purchaseQty").value);
+
+    const price =
+      Number(document.getElementById("purchasePrice").value);
+
+    if (!medicineId || qty <= 0 || price < 0) {
+      alert("সব তথ্য সঠিকভাবে দিন।");
+      return;
+    }
+
+    const medicines = getMedicines();
+
+    const medicine =
+      medicines.find(m => m.id === medicineId);
+
+    if (!medicine) {
+      alert("Medicine পাওয়া যায়নি।");
+      return;
+    }
+
+    medicine.stock =
+      Number(medicine.stock || 0) + qty;
+
+    write(DB.medicines, medicines);
+
+    const purchases = getPurchases();
+
+    purchases.unshift({
+      id: uid("PUR"),
+      medicineId,
+      medicineName: medicine.name,
+      supplierId:
+        document.getElementById("purchaseSupplier").value,
+      qty,
+      price,
+      total: qty * price,
+      date:
+        document.getElementById("purchaseDate").value || today()
+    });
+
+    write(DB.purchases, purchases);
+
+    alert("Purchase Save হয়েছে।");
+
+    showPurchase();
+  }
+
+  function purchaseRows() {
+
+    const purchases = getPurchases();
+
+    if (!purchases.length) {
+      return `
+        <tr>
+          <td colspan="5" style="text-align:center;padding:20px;">
+            কোনো Purchase নেই।
+          </td>
+        </tr>
+      `;
+    }
+
+    return purchases.slice(0, 50).map(p => `
+      <tr>
+        <td>${esc(p.date)}</td>
+        <td>${esc(p.medicineName)}</td>
+        <td>${p.qty}</td>
+        <td>${money(p.price)}</td>
+        <td>${money(p.total)}</td>
+      </tr>
+    `).join("");
+  }
+
+  /* =========================================================
+     SALES / POS
+     ========================================================= */
+
+  let cart = [];
+
+  function showSales() {
+
+    if (!loggedIn()) return showLogin();
+
+    cart = [];
+
+    page("💰 Sales / POS", `
+
+      <div class="panel">
+
+        <h3>New Sale</h3>
+
+        <div style="
+          display:grid;
+          grid-template-columns:2fr 1fr 1fr;
+          gap:10px;
+        ">
+
+          <select id="saleMedicine"
+            class="form-control">
+            <option value="">Select Medicine</option>
+
+            ${getMedicines().map(m => `
+              <option value="${m.id}">
+                ${esc(m.name)} — Stock: ${m.stock}
+              </option>
+            `).join("")}
+
+          </select>
+
+          <input
+            id="saleQty"
+            class="form-control"
+            type="number"
+            min="1"
+            value="1"
+            placeholder="Qty"
+          >
+
+          <button
+            class="btn btn-primary"
+            onclick="addToCart()">
+            ➕ Add
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="panel" style="margin-top:20px;">
+
+        <h3>🛒 Cart</h3>
+
+        <div id="cartArea">
+          ${renderCart()}
+        </div>
+
+      </div>
+
+    `);
+  }
+
+  function addToCart() {
+
+    const medicineId =
+      document.getElementById("saleMedicine").value;
+
+    const qty =
+      Number(document.getElementById("saleQty").value || 0);
+
+    const medicine =
+      getMedicines().find(m => m.id === medicineId);
+
+    if (!medicine) {
+      alert("Medicine Select করুন।");
+      return;
+    }
+
+    if (qty <= 0) {
+      alert("Quantity সঠিক দিন।");
+      return;
+    }
+
+    const existing =
+      cart.find(x => x.medicineId === medicineId);
+
+    const currentQty =
+      existing ? existing.qty : 0;
+
+    if (currentQty + qty > Number(medicine.stock || 0)) {
+      alert("পর্যাপ্ত Stock নেই।");
+      return;
+    }
+
+    if (existing) {
+      existing.qty += qty;
+      existing.total =
+        existing.qty * existing.price;
+    } else {
+      cart.push({
+        medicineId,
+        name: medicine.name,
+        qty,
+        price: Number(medicine.salePrice || 0),
+        total: qty * Number(medicine.salePrice || 0)
+      });
+    }
+
+    const area = document.getElementById("cartArea");
+
+    if (area) {
+      area.innerHTML = renderCart();
+    }
+  }
+
+  function renderCart() {
+
+    if (!cart.length) {
+      return `<p>Cart খালি।</p>`;
+    }
+
+    const total =
+      cart.reduce((sum, x) => sum + x.total, 0);
 
     return `
 
-        <div style="overflow:auto;">
+      <div style="overflow-x:auto;">
 
-            <table>
+        <table style="width:100%;border-collapse:collapse;">
 
-                <thead>
+          <tr>
+            <th>Medicine</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
 
-                    <tr>
+          ${cart.map((x, i) => `
+            <tr>
+              <td>${esc(x.name)}</td>
+              <td>${x.qty}</td>
+              <td>${money(x.price)}</td>
+              <td>${money(x.total)}</td>
+              <td>
+                <button
+                  class="btn"
+                  onclick="removeCartItem(${i})">
+                  ❌
+                </button>
+              </td>
+            </tr>
+          `).join("")}
 
-                        <th>Date</th>
+        </table>
 
-                        <th>
-                            Customer
-                        </th>
+      </div>
 
-                        <th>
-                            Items
-                        </th>
+      <h2 style="text-align:right;">
+        Total: ${money(total)}
+      </h2>
 
-                        <th>
-                            Total
-                        </th>
+      <div style="margin-top:15px;">
 
-                    </tr>
+        <input
+          id="customerName"
+          class="form-control"
+          placeholder="Customer Name"
+          style="max-width:400px;"
+        >
 
-                </thead>
+        <br>
 
+        <select id="paymentMethod"
+          class="form-control"
+          style="max-width:400px;">
 
-                <tbody>
+          <option value="Cash">Cash</option>
+          <option value="bKash">bKash</option>
+          <option value="Nagad">Nagad</option>
+          <option value="Due">Due</option>
 
-                    ${recent.map(
-                        s => `
+        </select>
 
-                        <tr>
+        <br>
 
-                            <td>
-                                ${escapeHTML(
-                                    s.date
-                                )}
-                            </td>
+        <button
+          class="btn btn-primary"
+          onclick="completeSale()">
+          ✅ Complete Sale
+        </button>
 
-
-                            <td>
-                                ${escapeHTML(
-                                    getCustomerName(s)
-                                )}
-                            </td>
-
-
-                            <td>
-                                ${
-                                    s.items
-                                        ? s.items.length
-                                        : 1
-                                }
-                            </td>
-
-
-                            <td>
-                                ${money(s.total)}
-                            </td>
-
-                        </tr>
-
-                    `
-                    ).join("")}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
+      </div>
     `;
+  }
 
-}
-        <h3>  
-            ⚡ Quick Actions  
-        </h3>  
+  function removeCartItem(index) {
 
-        <div style="  
-            display:flex;  
-            gap:10px;  
-            flex-wrap:wrap;  
-        ">  
+    cart.splice(index, 1);
 
-            <button  
-                class="btn btn-primary"  
-                onclick="showMedicines()"  
-            >  
-                💊 Medicines  
-            </button>  
+    const area = document.getElementById("cartArea");
 
+    if (area) {
+      area.innerHTML = renderCart();
+    }
+  }
 
-            <button  
-                class="btn btn-primary"  
-                onclick="showPurchase()"  
-            >  
-                📦 Purchase  
-            </button>  
+  function completeSale() {
 
+    if (!cart.length) {
+      alert("Cart খালি!");
+      return;
+    }
 
-            <button  
-                class="btn btn-primary"  
-                onclick="showSales()"  
-            >  
-                🧾 New Sale  
-            </button>  
+    const medicines = getMedicines();
 
+    cart.forEach(item => {
 
-            <button  
-                class="btn btn-primary"  
-                onclick="showSuppliers()"  
-            >  
-                🏢 Suppliers  
-            </button>  
+      const m =
+        medicines.find(x => x.id === item.medicineId);
 
-
-            <button  
-                class="btn btn-primary"  
-                onclick="showCustomers()"  
-            >  
-                👤 Customers  
-            </button>  
-
-
-            <button  
-                class="btn btn-primary"  
-                onclick="showDueCollection()"  
-            >  
-                💰 Due  
-            </button>  
-
-
-            <button  
-                class="btn btn-primary"  
-                onclick="showStockAdjustment()"  
-            >  
-                📦 Stock  
-            </button>  
-
-
-            <button  
-                class="btn btn-primary"  
-                onclick="showReports()"  
-            >  
-                📊 Reports  
-            </button>  
-
-
-            <button  
-                class="btn btn-primary"  
-                onclick="showBackup()"  
-            >  
-                💾 Backup  
-            </button>  
-
-        </div>  
-
-    </div>  
-
-
-        <div
-        class="panel"
-        style="margin-top:20px;"
-    >
-
-        <h3>
-            ⚙️ Pharmacy & Admin Settings
-        </h3>
-
-        <div style="
-            display:flex;
-            gap:10px;
-            flex-wrap:wrap;
-        ">
-
-            <button
-                class="btn btn-primary"
-                onclick="showPharmacySettings()"
-            >
-                🏥 Pharmacy / Company
-            </button>
-
-            <button
-                class="btn btn-primary"
-                onclick="showPharmacySettings()"
-            >
-                🖼️ Logo
-            </button>
-
-            <button
-                class="btn btn-primary"
-                onclick="showPharmacySettings()"
-            >
-                🔐 Admin Security
-            </button>
-
-            <button
-                class="btn btn-primary"
-                onclick="showChangePassword()"
-            >
-                🔑 Change Password
-            </button>
-
-            <button
-                class="btn btn-primary"
-                onclick="adminLogout()"
-            >
-                🚪 Logout
-            </button>
-
-        </div>
-
-    </div>
-
-
-    <!-- ==============================
-         RECENT SALES
-    =============================== -->
-
-    <div
-        class="panel"
-        style="margin-top:20px;"
-    >
-
-        <h3>
-            📋 Recent Sales
-        </h3>
-
-        ${recentSalesHTML()}
-
-    </div>
-function recentSalesHTML() {
-
-const recent =  
-
-    [...sales]  
-        .reverse()  
-        .slice(0, 5);  
-
-
-if (!recent.length) {  
-
-    return `  
-        <p>  
-            এখনো কোনো বিক্রয় নেই।  
-        </p>  
-    `;  
-
-}  
-
-
-return `  
-
-    <div style="overflow:auto;">  
-
-        <table>  
-
-            <thead>  
-
-                <tr>  
-
-                    <th>Date</th>  
-                    <th>Customer</th>  
-                    <th>Items</th>  
-                    <th>Total</th>  
-
-                </tr>  
-
-            </thead>  
-
-
-            <tbody>  
-
-                ${recent.map(  
-                    s => `  
-
-                    <tr>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                s.date  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${escapeHTML(  
-                                getCustomerName(s)  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${  
-                                s.items  
-                                    ? s.items.length  
-                                    : 1  
-                            }  
-                        </td>  
-
-
-                        <td>  
-                            ${money(s.total)}  
-                        </td>  
-
-                    </tr>  
-
-                `  
-                ).join("")}  
-
-            </tbody>  
-
-        </table>  
-
-    </div>  
-
-`;
-
-}
-
-// ==========================================
-// MEDICINES
-// ==========================================
-
-// ==========================================
-// MEDICINE DATABASE AUTO FILL
-// ==========================================
-// ==========================================
-// COMPANY → MEDICINE → STRENGTH
-// ==========================================
-
-function loadCompanyMedicines() {
-
-    const companySelect =
-        document.getElementById("medicineCompanySelect");
-
-    const medicineSelect =
-        document.getElementById("medicinePresetSelect");
-
-    if (!companySelect || !medicineSelect) return;
-
-    const company =
-        companySelect.value;
-
-    medicineSelect.innerHTML = `
-        <option value="">
-            Select Medicine
-        </option>
-    `;
-
-    if (!company) return;
-
-    const list =
-        MEDICINE_DATABASE.filter(
-            m => m.company === company
-        );
-
-    list.forEach((m, index) => {
-
-        const option =
-            document.createElement("option");
-
-        option.value =
-            index;
-
-        option.textContent =
-            `${m.brand} — ${m.strength} — ${m.form}`;
-
-        option.dataset.brand =
-            m.brand;
-
-        option.dataset.generic =
-            m.generic;
-
-        option.dataset.company =
-            m.company;
-
-        option.dataset.strength =
-            m.strength;
-
-        option.dataset.form =
-            m.form || "";
-
-        medicineSelect.appendChild(option);
+      if (m) {
+        m.stock =
+          Number(m.stock || 0) - Number(item.qty);
+      }
 
     });
 
-}
-
-
-function selectDatabaseMedicine() {
-
-    const select =
-        document.getElementById(
-            "medicinePresetSelect"
-        );
-
-    if (!select) return;
-
-    const option =
-        select.options[select.selectedIndex];
-
-    if (!option || !option.dataset.brand) {
-        return;
-    }
-
-    document.getElementById("mName").value =
-        option.dataset.brand || "";
-
-    document.getElementById("mGeneric").value =
-        option.dataset.generic || "";
-
-    document.getElementById("mCompany").value =
-        option.dataset.company || "";
-
-    document.getElementById("mStrength").value =
-        option.dataset.strength || "";
-
-}
-
-function fillMedicineFromDatabase() {
-
-    const input =
-        document.getElementById("mName");
-
-    if (!input) return;
-
-    const value =
-        input.value.trim().toLowerCase();
-
-    if (!value) return;
-
-    if (
-        typeof MEDICINE_DATABASE === "undefined"
-    ) {
-        return;
-    }
-
-    const medicine =
-        MEDICINE_DATABASE.find(m => {
-
-            const fullName =
-                (
-                    m.brand +
-                    " - " +
-                    m.strength
-                ).toLowerCase();
-
-            return (
-                fullName === value ||
-                m.brand.toLowerCase() === value
-            );
-
-        });
-
-    if (!medicine) return;
-
-    const generic =
-        document.getElementById("mGeneric");
-
-    const company =
-        document.getElementById("mCompany");
-
-    const strength =
-        document.getElementById("mStrength");
-
-    if (generic) {
-        generic.value =
-            medicine.generic || "";
-    }
-
-    if (company) {
-        company.value =
-            medicine.company || "";
-    }
-
-    if (strength) {
-        strength.value =
-            medicine.strength || "";
-    }
-
-    // শুধু brand name save হবে
-    input.value =
-        medicine.brand || "";
-
-}
-function showMedicines() {
-
-layout(  
-    "💊 Medicine Management",  
-    `  
-
-    <form id="medicineForm">  
-
-        <div style="margin-bottom:12px;">
-
-    <label>
-        <b>Medicine Name *</b>
-    </label>
-
-    <input
-        id="mName"
-        list="medicineDatabaseList"
-        class="form-control"
-        placeholder="Medicine name লিখুন বা তালিকা থেকে নির্বাচন করুন"
-        autocomplete="off"
-        onchange="fillMedicineFromDatabase()"
-        style="
-            width:100%;
-            padding:10px;
-            margin-top:5px;
-            box-sizing:border-box;
-        "
-    >
-
-    <datalist id="medicineDatabaseList">
-
-        ${
-            typeof MEDICINE_DATABASE !== "undefined"
-            ? MEDICINE_DATABASE.map(m => `
-                <option
-                    value="${escapeHTML(
-                        m.brand + " - " + m.strength
-                    )}"
-                >
-                </option>
-            `).join("")
-            : ""
-        }
-
-    </datalist>
-
-    <small style="
-        display:block;
-        margin-top:5px;
-        color:#666;
-    ">
-        💊 ওষুধ নির্বাচন করলে Generic, Company ও Strength অটো বসবে।
-    </small>
-
-</div>
-        ${input(  
-            "mGeneric",  
-            "Generic Name"  
-        )}  
-
-        ${input(  
-            "mCompany",  
-            "Company"  
-        )}  
-
-        ${input(  
-            "mStrength",  
-            "Strength"  
-        )}  
-
-        ${input(  
-            "mBatch",  
-            "Batch Number"  
-        )}  
-
-        ${input(  
-            "mExpiry",  
-            "Expiry Date",  
-            "date"  
-        )}  
-
-        ${input(  
-            "mStock",  
-            "Opening Stock",  
-            "number",  
-            "0"  
-        )}  
-
-        ${input(  
-            "mReorder",  
-            "Reorder Level",  
-            "number",  
-            "10"  
-        )}  
-
-        ${input(  
-            "mPurchase",  
-            "Purchase Price",  
-            "number",  
-            "0"  
-        )}  
-
-        ${input(  
-            "mSale",  
-            "Sale Price",  
-            "number",  
-            "0"  
-        )}  
-
-
-        <button  
-            id="medicineSaveBtn"  
-            type="submit"  
-            class="btn btn-primary"  
-        >  
-            💾 Save Medicine  
-        </button>  
-
-
-        <button  
-            id="medicineCancelBtn"  
-            type="button"  
-            onclick="cancelMedicineEdit()"  
-            style="  
-                display:none;  
-                margin-left:8px;  
-            "  
-        >  
-            ❌ Cancel Edit  
-        </button>  
-
-    </form>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <h3>  
-        📋 Medicine List  
-    </h3>  
-
-
-    <input  
-        id="medicineSearch"  
-        class="form-control"  
-        placeholder="🔍 Search medicine..."  
-        oninput="renderMedicines()"  
-        style="  
-            width:100%;  
-            padding:10px;  
-            box-sizing:border-box;  
-            margin-bottom:15px;  
-        "  
-    >  
-
-
-    <div id="medicineList"></div>  
-
-    `  
-);  
-
-
-document.getElementById(  
-    "medicineForm"  
-).onsubmit = function(e) {  
-
-    e.preventDefault();  
-
-
-    const name =  
-        document.getElementById(  
-            "mName"  
-        ).value.trim();  
-
-
-    if (!name) {  
-
-        alert(  
-            "Medicine Name দিন"  
-        );  
-
-        return;  
-
-    }  
-
-
-    const medicineData = {  
-
-        name: name,  
-
-        generic:  
-            document.getElementById(  
-                "mGeneric"  
-            ).value.trim(),  
-
-        company:  
-            document.getElementById(  
-                "mCompany"  
-            ).value.trim(),  
-
-        strength:  
-            document.getElementById(  
-                "mStrength"  
-            ).value.trim(),  
-
-        batch:  
-            document.getElementById(  
-                "mBatch"  
-            ).value.trim(),  
-
-        expiry:  
-            document.getElementById(  
-                "mExpiry"  
-            ).value,  
-
-        stock:  
-            Number(  
-                document.getElementById(  
-                    "mStock"  
-                ).value  
-            ) || 0,  
-
-        reorder:  
-            Number(  
-                document.getElementById(  
-                    "mReorder"  
-                ).value  
-            ) || 0,  
-
-        purchase:  
-            Number(  
-                document.getElementById(  
-                    "mPurchase"  
-                ).value  
-            ) || 0,  
-
-        sale:  
-            Number(  
-                document.getElementById(  
-                    "mSale"  
-                ).value  
-            ) || 0  
-<div style="margin-bottom:12px;">
-
-    <label>
-        <b>🏢 Company নির্বাচন করুন</b>
-    </label>
-
-    <select
-        id="medicineCompanySelect"
-        class="form-control"
-        onchange="loadCompanyMedicines()"
-        style="
-            width:100%;
-            padding:10px;
-            margin-top:5px;
-            box-sizing:border-box;
-        "
-    >
-
-        <option value="">
-            Select Company
-        </option>
-
-        ${
-            typeof MEDICINE_DATABASE !== "undefined"
-            ? [...new Set(
-                MEDICINE_DATABASE.map(
-                    m => m.company
-                )
-            )]
-            .sort()
-            .map(company => `
-                <option value="${escapeHTML(company)}">
-                    ${escapeHTML(company)}
-                </option>
-            `)
-            .join("")
-            : ""
-        }
-
-    </select>
-
-</div>
-
-
-<div style="margin-bottom:12px;">
-
-    <label>
-        <b>💊 Medicine নির্বাচন করুন</b>
-    </label>
-
-    <select
-        id="medicinePresetSelect"
-        class="form-control"
-        onchange="selectDatabaseMedicine()"
-        style="
-            width:100%;
-            padding:10px;
-            margin-top:5px;
-            box-sizing:border-box;
-        "
-    >
-
-        <option value="">
-            আগে Company নির্বাচন করুন
-        </option>
-
-    </select>
-
-</div>
-
-
-<div style="margin-bottom:12px;">
-
-    <label>
-        <b>Medicine Name *</b>
-    </label>
-
-    <input
-        id="mName"
-        class="form-control"
-        placeholder="Medicine name"
-        autocomplete="off"
-        style="
-            width:100%;
-            padding:10px;
-            margin-top:5px;
-            box-sizing:border-box;
-        "
-    >
-
-</div>
-
-<small style="
-    display:block;
-    margin-top:-5px;
-    margin-bottom:15px;
-    color:#666;
-">
-    💊 Company নির্বাচন করলে সেই কোম্পানির Medicine দেখাবে।
-    Medicine নির্বাচন করলে Generic ও Strength অটো বসবে।
-</small>
-// ==========================================
-// RENDER MEDICINES
-// ==========================================
-
-function renderMedicines() {
-
-const list =  
-    document.getElementById(  
-        "medicineList"  
-    );  
-
-
-if (!list) return;  
-
-
-const searchBox =  
-    document.getElementById(  
-        "medicineSearch"  
-    );  
-
-
-const search =  
-    searchBox  
-        ? searchBox.value  
-            .trim()  
-            .toLowerCase()  
-        : "";  
-
-
-const filtered =  
-    medicines.filter(  
-        m => {  
-
-            const text =  
-
-                (m.name || "") +  
-                " " +  
-                (m.generic || "") +  
-                " " +  
-                (m.company || "") +  
-                " " +  
-                (m.batch || "");  
-
-
-            return text  
-                .toLowerCase()  
-                .includes(search);  
-
-        }  
-    );  
-
-
-if (!filtered.length) {  
-
-    list.innerHTML = `  
-        <p>  
-            কোনো Medicine পাওয়া যায়নি।  
-        </p>  
-    `;  
-
-    return;  
-
-}  
-
-
-list.innerHTML = `  
-
-    <div style="overflow:auto;">  
-
-        <table>  
-
-            <thead>  
-
-                <tr>  
-
-                    <th>Medicine</th>  
-                    <th>Generic</th>  
-                    <th>Company</th>  
-                    <th>Stock</th>  
-                    <th>Purchase</th>  
-                    <th>Sale</th>  
-                    <th>Expiry</th>  
-                    <th>Action</th>  
-
-                </tr>  
-
-            </thead>  
-
-
-            <tbody>  
-
-                ${filtered.map(  
-                    m => {  
-
-                        const index =  
-                            medicines.indexOf(m);  
-
-
-                        return `  
-
-                            <tr>  
-
-                                <td>  
-                                    ${escapeHTML(  
-                                        m.name  
-                                    )}  
-                                </td>  
-
-
-                                <td>  
-                                    ${escapeHTML(  
-                                        m.generic  
-                                    )}  
-                                </td>  
-
-
-                                <td>  
-                                    ${escapeHTML(  
-                                        m.company  
-                                    )}  
-                                </td>  
-
-
-                                <td>  
-                                    ${m.stock || 0}  
-                                </td>  
-
-
-                                <td>  
-                                    ${money(  
-                                        m.purchase  
-                                    )}  
-                                </td>  
-
-
-                                <td>  
-                                    ${money(  
-                                        m.sale  
-                                    )}  
-                                </td>  
-
-
-                                <td>  
-                                    ${escapeHTML(  
-                                        m.expiry ||  
-                                        "-"  
-                                    )}  
-                                </td>  
-
-
-                                <td>  
-
-                                    <button  
-                                        onclick="  
-                                            editMedicine(${index})  
-                                        "  
-                                    >  
-                                        ✏️ Edit  
-                                    </button>  
-
-
-                                    <button  
-                                        onclick="  
-                                            deleteMedicine(${index})  
-                                        "  
-                                    >  
-                                        🗑️ Delete  
-                                    </button>  
-
-                                </td>  
-
-                            </tr>  
-
-                        `;  
-
-                    }  
-                ).join("")}  
-
-            </tbody>  
-
-        </table>  
-
-    </div>  
-
-`;
-
-}
-
-// ==========================================
-// EDIT MEDICINE
-// ==========================================
-
-function editMedicine(index) {
-
-const m =  
-    medicines[index];  
-
-
-if (!m) return;  
-
-
-editingMedicineIndex =  
-    index;  
-
-
-document.getElementById(  
-    "mName"  
-).value =  
-    m.name || "";  
-
-
-document.getElementById(  
-    "mGeneric"  
-).value =  
-    m.generic || "";  
-
-
-document.getElementById(  
-    "mCompany"  
-).value =  
-    m.company || "";  
-
-
-document.getElementById(  
-    "mStrength"  
-).value =  
-    m.strength || "";  
-
-
-document.getElementById(  
-    "mBatch"  
-).value =  
-    m.batch || "";  
-
-
-document.getElementById(  
-    "mExpiry"  
-).value =  
-    m.expiry || "";  
-
-
-document.getElementById(  
-    "mStock"  
-).value =  
-    m.stock || 0;  
-
-
-document.getElementById(  
-    "mReorder"  
-).value =  
-    m.reorder || 0;  
-
-
-document.getElementById(  
-    "mPurchase"  
-).value =  
-    m.purchase || 0;  
-
-
-document.getElementById(  
-    "mSale"  
-).value =  
-    m.sale || 0;  
-
-
-const saveBtn =  
-    document.getElementById(  
-        "medicineSaveBtn"  
-    );  
-
-
-if (saveBtn) {  
-
-    saveBtn.textContent =  
-        "💾 Update Medicine";  
-
-}  
-
-
-const cancelBtn =  
-    document.getElementById(  
-        "medicineCancelBtn"  
-    );  
-
-
-if (cancelBtn) {  
-
-    cancelBtn.style.display =  
-        "inline-block";  
-
-}  
-
-
-window.scrollTo({  
-    top: 0,  
-    behavior: "smooth"  
-});
-
-}
-
-// ==========================================
-// CANCEL MEDICINE EDIT
-// ==========================================
-
-function cancelMedicineEdit() {
-
-editingMedicineIndex = -1;  
-
-showMedicines();
-
-}
-
-// ==========================================
-// DELETE MEDICINE
-// ==========================================
-
-function deleteMedicine(index) {
-
-if (!medicines[index])  
-    return;  
-
-
-if (  
-    !confirm(  
-        "এই medicine delete করবেন?"  
-    )  
-) {  
-    return;  
-}  
-
-
-medicines.splice(  
-    index,  
-    1  
-);  
-
-
-saveData();  
-
-
-showMedicines();
-
-}
-
-// ==========================================
-// PURCHASE
-// ==========================================
-
-function showPurchase() {
-
-layout(  
-    "📦 Purchase / Stock In",  
-    `  
-
-    <form id="purchaseForm">  
-
-        <div style="margin-bottom:12px;">  
-
-            <label>  
-                <b>Medicine</b>  
-            </label>  
-
-
-            <select  
-                id="purchaseMedicine"  
-                class="form-control"  
-                style="  
-                    width:100%;  
-                    padding:10px;  
-                    margin-top:5px;  
-                "  
-            >  
-
-                <option value="">  
-                    Select Medicine  
-                </option>  
-
-
-                ${medicines.map(  
-                    m => `  
-
-                    <option  
-                        value="${m.id}"  
-                    >  
-
-                        ${escapeHTML(  
-                            m.name  
-                        )}  
-
-                        |  
-                        Stock:  
-                        ${m.stock}  
-
-                    </option>  
-
-                `  
-                ).join("")}  
-
-            </select>  
-
-        </div>  
-
-
-        <div style="margin-bottom:12px;">  
-
-            <label>  
-                <b>Supplier / Company</b>  
-            </label>  
-
-
-            <select  
-                id="purchaseSupplier"  
-                class="form-control"  
-                style="  
-                    width:100%;  
-                    padding:10px;  
-                    margin-top:5px;  
-                "  
-            >  
-
-                <option value="">  
-                    Select Supplier / Company  
-                </option>  
-
-
-                ${suppliers.map(  
-                    s => `  
-
-                    <option  
-                        value="${escapeHTML(  
-                            s.name  
-                        )}"  
-                    >  
-
-                        ${escapeHTML(  
-                            s.name  
-                        )}  
-
-                        ${  
-                            s.phone  
-                                ? " - " +  
-                                  escapeHTML(  
-                                      s.phone  
-                                  )  
-                                : ""  
-                        }  
-
-                    </option>  
-
-                `  
-                ).join("")}  
-
-            </select>  
-
-        </div>  
-
-
-        ${input(  
-            "purchaseQty",  
-            "Quantity",  
-            "number",  
-            "1"  
-        )}  
-
-
-        ${input(  
-            "purchasePriceInput",  
-            "Purchase Price",  
-            "number",  
-            "0"  
-        )}  
-
-
-        <button  
-            class="btn btn-primary"  
-            type="submit"  
-        >  
-            📦 Add Purchase  
-        </button>  
-
-
-        <button  
-            type="button"  
-            onclick="showSuppliers()"  
-            style="margin-left:8px;"  
-        >  
-            ➕ Add Supplier  
-        </button>  
-
-    </form>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <h3>  
-        📋 Purchase History  
-    </h3>  
-
-
-    <div id="purchaseList"></div>  
-
-    `  
-);  
-
-
-renderPurchases();  
-
-
-document.getElementById(  
-    "purchaseForm"  
-).onsubmit =  
-    function(e) {  
-
-        e.preventDefault();  
-
-
-        const id =  
-            Number(  
-                document.getElementById(  
-                    "purchaseMedicine"  
-                ).value  
-            );  
-
-
-        const qty =  
-            Number(  
-                document.getElementById(  
-                    "purchaseQty"  
-                ).value  
-            );  
-
-
-        const price =  
-            Number(  
-                document.getElementById(  
-                    "purchasePriceInput"  
-                ).value  
-            );  
-
-
-        const supplier =  
-            document.getElementById(  
-                "purchaseSupplier"  
-            ).value.trim();  
-
-
-        const medicine =  
-            medicines.find(  
-                m => Number(m.id) === id  
-            );  
-
-
-        if (!medicine) {  
-
-            alert(  
-                "Medicine select করুন"  
-            );  
-
-            return;  
-        }  
-
-
-        if (!supplier) {  
-
-            alert(  
-                "Supplier / Company select করুন"  
-            );  
-
-            return;  
-        }  
-
-
-        if (qty <= 0) {  
-
-            alert(  
-                "Quantity সঠিক দিন"  
-            );  
-
-            return;  
-        }  
-
-
-        if (price < 0) {  
-
-            alert(  
-                "Purchase Price সঠিক দিন"  
-            );  
-
-            return;  
-        }  
-
-
-        medicine.stock =  
-            Number(  
-                medicine.stock || 0  
-            ) +  
-            qty;  
-
-
-        purchases.push({  
-
-            id:  
-                Date.now(),  
-
-            date:  
-                today(),  
-
-            time:  
-                currentTime(),  
-
-            medicine:  
-                medicine.name,  
-
-            medicineId:  
-                medicine.id,  
-
-            qty:  
-                qty,  
-
-            price:  
-                price,  
-
-            supplier:  
-                supplier,  
-
-            total:  
-                qty * price  
-
-        });  
-
-
-        // Update current purchase price  
-        medicine.purchase = price;  
-
-
-        saveData();  
-
-
-        alert(  
-            "Purchase added এবং stock updated!"  
-        );  
-
-
-        showPurchase();  
-
+    write(DB.medicines, medicines);
+
+    const total =
+      cart.reduce((sum, x) => sum + x.total, 0);
+
+    const sale = {
+      id: uid("SALE"),
+      items: cart.map(x => ({ ...x })),
+      total,
+      customer:
+        document.getElementById("customerName")?.value.trim() || "",
+      payment:
+        document.getElementById("paymentMethod")?.value || "Cash",
+      date: today(),
+      createdAt: new Date().toISOString()
     };
 
-}
+    const sales = getSales();
 
-function renderPurchases() {
+    sales.unshift(sale);
 
-const box =  
-    document.getElementById(  
-        "purchaseList"  
-    );  
-
-
-if (!box) return;  
-
-
-const list =  
-    [...purchases]  
-        .reverse()  
-        .slice(0, 50);  
-
-
-if (!list.length) {  
-
-    box.innerHTML =  
-        "<p>কোনো purchase নেই।</p>";  
-
-    return;  
-
-}  
-
-
-box.innerHTML = `  
-
-    <div style="overflow:auto;">  
-
-        <table>  
-
-            <tr>  
-
-                <th>Date</th>  
-                <th>Time</th>  
-                <th>Medicine</th>  
-                <th>Qty</th>  
-                <th>Price</th>  
-                <th>Total</th>  
-                <th>Supplier / Company</th>  
-
-            </tr>  
-
-
-            ${list.map(  
-                p => `  
-
-                <tr>  
-
-                    <td>  
-                        ${escapeHTML(  
-                            p.date  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            p.time || ""  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            p.medicine  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${p.qty}  
-                    </td>  
-
-
-                    <td>  
-                        ${money(  
-                            p.price  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${money(  
-                            p.total  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            p.supplier || ""  
-                        )}  
-                    </td>  
-
-                </tr>  
-
-            `  
-            ).join("")}  
-
-        </table>  
-
-    </div>  
-
-`;
-
-}
-
-// ==========================================
-// SALES / POS
-// ==========================================
-
-function showSales() {
-
-saleCart = [];  
-
-
-layout(  
-    "🧾 Sales / POS",  
-    `  
-
-    <div  
-        class="panel"  
-        style="  
-            padding:0;  
-            box-shadow:none;  
-        "  
-    >  
-
-        <div style="margin-bottom:12px;">  
-
-            <label>  
-                <b>Medicine</b>  
-            </label>  
-
-
-            <select  
-                id="cartMedicine"  
-                class="form-control"  
-                style="  
-                    width:100%;  
-                    padding:10px;  
-                    margin-top:5px;  
-                "  
-            >  
-
-                <option value="">  
-                    Select Medicine  
-                </option>  
-
-
-                ${medicines.map(  
-                    m => `  
-
-                    <option  
-                        value="${m.id}"  
-                    >  
-
-                        ${escapeHTML(  
-                            m.name  
-                        )}  
-
-                        |  
-                        Stock:  
-                        ${m.stock}  
-
-                        |  
-                        ${money(  
-                            m.sale  
-                        )}  
-
-                    </option>  
-
-                `  
-                ).join("")}  
-
-            </select>  
-
-        </div>  
-
-
-        <div style="  
-            display:grid;  
-            grid-template-columns:  
-                1fr 1fr;  
-            gap:10px;  
-        ">  
-
-            ${input(  
-                "cartQty",  
-                "Quantity",  
-                "number",  
-                "1"  
-            )}  
-
-
-            ${input(  
-                "cartPrice",  
-                "Sale Price",  
-                "number",  
-                "0"  
-            )}  
-
-        </div>  
-
-
-        <button  
-            type="button"  
-            class="btn btn-primary"  
-            onclick="addToCart()"  
-        >  
-            ➕ Add to Cart  
-        </button>  
-
-
-        <hr style="margin:25px 0;">  
-
-
-        <h3>  
-            🛒 Sale Cart  
-        </h3>  
-
-
-        <div id="cartList"></div>  
-
-
-        <div style="margin-top:15px;">  
-
-            <div style="margin-bottom:12px;">  
-
-                <label>  
-                    <b>Customer</b>  
-                </label>  
-
-
-                <select  
-                    id="saleCustomer"  
-                    class="form-control"  
-                    style="  
-                        width:100%;  
-                        padding:10px;  
-                        margin-top:5px;  
-                    "  
-                >  
-
-                    <option value="">  
-                        Walk-in Customer  
-                    </option>  
-
-
-                    ${customers.map(  
-                        c => `  
-
-                        <option  
-                            value="${escapeHTML(  
-                                c.name  
-                            )}"  
-                        >  
-
-                            ${escapeHTML(  
-                                c.name  
-                            )}  
-
-                            ${  
-                                c.phone  
-                                    ? " - " +  
-                                      escapeHTML(  
-                                          c.phone  
-                                      )  
-                                    : ""  
-                            }  
-
-                        </option>  
-
-                    `  
-                    ).join("")}  
-
-                </select>  
-
-
-                <p style="  
-                    font-size:13px;  
-                    color:#666;  
-                ">  
-                    নতুন বা অন্য কোনো ব্যক্তি  
-                    কিনলে Walk-in Customer  
-                    রাখলেই হবে।  
-                </p>  
-
-            </div>  
-
-
-            ${input(  
-                "saleDiscount",  
-                "Discount",  
-                "number",  
-                "0"  
-            )}  
-
-
-            ${input(  
-                "salePaid",  
-                "Paid Amount",  
-                "number",  
-                "0"  
-            )}  
-
-        </div>  
-
-
-        <div  
-            id="saleSummary"  
-            style="margin-top:15px;"  
-        ></div>  
-
-
-        <button  
-            type="button"  
-            class="btn btn-primary"  
-            onclick="completeCartSale()"  
-        >  
-            💰 Complete Sale &  
-            Print Invoice  
-        </button>  
-
-
-        <hr style="margin:30px 0;">  
-
-
-        <div  
-            style="  
-                border:2px solid #ddd;  
-                padding:15px;  
-                border-radius:10px;  
-                margin-bottom:25px;  
-            "  
-        >  
-
-            <h3>  
-                🔎 Customer Sales Search  
-            </h3>  
-
-
-            <p style="  
-                color:#666;  
-                font-size:14px;  
-            ">  
-                Customer-এর নাম লিখে তার  
-                আগের সব Sale, Date,  
-                Amount এবং Invoice দেখতে পারবেন।  
-            </p>  
-
-
-            <input  
-                id="customerSalesSearch"  
-                class="form-control"  
-                placeholder="🔍 Customer Name লিখুন..."  
-                oninput="searchCustomerSales()"  
-                style="  
-                    width:100%;  
-                    padding:12px;  
-                    box-sizing:border-box;  
-                    margin-bottom:10px;  
-                "  
-            >  
-
-
-            <div  
-                id="customerSalesResult"  
-            ></div>  
-
-        </div>  
-
-
-        <h3>  
-            📋 Today's Sales  
-        </h3>  
-
-
-        <div id="salesList"></div>  
-
-    </div>  
-
-    `  
-);  
-
-
-document.getElementById(  
-    "cartMedicine"  
-).onchange =  
-    function() {  
-
-        const medicine =  
-            medicines.find(  
-                m =>  
-                    Number(m.id) ===  
-                    Number(this.value)  
-            );  
-
-
-        document.getElementById(  
-            "cartPrice"  
-        ).value =  
-            medicine  
-                ? medicine.sale  
-                : 0;  
-
-    };  
-
-
-document.getElementById(  
-    "saleDiscount"  
-).oninput =  
-    renderCart;  
-
-
-document.getElementById(  
-    "salePaid"  
-).oninput =  
-    renderCart;  
-
-
-renderCart();  
-
-renderSales();
-
-}
-
-// ==========================================
-// ADD TO CART
-// ==========================================
-
-function addToCart() {
-
-const id =  
-    Number(  
-        document.getElementById(  
-            "cartMedicine"  
-        ).value  
-    );  
-
-
-const qty =  
-    Number(  
-        document.getElementById(  
-            "cartQty"  
-        ).value  
-    );  
-
-
-const price =  
-    Number(  
-        document.getElementById(  
-            "cartPrice"  
-        ).value  
-    );  
-
-
-const medicine =  
-    medicines.find(  
-        m => Number(m.id) === id  
-    );  
-
-
-if (!medicine) {  
-
-    alert(  
-        "Medicine select করুন"  
-    );  
-
-    return;  
-}  
-
-
-if (qty <= 0) {  
-
-    alert(  
-        "Quantity সঠিক দিন"  
-    );  
-
-    return;  
-}  
-
-
-if (  
-    qty >  
-    Number(  
-        medicine.stock || 0  
-    )  
-) {  
-
-    alert(  
-        "পর্যাপ্ত stock নেই!"  
-    );  
-
-    return;  
-}  
-
-
-if (price < 0) {  
-
-    alert(  
-        "Price সঠিক দিন"  
-    );  
-
-    return;  
-}  
-
-
-const existing =  
-    saleCart.find(  
-        i =>  
-            Number(i.medicineId) === id  
-    );  
-
-
-if (existing) {  
-
-    if (  
-        existing.qty + qty >  
-        Number(  
-            medicine.stock || 0  
-        )  
-    ) {  
-
-        alert(  
-            "Stock-এর চেয়ে বেশি quantity দেওয়া যাবে না!"  
-        );  
-
-        return;  
-    }  
-
-
-    existing.qty += qty;  
-
-    existing.price = price;  
-
-} else {  
-
-    saleCart.push({  
-
-        medicineId:  
-            id,  
-
-        medicine:  
-            medicine.name,  
-
-        qty:  
-            qty,  
-
-        price:  
-            price,  
-
-        purchasePrice:  
-            Number(  
-                medicine.purchase || 0  
-            )  
-
-    });  
-
-}  
-
-
-document.getElementById(  
-    "cartQty"  
-).value = 1;  
-
-
-document.getElementById(  
-    "cartMedicine"  
-).value = "";  
-
-
-document.getElementById(  
-    "cartPrice"  
-).value = 0;  
-
-
-renderCart();
-
-}
-
-// ==========================================
-// RENDER CART
-// ==========================================
-
-function renderCart() {
-
-const box =  
-    document.getElementById(  
-        "cartList"  
-    );  
-
-
-if (!box) return;  
-
-
-if (!saleCart.length) {  
-
-    box.innerHTML = `  
-        <p>  
-            Cart এখনো খালি।  
-        </p>  
-    `;  
-
-} else {  
-
-    box.innerHTML = `  
-
-        <div style="overflow:auto;">  
-
-            <table>  
-
-                <tr>  
-
-                    <th>Medicine</th>  
-                    <th>Qty</th>  
-                    <th>Price</th>  
-                    <th>Total</th>  
-                    <th>Action</th>  
-
-                </tr>  
-
-
-                ${saleCart.map(  
-                    (item, index) => `  
-
-                    <tr>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                item.medicine  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${item.qty}  
-                        </td>  
-
-
-                        <td>  
-                            ${money(  
-                                item.price  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${money(  
-                                Number(  
-                                    item.qty  
-                                ) *  
-                                Number(  
-                                    item.price  
-                                )  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-
-                            <button  
-                                onclick="  
-                                    removeFromCart(  
-                                        ${index}  
-                                    )  
-                                "  
-                            >  
-                                🗑️ Remove  
-                            </button>  
-
-                        </td>  
-
-                    </tr>  
-
-                `  
-                ).join("")}  
-
-            </table>  
-
-        </div>  
-
-    `;  
-
-}  
-
-
-const subtotal =  
-    saleCart.reduce(  
-        (sum, item) =>  
-            sum +  
-            (  
-                Number(item.qty) *  
-                Number(item.price)  
-            ),  
-        0  
-    );  
-
-
-const discount =  
-    Number(  
-        document.getElementById(  
-            "saleDiscount"  
-        )?.value || 0  
-    );  
-
-
-const total =  
-    Math.max(  
-        0,  
-        subtotal - discount  
-    );  
-
-
-const paid =  
-    Number(  
-        document.getElementById(  
-            "salePaid"  
-        )?.value || 0  
-    );  
-
-
-const due =  
-    Math.max(  
-        0,  
-        total - paid  
-    );  
-
-
-const change =  
-    Math.max(  
-        0,  
-        paid - total  
-    );  
-
-
-const summary =  
-    document.getElementById(  
-        "saleSummary"  
-    );  
-
-
-if (summary) {  
-
-    summary.innerHTML = `  
-
-        <div style="  
-            border:1px solid #ddd;  
-            padding:15px;  
-            border-radius:8px;  
-        ">  
-
-            <p>  
-                <b>Subtotal:</b>  
-                ${money(subtotal)}  
-            </p>  
-
-
-            <p>  
-                <b>Discount:</b>  
-                ${money(discount)}  
-            </p>  
-
-
-            <p style="font-size:20px;">  
-                <b>Grand Total:</b>  
-                ${money(total)}  
-            </p>  
-
-
-            <p>  
-                <b>Paid:</b>  
-                ${money(paid)}  
-            </p>  
-
-
-            <p>  
-                <b>Due:</b>  
-                ${money(due)}  
-            </p>  
-
-
-            <p>  
-                <b>Change:</b>  
-                ${money(change)}  
-            </p>  
-
-        </div>  
-
-    `;  
-
-}
-
-}
-
-// ==========================================
-// REMOVE CART
-// ==========================================
-
-function removeFromCart(index) {
-
-saleCart.splice(  
-    index,  
-    1  
-);  
-
-renderCart();
-
-}
-
-// ==========================================
-// COMPLETE SALE
-// ==========================================
-
-function completeCartSale() {
-
-if (!saleCart.length) {  
-
-    alert(  
-        "Cart-এ কোনো medicine নেই!"  
-    );  
-
-    return;  
-}  
-
-
-const discount =  
-    Number(  
-        document.getElementById(  
-            "saleDiscount"  
-        ).value  
-    ) || 0;  
-
-
-const paid =  
-    Number(  
-        document.getElementById(  
-            "salePaid"  
-        ).value  
-    ) || 0;  
-
-
-const customer =  
-    document.getElementById(  
-        "saleCustomer"  
-    ).value.trim();  
-
-
-const subtotal =  
-    saleCart.reduce(  
-        (sum, item) =>  
-            sum +  
-            (  
-                Number(item.qty) *  
-                Number(item.price)  
-            ),  
-        0  
-    );  
-
-
-if (discount < 0) {  
-
-    alert(  
-        "Discount সঠিক দিন"  
-    );  
-
-    return;  
-}  
-
-
-if (discount > subtotal) {  
-
-    alert(  
-        "Discount subtotal-এর চেয়ে বেশি হতে পারবে না!"  
-    );  
-
-    return;  
-}  
-
-
-const total =  
-    subtotal - discount;  
-
-
-if (paid < 0) {  
-
-    alert(  
-        "Paid Amount সঠিক দিন"  
-    );  
-
-    return;  
-}  
-
-
-const due =  
-    Math.max(  
-        0,  
-        total - paid  
-    );  
-
-
-const change =  
-    Math.max(  
-        0,  
-        paid - total  
-    );  
-
-
-for (  
-    const item of saleCart  
-) {  
-
-    const medicine =  
-        medicines.find(  
-            m =>  
-                Number(m.id) ===  
-                Number(item.medicineId)  
-        );  
-
-
-    if (!medicine) {  
-
-        alert(  
-            "একটি medicine পাওয়া যাচ্ছে না!"  
-        );  
-
-        return;  
-    }  
-
-
-    if (  
-        Number(item.qty) >  
-        Number(  
-            medicine.stock || 0  
-        )  
-    ) {  
-
-        alert(  
-            medicine.name +  
-            " এর পর্যাপ্ত stock নেই!"  
-        );  
-
-        return;  
-    }  
-
-}  
-
-
-saleCart.forEach(  
-    item => {  
-
-        const medicine =  
-            medicines.find(  
-                m =>  
-                    Number(m.id) ===  
-                    Number(item.medicineId)  
-            );  
-
-
-        medicine.stock =  
-            Number(  
-                medicine.stock || 0  
-            ) -  
-            Number(  
-                item.qty  
-            );  
-
-    }  
-);  
-
-
-const sale = {  
-
-    id:  
-        Date.now(),  
-
-    invoice:  
-        "INV-" +  
-        Date.now(),  
-
-    date:  
-        today(),  
-
-    time:  
-        currentTime(),  
-
-    customer:  
-        customer ||  
-        "Walk-in Customer",  
-
-    items:  
-        saleCart.map(  
-            item => ({  
-
-                medicineId:  
-                    item.medicineId,  
-
-                medicine:  
-                    item.medicine,  
-
-                qty:  
-                    item.qty,  
-
-                price:  
-                    item.price,  
-
-                purchasePrice:  
-                    Number(  
-                        item.purchasePrice || 0  
-                    ),  
-
-                total:  
-                    Number(  
-                        item.qty  
-                    ) *  
-                    Number(  
-                        item.price  
-                    )  
-
-            })  
-        ),  
-
-    subtotal:  
-        subtotal,  
-
-    discount:  
-        discount,  
-
-    total:  
-        total,  
-
-    paid:  
-        paid,  
-
-    due:  
-        due,  
-
-    change:  
-        change  
-
-};  
-
-
-sales.push(sale);  
-
-
-saveData();  
-
-
-alert(  
-    "Sale completed successfully!"  
-);  
-
-
-printInvoice(sale);  
-
-
-saleCart = [];  
-
-
-showSales();
-
-}
-
-// ==========================================
-// TODAY SALES
-// ==========================================
-
-function renderSales() {
-
-const box =  
-    document.getElementById(  
-        "salesList"  
-    );  
-
-
-if (!box) return;  
-
-
-const list =  
-    sales  
-        .filter(  
-            s =>  
-                s.date ===  
-                today()  
-        )  
-        .reverse();  
-
-
-if (!list.length) {  
-
-    box.innerHTML =  
-        "<p>আজকে কোনো sale নেই।</p>";  
-
-    return;  
-
-}  
-
-
-box.innerHTML = `  
-
-    <div style="overflow:auto;">  
-
-        <table>  
-
-            <tr>  
-
-                <th>Invoice</th>  
-                <th>Time</th>  
-                <th>Customer</th>  
-                <th>Items</th>  
-                <th>Total</th>  
-                <th>Due</th>  
-                <th>Action</th>  
-
-            </tr>  
-
-
-            ${list.map(  
-                s => `  
-
-                <tr>  
-
-                    <td>  
-                        ${escapeHTML(  
-                            s.invoice || "-"  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            s.time || ""  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            getCustomerName(s)  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${  
-                            s.items  
-                                ? s.items.length  
-                                : 1  
-                        }  
-                    </td>  
-
-
-                    <td>  
-                        ${money(  
-                            s.total  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${money(  
-                            s.due  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-
-                        <button  
-                            onclick='  
-                                printInvoice(  
-                                    ${JSON.stringify(s)}  
-                                )  
-                            '  
-                        >  
-                            🖨️ Print  
-                        </button>  
-
-                    </td>  
-
-                </tr>  
-
-            `  
-            ).join("")}  
-
-        </table>  
-
-    </div>  
-
-`;
-
-}
-
-// ==========================================
-// CUSTOMER SALES SEARCH
-// ==========================================
-
-function searchCustomerSales() {
-
-const box =  
-    document.getElementById(  
-        "customerSalesResult"  
-    );  
-
-
-const searchBox =  
-    document.getElementById(  
-        "customerSalesSearch"  
-    );  
-
-
-if (!box || !searchBox)  
-    return;  
-
-
-const search =  
-    searchBox.value  
-        .trim()  
-        .toLowerCase();  
-
-
-if (!search) {  
-
-    box.innerHTML = `  
-        <p style="color:#666;">  
-            Customer-এর নাম লিখুন।  
-        </p>  
-    `;  
-
-    return;  
-
-}  
-
-
-const results =  
-    sales.filter(  
-        sale => {  
-
-            const customer =  
-                getCustomerName(sale)  
-                    .toLowerCase();  
-
-
-            return customer.includes(  
-                search  
-            );  
-
-        }  
-    ).reverse();  
-
-
-if (!results.length) {  
-
-    box.innerHTML = `  
-
-        <div style="  
-            padding:12px;  
-            background:#fff3cd;  
-            border-radius:8px;  
-        ">  
-
-            ❌ এই নামে কোনো  
-            Sales পাওয়া যায়নি।  
-
-        </div>  
-
-    `;  
-
-    return;  
-
-}  
-
-
-const totalAmount =  
-    results.reduce(  
-        (sum, sale) =>  
-            sum +  
-            Number(  
-                sale.total || 0  
-            ),  
-        0  
-    );  
-
-
-const totalDue =  
-    results.reduce(  
-        (sum, sale) =>  
-            sum +  
-            Number(  
-                sale.due || 0  
-            ),  
-        0  
-    );  
-
-
-box.innerHTML = `  
-
-    <div style="  
-        margin:15px 0;  
-        padding:12px;  
-        background:#f1f8ff;  
-        border-radius:8px;  
-    ">  
-
-        <b>  
-            মোট ${results.length}  
-            টি Invoice  
-        </b>  
-
-        <br>  
-
-        মোট Sale:  
-        <b>  
-            ${money(totalAmount)}  
-        </b>  
-
-        <br>  
-
-        মোট Due:  
-        <b>  
-            ${money(totalDue)}  
-        </b>  
-
-    </div>  
-
-
-    <div style="overflow:auto;">  
-
-        <table>  
-
-            <thead>  
-
-                <tr>  
-
-                    <th>Date</th>  
-                    <th>Time</th>  
-                    <th>Customer</th>  
-                    <th>Invoice</th>  
-                    <th>Items</th>  
-                    <th>Total</th>  
-                    <th>Paid</th>  
-                    <th>Due</th>  
-                    <th>Invoice</th>  
-
-                </tr>  
-
-            </thead>  
-
-
-            <tbody>  
-
-                ${results.map(  
-                    sale => `  
-
-                    <tr>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                sale.date || ""  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${escapeHTML(  
-                                sale.time || ""  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${escapeHTML(  
-                                getCustomerName(sale)  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${escapeHTML(  
-                                sale.invoice ||  
-                                "-"  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${  
-                                sale.items  
-                                    ? sale.items.length  
-                                    : 1  
-                            }  
-                        </td>  
-
-
-                        <td>  
-                            ${money(  
-                                sale.total  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${money(  
-                                sale.paid  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${money(  
-                                sale.due  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-
-                            <button  
-                                onclick='  
-                                    printInvoice(  
-                                        ${JSON.stringify(  
-                                            sale  
-                                        )}  
-                                    )  
-                                '  
-                            >  
-                                🖨️ Print  
-                            </button>  
-
-                        </td>  
-
-                    </tr>  
-
-                `  
-                ).join("")}  
-
-            </tbody>  
-
-        </table>  
-
-    </div>  
-
-`;
-
-}
-
-// ==========================================
-// PRINT INVOICE
-// ==========================================
-
-function printInvoice(sale) {
-
-const w =  
-    window.open(  
-        "",  
-        "_blank"  
-    );  
-
-
-if (!w) {  
-
-    alert(  
-        "Browser popup blocked করেছে। Print করার অনুমতি দিন।"  
-    );  
-
-    return;  
-
-}  
-
-
-const items =  
-
-    Array.isArray(  
-        sale.items  
-    ) &&  
-    sale.items.length  
-
-        ? sale.items  
-
-        : [  
-
-            {  
-
-                medicine:  
-                    sale.medicine,  
-
-                qty:  
-                    sale.qty,  
-
-                price:  
-                    sale.price,  
-
-                total:  
-                    sale.total  
-
-            }  
-
-        ];  
-
-
-w.document.write(`  
-
-    <!DOCTYPE html>  
-
-    <html>  
-
-    <head>  
-
-        <title>  
-            ${escapeHTML(  
-                sale.invoice ||  
-                "Pharmacy Invoice"  
-            )}  
-        </title>  
-
-
-        <style>  
-
-            body {  
-
-                font-family:  
-                    Arial,  
-                    sans-serif;  
-
-                padding:  
-                    25px;  
-
-            }  
-
-
-            .invoice {  
-
-                max-width:  
-                    650px;  
-
-                margin:  
-                    auto;  
-
-            }  
-
-
-            h1,  
-            h2 {  
-
-                text-align:  
-                    center;  
-
-            }  
-
-
-            table {  
-
-                width:  
-                    100%;  
-
-                border-collapse:  
-                    collapse;  
-
-                margin-top:  
-                    20px;  
-
-            }  
-
-
-            th,  
-            td {  
-
-                border:  
-                    1px solid #999;  
-
-                padding:  
-                    9px;  
-
-                text-align:  
-                    left;  
-
-            }  
-
-
-            .right {  
-
-                text-align:  
-                    right;  
-
-            }  
-
-
-            .total {  
-
-                font-size:  
-                    18px;  
-
-                font-weight:  
-                    bold;  
-
-            }  
-
-        </style>  
-
-    </head>  
-
-
-    <body  
-        onload="window.print()"  
-    >  
-
-        <div style="
-    text-align:center;
-    margin-bottom:20px;
-">
-
-    ${
-        localStorage.getItem(PHARMACY_LOGO_KEY)
-        ? `
-            <img
-                src="${localStorage.getItem(PHARMACY_LOGO_KEY)}"
-                style="
-                    width:80px;
-                    height:80px;
-                    object-fit:contain;
-                    margin-bottom:8px;
-                "
-            >
-        `
-        : `
-            <div style="
-                font-size:50px;
-                margin-bottom:8px;
-            ">
-                💊
-            </div>
-        `
-    }
-
-    <h1 style="
-        margin:5px 0;
-        font-size:24px;
-    ">
-        ${
-            escapeHTML(
-                localStorage.getItem(PHARMACY_NAME_KEY)
-                || "Pharmacy Inventory Pro"
-            )
-        }
-    </h1>
-
-    <h2 style="
-        margin:5px 0 15px;
-    ">
-        Sales Invoice
-    </h2>
-
-</div>
-
-
-            <h2>  
-                Sales Invoice  
-            </h2>  
-
-
-            <p>  
-
-                <b>Invoice:</b>  
-                ${escapeHTML(  
-                    sale.invoice ||  
-                    "-"  
-                )}  
-
-                <br>  
-
-
-                <b>Date:</b>  
-                ${escapeHTML(  
-                    sale.date ||  
-                    ""  
-                )}  
-
-                <br>  
-
-
-                <b>Time:</b>  
-                ${escapeHTML(  
-                    sale.time ||  
-                    ""  
-                )}  
-
-                <br>  
-
-
-                <b>Customer:</b>  
-                ${escapeHTML(  
-                    getCustomerName(sale)  
-                )}  
-
-            </p>  
-
-
-            <table>  
-
-                <tr>  
-
-                    <th>  
-                        Medicine  
-                    </th>  
-
-                    <th>  
-                        Qty  
-                    </th>  
-
-                    <th>  
-                        Price  
-                    </th>  
-
-                    <th>  
-                        Total  
-                    </th>  
-
-                </tr>  
-
-
-                ${items.map(  
-                    item => `  
-
-                    <tr>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                item.medicine ||  
-                                item.name ||  
-                                "-"  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${item.qty ||  
-                                item.quantity ||  
-                                0}  
-                        </td>  
-
-
-                        <td>  
-                            ${money(  
-                                item.price  
-                            )}  
-                        </td>  
-
-
-                        <td>  
-                            ${money(  
-                                item.total ??  
-                                (  
-                                    Number(  
-                                        item.qty ||  
-                                        item.quantity ||  
-                                        0  
-                                    ) *  
-                                    Number(  
-                                        item.price ||  
-                                        0  
-                                    )  
-                                )  
-                            )}  
-                        </td>  
-
-                    </tr>  
-
-                `  
-                ).join("")}  
-
-            </table>  
-
-
-            <p class="right">  
-
-                <b>  
-                    Subtotal:  
-                </b>  
-
-                ${money(  
-                    sale.subtotal ??  
-                    sale.total  
-                )}  
-
-            </p>  
-
-
-            <p class="right">  
-
-                <b>  
-                    Discount:  
-                </b>  
-
-                ${money(  
-                    sale.discount ||  
-                    0  
-                )}  
-
-            </p>  
-
-
-            <p  
-                class="right total"  
-            >  
-
-                <b>  
-                    Grand Total:  
-                </b>  
-
-                ${money(  
-                    sale.total  
-                )}  
-
-            </p>  
-
-
-            <p class="right">  
-
-                <b>  
-                    Paid:  
-                </b>  
-
-                ${money(  
-                    sale.paid ||  
-                    0  
-                )}  
-
-            </p>  
-
-
-            <p class="right">  
-
-                <b>  
-                    Due:  
-                </b>  
-
-                ${money(  
-                    sale.due ||  
-                    0  
-                )}  
-
-            </p>  
-
-
-            <p class="right">  
-
-                <b>  
-                    Change:  
-                </b>  
-
-                ${money(  
-                    sale.change ||  
-                    0  
-                )}  
-
-            </p>  
-
-
-            <p style="  
-                text-align:center;  
-                margin-top:40px;  
-            ">  
-
-                Thank you for  
-                your purchase!  
-
-            </p>  
-
-        </div>  
-
-    </body>  
-
-    </html>  
-
-`);  
-
-
-w.document.close();
-
-}
-
-// ==========================================
-// SUPPLIERS / COMPANIES
-// ==========================================
-
-function showSuppliers() {
-
-layout(  
-    "🏢 Suppliers / Companies",  
-    `  
-
-    <form id="supplierForm">  
-
-        ${input(  
-            "supplierName",  
-            "Company / Supplier Name"  
-        )}  
-
-
-        ${input(  
-            "supplierPhone",  
-            "Phone"  
-        )}  
-
-
-        ${input(  
-            "supplierAddress",  
-            "Address"  
-        )}  
-
-
-        <button  
-            class="btn btn-primary"  
-            type="submit"  
-        >  
-            💾 Save Supplier / Company  
-        </button>  
-
-    </form>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <div id="supplierList"></div>  
-
-    `  
-);  
-
-
-renderSuppliers();  
-
-
-document.getElementById(  
-    "supplierForm"  
-).onsubmit =  
-    function(e) {  
-
-        e.preventDefault();  
-
-
-        const name =  
-            document.getElementById(  
-                "supplierName"  
-            ).value.trim();  
-
-
-        if (!name) {  
-
-            alert(  
-                "Company / Supplier Name দিন"  
-            );  
-
-            return;  
-
-        }  
-
-
-        suppliers.push({  
-
-            id:  
-                Date.now(),  
-
-            name:  
-                name,  
-
-            phone:  
-                document.getElementById(  
-                    "supplierPhone"  
-                ).value.trim(),  
-
-            address:  
-                document.getElementById(  
-                    "supplierAddress"  
-                ).value.trim()  
-
-        });  
-
-
-        saveData();  
-
-
-        alert(  
-            "Supplier / Company saved!"  
-        );  
-
-
-        showSuppliers();  
-
-    };
-
-}
-
-function renderSuppliers() {
-
-const box =  
-    document.getElementById(  
-        "supplierList"  
-    );  
-
-
-if (!box) return;  
-
-
-if (!suppliers.length) {  
-
-    box.innerHTML =  
-        "<p>কোনো Supplier / Company নেই।</p>";  
-
-    return;  
-
-}  
-
-
-box.innerHTML = `  
-
-    <h3>  
-        Supplier / Company List  
-    </h3>  
-
-
-    <div style="overflow:auto;">  
-
-        <table>  
-
-            <tr>  
-
-                <th>Name</th>  
-                <th>Phone</th>  
-                <th>Address</th>  
-                <th>Action</th>  
-
-            </tr>  
-
-
-            ${suppliers.map(  
-                (s, i) => `  
-
-                <tr>  
-
-                    <td>  
-                        ${escapeHTML(  
-                            s.name  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            s.phone  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            s.address  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-
-                        <button  
-                            onclick="  
-                                deleteSupplier(${i})  
-                            "  
-                        >  
-                            🗑️ Delete  
-                        </button>  
-
-                    </td>  
-
-                </tr>  
-
-            `  
-            ).join("")}  
-
-        </table>  
-
-    </div>  
-
-`;
-
-}
-
-function deleteSupplier(index) {
-
-if (  
-    !confirm(  
-        "এই Supplier / Company delete করবেন?"  
-    )  
-) {  
-    return;  
-}  
-
-
-suppliers.splice(  
-    index,  
-    1  
-);  
-
-
-saveData();  
-
-
-showSuppliers();
-
-}
-
-// ==========================================
-// CUSTOMERS
-// ==========================================
-
-function showCustomers() {
-
-layout(  
-    "👤 Customers",  
-    `  
-
-    <form id="customerForm">  
-
-        ${input(  
-            "custName",  
-            "Customer Name"  
-        )}  
-
-
-        ${input(  
-            "custPhone",  
-            "Phone"  
-        )}  
-
-
-        ${input(  
-            "custAddress",  
-            "Address"  
-        )}  
-
-
-        <button  
-            class="btn btn-primary"  
-            type="submit"  
-        >  
-            💾 Save Customer  
-        </button>  
-
-    </form>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <div id="customerList"></div>  
-
-    `  
-);  
-
-
-renderCustomers();  
-
-
-document.getElementById(  
-    "customerForm"  
-).onsubmit =  
-    function(e) {  
-
-        e.preventDefault();  
-
-
-        const name =  
-            document.getElementById(  
-                "custName"  
-            ).value.trim();  
-
-
-        if (!name) {  
-
-            alert(  
-                "Customer Name দিন"  
-            );  
-
-            return;  
-
-        }  
-
-
-        customers.push({  
-
-            id:  
-                Date.now(),  
-
-            name:  
-                name,  
-
-            phone:  
-                document.getElementById(  
-                    "custPhone"  
-                ).value.trim(),  
-
-            address:  
-                document.getElementById(  
-                    "custAddress"  
-                ).value.trim()  
-
-        });  
-
-
-        saveData();  
-
-
-        alert(  
-            "Customer saved!"  
-        );  
-
-
-        showCustomers();  
-
-    };
-
-}
-
-function renderCustomers() {
-
-const box =  
-    document.getElementById(  
-        "customerList"  
-    );  
-
-
-if (!box) return;  
-
-
-if (!customers.length) {  
-
-    box.innerHTML =  
-        "<p>কোনো Customer নেই।</p>";  
-
-    return;  
-
-}  
-
-
-box.innerHTML = `  
-
-    <h3>  
-        Customer List  
-    </h3>  
-
-
-    <div style="overflow:auto;">  
-
-        <table>  
-
-            <tr>  
-
-                <th>Name</th>  
-                <th>Phone</th>  
-                <th>Address</th>  
-                <th>Action</th>  
-
-            </tr>  
-
-
-            ${customers.map(  
-                (c, i) => `  
-
-                <tr>  
-
-                    <td>  
-                        ${escapeHTML(  
-                            c.name  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            c.phone  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-                        ${escapeHTML(  
-                            c.address  
-                        )}  
-                    </td>  
-
-
-                    <td>  
-
-                        <button  
-                            onclick="  
-                                deleteCustomer(${i})  
-                            "  
-                        >  
-                            🗑️ Delete  
-                        </button>  
-
-                    </td>  
-
-                </tr>  
-
-            `  
-            ).join("")}  
-
-        </table>  
-
-    </div>  
-
-`;
-
-}
-
-function deleteCustomer(index) {
-
-if (  
-    !confirm(  
-        "এই Customer delete করবেন?"  
-    )  
-) {  
-    return;  
-}  
-
-
-customers.splice(  
-    index,  
-    1  
-);  
-
-
-saveData();  
-
-
-showCustomers();
-
-}
-
-// ==========================================
-// DUE / PAYMENT
-// ==========================================
-
-function getTotalDue() {
-
-const totalSaleDue =  
-    sales.reduce(  
-        (sum, sale) =>  
-            sum +  
-            Number(  
-                sale.due || 0  
-            ),  
-        0  
-    );  
-
-
-const totalPayments =  
-    payments.reduce(  
-        (sum, payment) =>  
-            sum +  
-            Number(  
-                payment.amount || 0  
-            ),  
-        0  
-    );  
-
-
-return Math.max(  
-    0,  
-    totalSaleDue - totalPayments  
-);
-
-}
-
-function customerDueTotal(name) {
-
-const saleDue =  
-    sales  
-        .filter(  
-            s =>  
-                getCustomerName(s) ===  
-                name  
-        )  
-        .reduce(  
-            (sum, s) =>  
-                sum +  
-                Number(s.due || 0),  
-            0  
-        );  
-
-
-const collected =  
-    payments  
-        .filter(  
-            p =>  
-                p.customer === name  
-        )  
-        .reduce(  
-            (sum, p) =>  
-                sum +  
-                Number(  
-                    p.amount || 0  
-                ),  
-            0  
-        );  
-
-
-return Math.max(  
-    0,  
-    saleDue - collected  
-);
-
-}
-
-function showDueCollection() {
-
-const customerNames =  
-    [  
-        ...new Set(  
-            sales.map(  
-                s =>  
-                    getCustomerName(s)  
-            )  
-        )  
-    ];  
-
-
-layout(  
-    "💰 Due / বাকি আদায়",  
-    `  
-
-    <div style="margin-bottom:15px;">  
-
-        <label>  
-            <b>Customer</b>  
-        </label>  
-
-        <select  
-            id="dueCustomer"  
-            class="form-control"  
-            style="  
-                width:100%;  
-                padding:10px;  
-                margin-top:5px;  
-            "  
-        >  
-
-            <option value="">  
-                Customer নির্বাচন করুন  
-            </option>  
-
-            ${customerNames.map(  
-                n => `  
-
-                <option  
-                    value="${escapeHTML(n)}"  
-                >  
-                    ${escapeHTML(n)}  
-                    — Due:  
-                    ${money(  
-                        customerDueTotal(n)  
-                    )}  
-                </option>  
-
-            `  
-            ).join("")}  
-
-        </select>  
-
-    </div>  
-
-
-    ${input(  
-        "dueAmount",  
-        "Payment Amount",  
-        "number",  
-        "0"  
-    )}  
-
-
-    ${input(  
-        "dueNote",  
-        "Note"  
-    )}  
-
-
-    <button  
-        class="btn btn-primary"  
-        onclick="collectDue()"  
-    >  
-        💾 Payment Save  
-    </button>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <h3>  
-        📋 Customer Due List  
-    </h3>  
-
-
-    <div id="dueList"></div>  
-
-    `  
-);  
-
-
-renderDueList();
-
-}
-
-function renderDueList() {
-
-const box =  
-    document.getElementById(  
-        "dueList"  
-    );  
-
-
-if (!box) return;  
-
-
-const names =  
-    [  
-        ...new Set(  
-            sales.map(  
-                s =>  
-                    getCustomerName(s)  
-            )  
-        )  
-    ];  
-
-
-const rows =  
-    names.map(  
-        name => {  
-
-            const originalDue =  
-                sales  
-                    .filter(  
-                        s =>  
-                            getCustomerName(s) ===  
-                            name  
-                    )  
-                    .reduce(  
-                        (sum, s) =>  
-                            sum +  
-                            Number(  
-                                s.due || 0  
-                            ),  
-                        0  
-                    );  
-
-
-            const paid =  
-                payments  
-                    .filter(  
-                        p =>  
-                            p.customer ===  
-                            name  
-                    )  
-                    .reduce(  
-                        (sum, p) =>  
-                            sum +  
-                            Number(  
-                                p.amount || 0  
-                            ),  
-                        0  
-                    );  
-
-
-            const due =  
-                Math.max(  
-                    0,  
-                    originalDue - paid  
-                );  
-
-
-            return {  
-                name,  
-                originalDue,  
-                paid,  
-                due  
-            };  
-
-        }  
-    )  
-    .filter(  
-        x =>  
-            x.originalDue > 0 ||  
-            x.paid > 0  
-    );  
-
-
-if (!rows.length) {  
-
-    box.innerHTML =  
-        "<p>কোনো Customer Due নেই।</p>";  
-
-} else {  
-
-    box.innerHTML = `  
-
-        <div style="overflow:auto;">  
-
-            <table>  
-
-                <thead>  
-
-                    <tr>  
-
-                        <th>Customer</th>  
-                        <th>Total Due</th>  
-                        <th>Collected</th>  
-                        <th>Current Due</th>  
-
-                    </tr>  
-
-                </thead>  
-
-
-                <tbody>  
-
-                    ${rows.map(  
-                        r => `  
-
-                        <tr>  
-
-                            <td>  
-                                ${escapeHTML(  
-                                    r.name  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${money(  
-                                    r.originalDue  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${money(  
-                                    r.paid  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                <b>  
-                                    ${money(  
-                                        r.due  
-                                    )}  
-                                </b>  
-                            </td>  
-
-                        </tr>  
-
-                    `  
-                    ).join("")}  
-
-                </tbody>  
-
-            </table>  
-
-        </div>  
-
-    `;  
-
-}  
-
-
-box.innerHTML += `  
-
-    <h3 style="margin-top:25px;">  
-        💳 Payment History  
-    </h3>  
-
-
-    ${  
-        payments.length  
-
-            ? `  
-
-            <div style="overflow:auto;">  
-
-                <table>  
-
-                    <tr>  
-
-                        <th>Date</th>  
-                        <th>Time</th>  
-                        <th>Customer</th>  
-                        <th>Amount</th>  
-                        <th>Note</th>  
-
-                    </tr>  
-
-
-                    ${[...payments]  
-                        .reverse()  
-                        .map(  
-                            p => `  
-
-                            <tr>  
-
-                                <td>  
-                                    ${escapeHTML(  
-                                        p.date  
-                                    )}  
-                                </td>  
-
-                                <td>  
-                                    ${escapeHTML(  
-                                        p.time || ""  
-                                    )}  
-                                </td>  
-
-                                <td>  
-                                    ${escapeHTML(  
-                                        p.customer  
-                                    )}  
-                                </td>  
-
-                                <td>  
-                                    ${money(  
-                                        p.amount  
-                                    )}  
-                                </td>  
-
-                                <td>  
-                                    ${escapeHTML(  
-                                        p.note || ""  
-                                    )}  
-                                </td>  
-
-                            </tr>  
-
-                        `  
-                        )  
-                        .join("")}  
-
-                </table>  
-
-            </div>  
-
-        `  
-
-            : `  
-                <p>  
-                    এখনো কোনো payment history নেই।  
-                </p>  
-            `  
-    }  
-
-`;
-
-}
-
-function collectDue() {
-
-const customer =  
-    document.getElementById(  
-        "dueCustomer"  
-    )?.value;  
-
-
-const amount =  
-    Number(  
-        document.getElementById(  
-            "dueAmount"  
-        )?.value || 0  
-    );  
-
-
-const note =  
-    document.getElementById(  
-        "dueNote"  
-    )?.value.trim() || "";  
-
-
-if (!customer) {  
-
-    alert(  
-        "Customer নির্বাচন করুন"  
-    );  
-
-    return;  
-
-}  
-
-
-if (amount <= 0) {  
-
-    alert(  
-        "Payment Amount দিন"  
-    );  
-
-    return;  
-
-}  
-
-
-const currentDue =  
-    customerDueTotal(  
-        customer  
-    );  
-
-
-if (currentDue <= 0) {  
-
-    alert(  
-        "এই Customer-এর কোনো Current Due নেই।"  
-    );  
-
-    return;  
-
-}  
-
-
-if (amount > currentDue) {  
-
-    alert(  
-        "বর্তমান Due-এর চেয়ে বেশি টাকা দেওয়া যাবে না। Current Due: " +  
-        money(currentDue)  
-    );  
-
-    return;  
-
-}  
-
-
-payments.push({  
-
-    id:  
-        Date.now(),  
-
-    date:  
-        today(),  
-
-    time:  
-        currentTime(),  
-
-    customer:  
-        customer,  
-
-    amount:  
-        amount,  
-
-    note:  
-        note  
-
-});  
-
-
-saveData();  
-
-
-alert(  
-    "Payment successfully saved!"  
-);  
-
-
-showDueCollection();
-
-}
-
-// ==========================================
-// STOCK ADJUSTMENT
-// ==========================================
-
-function showStockAdjustment() {
-
-layout(  
-    "📦 Stock Adjustment",  
-    `  
-
-    <div style="margin-bottom:15px;">  
-
-        <label>  
-            <b>Medicine</b>  
-        </label>  
-
-
-        <select  
-            id="adjustMedicine"  
-            class="form-control"  
-            style="  
-                width:100%;  
-                padding:10px;  
-                margin-top:5px;  
-            "  
-        >  
-
-            <option value="">  
-                Medicine নির্বাচন করুন  
-            </option>  
-
-
-            ${medicines.map(  
-                (m, i) => `  
-
-                <option value="${i}">  
-
-                    ${escapeHTML(  
-                        m.name  
-                    )}  
-
-                    — Stock:  
-                    ${Number(  
-                        m.stock || 0  
-                    )}  
-
-                </option>  
-
-            `  
-            ).join("")}  
-
-        </select>  
-
-    </div>  
-
-
-    <div style="margin-bottom:12px;">  
-
-        <label>  
-            <b>Adjustment Type</b>  
-        </label>  
-
-
-        <select  
-            id="adjustType"  
-            class="form-control"  
-            style="  
-                width:100%;  
-                padding:10px;  
-                margin-top:5px;  
-            "  
-        >  
-
-            <option value="add">  
-                ➕ Stock Add  
-            </option>  
-
-            <option value="remove">  
-                ➖ Stock Remove  
-            </option>  
-
-            <option value="damage">  
-                🗑️ Damaged / Expired Remove  
-            </option>  
-
-        </select>  
-
-    </div>  
-
-
-    ${input(  
-        "adjustQty",  
-        "Quantity",  
-        "number",  
-        "1"  
-    )}  
-
-
-    ${input(  
-        "adjustNote",  
-        "Reason / Note"  
-    )}  
-
-
-    <button  
-        class="btn btn-primary"  
-        onclick="saveStockAdjustment()"  
-    >  
-        💾 Save Adjustment  
-    </button>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <div id="adjustmentHistory"></div>  
-
-    `  
-);  
-
-
-renderAdjustmentHistory();
-
-}
-
-function saveStockAdjustment() {
-
-const i =  
-    Number(  
-        document.getElementById(  
-            "adjustMedicine"  
-        )?.value  
-    );  
-
-
-const type =  
-    document.getElementById(  
-        "adjustType"  
-    )?.value;  
-
-
-const qty =  
-    Number(  
-        document.getElementById(  
-            "adjustQty"  
-        )?.value || 0  
-    );  
-
-
-const note =  
-    document.getElementById(  
-        "adjustNote"  
-    )?.value.trim() || "";  
-
-
-if (!medicines[i]) {  
-
-    alert(  
-        "Medicine নির্বাচন করুন"  
-    );  
-
-    return;  
-
-}  
-
-
-if (qty <= 0) {  
-
-    alert(  
-        "Quantity দিন"  
-    );  
-
-    return;  
-
-}  
-
-
-const oldStock =  
-    Number(  
-        medicines[i].stock || 0  
-    );  
-
-
-if (  
-    type !== "add" &&  
-    qty > oldStock  
-) {  
-
-    alert(  
-        "Stock-এর চেয়ে বেশি কমানো যাবে না।"  
-    );  
-
-    return;  
-
-}  
-
-
-medicines[i].stock =  
-    type === "add"  
-        ? oldStock + qty  
-        : oldStock - qty;  
-
-
-stockAdjustments.push({  
-
-    id:  
-        Date.now(),  
-
-    date:  
-        today(),  
-
-    time:  
-        currentTime(),  
-
-    medicine:  
-        medicines[i].name,  
-
-    medicineId:  
-        medicines[i].id,  
-
-    type:  
-        type,  
-
-    qty:  
-        qty,  
-
-    oldStock:  
-        oldStock,  
-
-    newStock:  
-        medicines[i].stock,  
-
-    note:  
-        note  
-
-});  
-
-
-saveData();  
-
-
-alert(  
-    "Stock successfully updated!"  
-);  
-
-
-showStockAdjustment();
-
-}
-
-function renderAdjustmentHistory() {
-
-const box =  
-    document.getElementById(  
-        "adjustmentHistory"  
-    );  
-
-
-if (!box) return;  
-
-
-if (!stockAdjustments.length) {  
-
-    box.innerHTML =  
-        "<p>কোনো Stock Adjustment নেই।</p>";  
-
-    return;  
-
-}  
-
-
-box.innerHTML = `  
-
-    <h3>  
-        📋 Adjustment History  
-    </h3>  
-
-
-    <div style="overflow:auto;">  
-
-        <table>  
-
-            <tr>  
-
-                <th>Date</th>  
-                <th>Time</th>  
-                <th>Medicine</th>  
-                <th>Type</th>  
-                <th>Qty</th>  
-                <th>Stock</th>  
-                <th>Note</th>  
-
-            </tr>  
-
-
-            ${[  
-                ...stockAdjustments  
-            ]  
-                .reverse()  
-                .map(  
-                    a => `  
-
-                    <tr>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                a.date  
-                            )}  
-                        </td>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                a.time || ""  
-                            )}  
-                        </td>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                a.medicine  
-                            )}  
-                        </td>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                a.type  
-                            )}  
-                        </td>  
-
-                        <td>  
-                            ${a.qty}  
-                        </td>  
-
-                        <td>  
-                            ${a.oldStock}  
-                            →  
-                            ${a.newStock}  
-                        </td>  
-
-                        <td>  
-                            ${escapeHTML(  
-                                a.note || ""  
-                            )}  
-                        </td>  
-
-                    </tr>  
-
-                `  
-                )  
-                .join("")}  
-
-        </table>  
-
-    </div>  
-
-`;
-
-}
-
-// ==========================================
-// ALERTS
-// ==========================================
-
-function showLowStock() {
-
-const list =  
-    medicines.filter(  
-        m =>  
-            Number(m.stock || 0) <=  
-            Number(m.reorder || 0)  
-    );  
-
-
-layout(  
-    "⚠️ Low Stock Alert",  
-    `  
-
-    ${  
-        list.length  
-
-            ? `  
-
-            <div style="overflow:auto;">  
-
-                <table>  
-
-                    <tr>  
-
-                        <th>Medicine</th>  
-                        <th>Stock</th>  
-                        <th>Reorder Level</th>  
-
-                    </tr>  
-
-
-                    ${list.map(  
-                        m => `  
-
-                        <tr>  
-
-                            <td>  
-                                ${escapeHTML(  
-                                    m.name  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                <b>  
-                                    ${m.stock || 0}  
-                                </b>  
-                            </td>  
-
-                            <td>  
-                                ${m.reorder || 0}  
-                            </td>  
-
-                        </tr>  
-
-                    `  
-                    ).join("")}  
-
-                </table>  
-
-            </div>  
-
-        `  
-
-            : `  
-                <p>  
-                    ✅ কোনো Low Stock নেই।  
-                </p>  
-            `  
-    }  
-
-    `  
-);
-
-}
-
-function showExpiryAlert() {
-
-const expired =  
-    medicines.filter(  
-        m =>  
-            m.expiry &&  
-            new Date(m.expiry) <  
-            new Date()  
-    );  
-
-
-const near =  
-    medicines.filter(  
-        m => {  
-
-            if (!m.expiry)  
-                return false;  
-
-            const days =  
-                (  
-                    new Date(m.expiry) -  
-                    new Date()  
-                ) /  
-                86400000;  
-
-            return (  
-                days >= 0 &&  
-                days <= 30  
-            );  
-
-        }  
-    );  
-
-
-layout(  
-    "📅 Expiry Alert",  
-    `  
-
-    <h3>  
-        ❌ Expired Medicines  
-    </h3>  
-
-
-    ${  
-        expired.length  
-
-            ? expired.map(  
-                m => `  
-
-                <p>  
-
-                    <b>  
-                        ${escapeHTML(  
-                            m.name  
-                        )}  
-                    </b>  
-
-                    —  
-                    Expiry:  
-                    ${escapeHTML(  
-                        m.expiry  
-                    )}  
-
-                </p>  
-
-            `  
-            ).join("")  
-
-            : `  
-                <p>  
-                    ✅ কোনো expired medicine নেই।  
-                </p>  
-            `  
-    }  
-
-
-    <h3 style="margin-top:25px;">  
-        ⚠️ আগামী ৩০ দিনের মধ্যে Expiry  
-    </h3>  
-
-
-    ${  
-        near.length  
-
-            ? near.map(  
-                m => `  
-
-                <p>  
-
-                    <b>  
-                        ${escapeHTML(  
-                            m.name  
-                        )}  
-                    </b>  
-
-                    —  
-                    Expiry:  
-                    ${escapeHTML(  
-                        m.expiry  
-                    )}  
-
-                </p>  
-
-            `  
-            ).join("")  
-
-            : `  
-                <p>  
-                    ✅ আগামী ৩০ দিনের মধ্যে  
-                    কোনো expiry নেই।  
-                </p>  
-            `  
-    }  
-
-    `  
-);
-
-}
-
-// ==========================================
-// REPORTS
-// ==========================================
-
-function showReports() {
-
-const totalSales =  
-    sales.reduce(  
-        (sum, s) =>  
-            sum +  
-            Number(  
-                s.total || 0  
-            ),  
-        0  
-    );  
-
-
-const totalPurchase =  
-    purchases.reduce(  
-        (sum, p) =>  
-            sum +  
-            Number(  
-                p.total || 0  
-            ),  
-        0  
-    );  
-
-
-const todaySales =  
-    sales  
-        .filter(  
-            s =>  
-                s.date ===  
-                today()  
-        )  
-        .reduce(  
-            (sum, s) =>  
-                sum +  
-                Number(  
-                    s.total || 0  
-                ),  
-            0  
-        );  
-
-
-const totalProfit =  
-    sales.reduce(  
-        (sum, sale) =>  
-            sum +  
-            saleProfit(sale),  
-        0  
-    );  
-
-
-const totalDue =  
-    getTotalDue();  
-
-
-const low =  
-    medicines.filter(  
-        m =>  
-            Number(  
-                m.stock || 0  
-            ) <=  
-            Number(  
-                m.reorder || 0  
-            )  
-    );  
-
-
-const expired =  
-    medicines.filter(  
-        m =>  
-            m.expiry &&  
-            new Date(m.expiry) <  
-            new Date()  
-    );  
-
-
-const nearExpiry =  
-    medicines.filter(  
-        m => {  
-
-            if (!m.expiry)  
-                return false;  
-
-            const days =  
-                (  
-                    new Date(m.expiry) -  
-                    new Date()  
-                ) /  
-                86400000;  
-
-            return (  
-                days >= 0 &&  
-                days <= 30  
-            );  
-
-        }  
-    );  
-
-
-layout(  
-    "📈 Reports",  
-    `  
-
-    <div class="cards">  
-
-        <div class="card">  
-
-            <h3>  
-                Today's Sales  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(todaySales)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                Total Sales  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(totalSales)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                Total Purchase  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(totalPurchase)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                Estimated Profit  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(totalProfit)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                Total Due  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(totalDue)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                Medicines  
-            </h3>  
-
-            <div class="card-value">  
-                ${medicines.length}  
-            </div>  
-
-        </div>  
-
-    </div>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <h3>  
-        📅 Date-wise Sales  
-    </h3>  
-
-
-    ${input(  
-        "reportDate",  
-        "Select Date",  
-        "date",  
-        today()  
-    )}  
-
-
-    <button  
-        class="btn btn-primary"  
-        onclick="showDateReport()"  
-    >  
-        🔎 View Date Report  
-    </button>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <h3>  
-        ⚠️ Low Stock  
-    </h3>  
-
-
-    ${  
-        low.length  
-
-            ? low.map(  
-                m => `  
-
-                <p>  
-
-                    <b>  
-                        ${escapeHTML(  
-                            m.name  
-                        )}  
-                    </b>  
-
-                    —  
-                    Stock:  
-                    ${m.stock}  
-
-                </p>  
-
-            `  
-            ).join("")  
-
-            : `  
-                <p>  
-                    ✅ কোনো Low Stock নেই।  
-                </p>  
-            `  
-    }  
-
-
-    <h3 style="margin-top:25px;">  
-        ❌ Expired Medicines  
-    </h3>  
-
-
-    ${  
-        expired.length  
-
-            ? expired.map(  
-                m => `  
-
-                <p>  
-
-                    <b>  
-                        ${escapeHTML(  
-                            m.name  
-                        )}  
-                    </b>  
-
-                    —  
-                    Expiry:  
-                    ${escapeHTML(  
-                        m.expiry  
-                    )}  
-
-                </p>  
-
-            `  
-            ).join("")  
-
-            : `  
-                <p>  
-                    ✅ কোনো expired medicine নেই।  
-                </p>  
-            `  
-    }  
-
-
-    <h3 style="margin-top:25px;">  
-        📅 Near Expiry  
-        (30 days)  
-    </h3>  
-
-
-    ${  
-        nearExpiry.length  
-
-            ? nearExpiry.map(  
-                m => `  
-
-                <p>  
-
-                    <b>  
-                        ${escapeHTML(  
-                            m.name  
-                        )}  
-                    </b>  
-
-                    —  
-                    Expiry:  
-                    ${escapeHTML(  
-                        m.expiry  
-                    )}  
-
-                </p>  
-
-            `  
-            ).join("")  
-
-            : `  
-                <p>  
-                    আগামী ৩০ দিনের মধ্যে  
-                    কোনো expiry নেই।  
-                </p>  
-            `  
-    }  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <button  
-        class="btn btn-primary"  
-        onclick="window.print()"  
-    >  
-        🖨️ Print Report  
-    </button>  
-
-    `  
-);
-
-}
-
-function showDateReport() {
-
-const date =  
-    document.getElementById(  
-        "reportDate"  
-    )?.value;  
-
-
-if (!date) {  
-
-    alert(  
-        "Date নির্বাচন করুন"  
-    );  
-
-    return;  
-
-}  
-
-
-const dateSales =  
-    sales.filter(  
-        s =>  
-            s.date === date  
-    );  
-
-
-const datePurchases =  
-    purchases.filter(  
-        p =>  
-            p.date === date  
-    );  
-
-
-const salesTotal =  
-    dateSales.reduce(  
-        (sum, s) =>  
-            sum +  
-            Number(  
-                s.total || 0  
-            ),  
-        0  
-    );  
-
-
-const purchaseTotal =  
-    datePurchases.reduce(  
-        (sum, p) =>  
-            sum +  
-            Number(  
-                p.total || 0  
-            ),  
-        0  
-    );  
-
-
-const profit =  
-    dateSales.reduce(  
-        (sum, s) =>  
-            sum +  
-            saleProfit(s),  
-        0  
-    );  
-
-
-layout(  
-    "📅 Date Report — " +  
-    escapeHTML(date),  
-    `  
-
-    <div class="cards">  
-
-        <div class="card">  
-
-            <h3>  
-                Sales  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(salesTotal)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                Purchase  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(purchaseTotal)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                Estimated Profit  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(profit)}  
-            </div>  
-
-        </div>  
-
-
-        <div class="card">  
-
-            <h3>  
-                Invoices  
-            </h3>  
-
-            <div class="card-value">  
-                ${dateSales.length}  
-            </div>  
-
-        </div>  
-
-    </div>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <h3>  
-        🧾 Sales List  
-    </h3>  
-
-
-    ${  
-        dateSales.length  
-
-            ? `  
-
-            <div style="overflow:auto;">  
-
-                <table>  
-
-                    <tr>  
-
-                        <th>Invoice</th>  
-                        <th>Time</th>  
-                        <th>Customer</th>  
-                        <th>Total</th>  
-                        <th>Paid</th>  
-                        <th>Due</th>  
-                        <th>Print</th>  
-
-                    </tr>  
-
-
-                    ${dateSales.map(  
-                        s => `  
-
-                        <tr>  
-
-                            <td>  
-                                ${escapeHTML(  
-                                    s.invoice || "-"  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${escapeHTML(  
-                                    s.time || ""  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${escapeHTML(  
-                                    getCustomerName(s)  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${money(  
-                                    s.total  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${money(  
-                                    s.paid  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${money(  
-                                    s.due  
-                                )}  
-                            </td>  
-
-                            <td>  
-
-                                <button  
-                                    onclick='  
-                                        printInvoice(  
-                                            ${JSON.stringify(s)}  
-                                        )  
-                                    '  
-                                >  
-                                    🖨️  
-                                </button>  
-
-                            </td>  
-
-                        </tr>  
-
-                    `  
-                    ).join("")}  
-
-                </table>  
-
-            </div>  
-
-        `  
-
-            : `  
-                <p>  
-                    এই তারিখে কোনো Sales নেই।  
-                </p>  
-            `  
-    }  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <h3>  
-        📦 Purchase List  
-    </h3>  
-
-
-    ${  
-        datePurchases.length  
-
-            ? `  
-
-            <div style="overflow:auto;">  
-
-                <table>  
-
-                    <tr>  
-
-                        <th>Time</th>  
-                        <th>Medicine</th>  
-                        <th>Qty</th>  
-                        <th>Total</th>  
-                        <th>Supplier</th>  
-
-                    </tr>  
-
-
-                    ${datePurchases.map(  
-                        p => `  
-
-                        <tr>  
-
-                            <td>  
-                                ${escapeHTML(  
-                                    p.time || ""  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${escapeHTML(  
-                                    p.medicine  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${p.qty}  
-                            </td>  
-
-                            <td>  
-                                ${money(  
-                                    p.total  
-                                )}  
-                            </td>  
-
-                            <td>  
-                                ${escapeHTML(  
-                                    p.supplier || ""  
-                                )}  
-                            </td>  
-
-                        </tr>  
-
-                    `  
-                    ).join("")}  
-
-                </table>  
-
-            </div>  
-
-        `  
-
-            : `  
-                <p>  
-                    এই তারিখে কোনো Purchase নেই।  
-                </p>  
-            `  
-    }  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <button  
-        class="btn btn-primary"  
-        onclick="window.print()"  
-    >  
-        🖨️ Print Date Report  
-    </button>  
-
-    `  
-);
-
-}
-
-// ==========================================
-// BACKUP / RESTORE
-// ==========================================
-
-function showBackup() {
-
-layout(  
-    "💾 Backup / Restore",  
-    `  
-
-    <div style="  
-        padding:15px;  
-        border:1px solid #ddd;  
-        border-radius:10px;  
-    ">  
-
-        <h3>  
-            💾 Backup  
-        </h3>  
-
-
-        <p>  
-            আপনার Pharmacy-এর সব data  
-            একটি JSON file হিসেবে  
-            Backup করতে পারবেন।  
-        </p>  
-
-
-        <button  
-            class="btn btn-primary"  
-            onclick="downloadBackup()"  
-        >  
-            ⬇️ Download Backup  
-        </button>  
-
-    </div>  
-
-
-    <hr style="margin:25px 0;">  
-
-
-    <div style="  
-        padding:15px;  
-        border:1px solid #ddd;  
-        border-radius:10px;  
-    ">  
-
-        <h3>  
-            ♻️ Restore  
-        </h3>  
-
-
-        <p>  
-            আগের Backup JSON file  
-            নির্বাচন করে Restore করুন।  
-        </p>  
-
-
-        <input  
-            id="restoreFile"  
-            type="file"  
-            accept=".json,application/json"  
-            class="form-control"  
-            style="  
-                width:100%;  
-                padding:10px;  
-                box-sizing:border-box;  
-            "  
-        >  
-
-
-        <button  
-            class="btn btn-primary"  
-            onclick="restoreBackup()"  
-            style="margin-top:10px;"  
-        >  
-            ⬆️ Restore Backup  
-        </button>  
-
-    </div>  
-
-    `  
-);
-
-}
-
-function downloadBackup() {
-
-const data = {  
-
-    version:  
-        3,  
-
-    exportedAt:  
-        new Date().toISOString(),  
-
-    medicines:  
-        medicines,  
-
-    purchases:  
-        purchases,  
-
-    sales:  
-        sales,  
-
-    customers:  
-        customers,  
-
-    suppliers:  
-        suppliers,  
-
-    payments:  
-        payments,  
-
-    stockAdjustments:  
-        stockAdjustments  
-
-};  
-
-
-const blob =  
-    new Blob(  
-        [  
-            JSON.stringify(  
-                data,  
-                null,  
-                2  
-            )  
-        ],  
-        {  
-            type:  
-                "application/json"  
-        }  
-    );  
-
-
-const url =  
-    URL.createObjectURL(  
-        blob  
-    );  
-
-
-const a =  
-    document.createElement(  
-        "a"  
-    );  
-
-
-a.href =  
-    url;  
-
-
-a.download =  
-    "pharmacy-inventory-backup-" +  
-    today() +  
-    ".json";  
-
-
-document.body.appendChild(a);  
-
-
-a.click();  
-
-
-a.remove();  
-
-
-setTimeout(  
-    function() {  
-
-        URL.revokeObjectURL(  
-            url  
-        );  
-
-    },  
-    1000  
-);
-
-}
-
-function restoreBackup() {
-
-const file =  
-    document.getElementById(  
-        "restoreFile"  
-    )?.files?.[0];  
-
-
-if (!file) {  
-
-    alert(  
-        "Backup file নির্বাচন করুন"  
-    );  
-
-    return;  
-
-}  
-
-
-const reader =  
-    new FileReader();  
-
-
-reader.onload =  
-    function(e) {  
-
-        try {  
-
-            const d =  
-                JSON.parse(  
-                    e.target.result  
-                );  
-
-
-            if (  
-                !d ||  
-                !Array.isArray(  
-                    d.medicines  
-                ) ||  
-                !Array.isArray(  
-                    d.sales  
-                )  
-            ) {  
-
-                throw new Error(  
-                    "Invalid backup"  
-                );  
-
-            }  
-
-
-            if (  
-                !confirm(  
-                    "বর্তমান data-এর জায়গায় Backup restore করবেন?"  
-                )  
-            ) {  
-
-                return;  
-
-            }  
-
-
-            medicines =  
-                d.medicines || [];  
-
-
-            purchases =  
-                d.purchases || [];  
-
-
-            sales =  
-                d.sales || [];  
-
-
-            customers =  
-                d.customers || [];  
-
-
-            suppliers =  
-                d.suppliers || [];  
-
-
-            payments =  
-                d.payments || [];  
-
-
-            stockAdjustments =  
-                d.stockAdjustments || [];  
-
-
-            saleCart = [];  
-
-
-            saveData();  
-
-
-            alert(  
-                "Backup successfully restored!"  
-            );  
-
-
-            showDashboard();  
-
-        } catch (err) {  
-
-            alert(  
-                "Backup file সঠিক নয়।"  
-            );  
-
-        }  
-
-    };  
-
-
-reader.readAsText(file);
-
-}
-
-// ==========================================
-// COMPATIBILITY
-// ==========================================
-
-function comingSoon(name) {
-
-if (  
-    name === "Sales / POS" ||  
-    name === "New Sale"  
-) {  
-
-    showSales();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Purchase"  
-) {  
-
-    showPurchase();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Suppliers" ||  
-    name === "Supplier"  
-) {  
-
-    showSuppliers();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Customers"  
-) {  
-
-    showCustomers();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Reports"  
-) {  
-
-    showReports();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Due" ||  
-    name === "Due Collection" ||  
-    name === "বাকি আদায়"  
-) {  
-
-    showDueCollection();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Stock" ||  
-    name === "Stock Adjustment" ||  
-    name === "Stock Management"  
-) {  
-
-    showStockAdjustment();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Low Stock"  
-) {  
-
-    showLowStock();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Expiry" ||  
-    name === "Expiry Alert"  
-) {  
-
-    showExpiryAlert();  
-
-    return;  
-
-}  
-
-
-if (  
-    name === "Backup" ||  
-    name === "Backup / Restore"  
-) {  
-
-    showBackup();  
-
-    return;  
-
-}  
-
-
-alert(  
-    name +  
-    " available soon."  
-);
-
-}
-
-// ==========================================
-// MOBILE MENU
-// ==========================================
-
-function toggleMenu() {
-
-const nav =  
-    document.querySelector(  
-        "nav"  
-    );  
-
-
-if (nav) {  
-
-    nav.style.display =  
-        nav.style.display ===  
-        "none"  
-
-            ? "flex"  
-
-            : "none";  
-
-}
-
-}
-
-// ==========================================
-// CLEAR MEDICINE FORM
-// ==========================================
-
-function clearMedicineForm() {
-
-editingMedicineIndex = -1;  
-
-
-const form =  
-    document.getElementById(  
-        "medicineForm"  
-    );  
-
-
-if (form) {  
-
-    form.reset();  
-
-}
-
-}
-
-// ==========================================
-// END
-// ==========================================
-
-// ==========================================
-// PHARMACY LOGIN + DASHBOARD SETTINGS
-// ==========================================
-
-const ADMIN_USERNAME_KEY = "pharmacy_admin_username";
-const ADMIN_PASSWORD_KEY = "pharmacy_admin_password";
-const ADMIN_LOGIN_KEY = "pharmacy_admin_logged_in";
-
-const PHARMACY_NAME_KEY = "pharmacy_name";
-const PHARMACY_LOGO_KEY = "pharmacy_logo";
-
-
-// ==========================================
-// DEFAULT ADMIN
-// ==========================================
-
-function setupDefaultAdmin() {
-
-    if (!localStorage.getItem(ADMIN_USERNAME_KEY)) {
-        localStorage.setItem(
-            ADMIN_USERNAME_KEY,
-            "admin"
-        );
-    }
-
-    if (!localStorage.getItem(ADMIN_PASSWORD_KEY)) {
-        localStorage.setItem(
-            ADMIN_PASSWORD_KEY,
-            "1234"
-        );
-    }
-
-    if (!localStorage.getItem(PHARMACY_NAME_KEY)) {
-        localStorage.setItem(
-            PHARMACY_NAME_KEY,
-            "Pharmacy Inventory Pro"
-        );
-    }
-}
-
-
-// ==========================================
-// LOGIN CHECK
-// ==========================================
-
-function isLoggedIn() {
-
-    return localStorage.getItem(
-        ADMIN_LOGIN_KEY
-    ) === "true";
-}
-
-
-// ==========================================
-// HIDE / SHOW NAVIGATION
-// ==========================================
-
-function setNavVisible(show) {
-
-    const nav = document.querySelector("nav");
-
-    if (nav) {
-        nav.style.display =
-            show ? "" : "none";
-    }
-}
-
-
- 
-                    
-                    
-
-            
-
-    
-
-
-// ==========================================
-// LOGOUT
-// ==========================================
-
-function adminLogout() {
-    const ok = confirm("আপনি কি Logout করতে চান?");
-    
-    if (!ok) return;
-
-    localStorage.removeItem(ADMIN_LOGIN_KEY);
-
-    setNavVisible(false);
-
-    showLogin();
-}
-
-
-// ==========================================
-// SESSION CHECK
-// ==========================================
-
-function checkAdminSession() {
-
-    if (!isLoggedIn()) {
-
-        showLogin();
-
-        return false;
-    }
-
-    return true;
-}
-
-
-// ==========================================
-// PHARMACY SETTINGS
-// ==========================================
-
-function showPharmacySettings() {
-
-    if (!checkAdminSession()) return;
-
-
-    const name =
-        localStorage.getItem(
-            PHARMACY_NAME_KEY
-        ) ||
-        "Pharmacy Inventory Pro";
-
-
-    const logo =
-        localStorage.getItem(
-            PHARMACY_LOGO_KEY
-        ) || "";
-
-
-    layout(
-        "🏥 Pharmacy Settings",
-
-        `
-
-        <div style="
-            max-width:600px;
-            margin:auto;
-        ">
-
-
-            <div style="
-                background:white;
-                padding:20px;
-                border-radius:15px;
-                margin-bottom:20px;
-            ">
-
-                <h3>
-                    🏥 Pharmacy Information
-                </h3>
-
-
-                <label>
-                    <b>Pharmacy / Company Name</b>
-                </label>
-
-
-                <input
-                    id="pharmacyNameInput"
-                    type="text"
-                    value="${escapeHTML(name)}"
-                    placeholder="Pharmacy Name"
-                    style="
-                        width:100%;
-                        box-sizing:border-box;
-                        padding:13px;
-                        margin:8px 0 18px;
-                        border:1px solid #ccc;
-                        border-radius:8px;
-                    "
-                >
-
-
-                <label>
-                    <b>Pharmacy Logo</b>
-                </label>
-
-
-                <input
-                    id="pharmacyLogoInput"
-                    type="file"
-                    accept="image/*"
-                    onchange="previewPharmacyLogo(event)"
-                    style="
-                        width:100%;
-                        margin:10px 0 15px;
-                    "
-                >
-
-
-                <div
-                    id="pharmacyLogoPreview"
-                    style="
-                        text-align:center;
-                        margin:15px 0;
-                    "
-                >
-
-                    ${
-                        logo
-                        ?
-                        `
-                        <img
-                            src="${logo}"
-                            style="
-                                width:110px;
-                                height:110px;
-                                object-fit:contain;
-                                border-radius:15px;
-                            "
-                        >
-                        `
-                        :
-                        `
-                        <div style="
-                            font-size:60px;
-                        ">
-                            💊
-                        </div>
-                        `
-                    }
-
-                </div>
-
-
-                <button
-                    type="button"
-                    onclick="savePharmacySettings()"
-                    style="
-                        width:100%;
-                        padding:14px;
-                        font-size:16px;
-                    "
-                >
-                    💾 Save Pharmacy Settings
-                </button>
-
-            </div>
-
-
-            <div style="
-                background:white;
-                padding:20px;
-                border-radius:15px;
-            ">
-
-                <h3>
-                    🔐 Admin Security
-                </h3>
-
-
-                <button
-                    type="button"
-                    onclick="showChangePassword()"
-                    style="
-                        width:100%;
-                        padding:13px;
-                        margin:5px 0;
-                    "
-                >
-                    🔑 Change Password
-                </button>
-
-
-                <button
-                    type="button"
-                    onclick="adminLogout()"
-                    style="
-                        width:100%;
-                        padding:13px;
-                        margin:5px 0;
-                    "
-                >
-                    🚪 Logout
-                </button>
-
-            </div>
-
-        </div>
-
-        `
-    );
-}
-
-
-// ==========================================
-// LOGO PREVIEW
-// ==========================================
-
-function previewPharmacyLogo(event) {
-
-    const file =
-        event.target.files[0];
-
-    if (!file) return;
-
-
-    if (!file.type.startsWith("image/")) {
-
-        alert(
-            "শুধু Image File নির্বাচন করুন।"
-        );
-
-        return;
-    }
-
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload = function(e) {
-
-        const preview =
-            document.getElementById(
-                "pharmacyLogoPreview"
-            );
-
-
-        if (preview) {
-
-            preview.innerHTML = `
-
-                <img
-                    src="${e.target.result}"
-                    style="
-                        width:110px;
-                        height:110px;
-                        object-fit:contain;
-                        border-radius:15px;
-                    "
-                >
-
-            `;
-
-
-            preview.dataset.logo =
-                e.target.result;
-        }
-    };
-
-
-    reader.readAsDataURL(file);
-}
-
-
-// ==========================================
-// SAVE PHARMACY NAME + LOGO
-// ==========================================
-
-function savePharmacySettings() {
-
-    if (!checkAdminSession()) return;
-
-
-    const name =
-        document.getElementById(
-            "pharmacyNameInput"
-        )?.value.trim();
-
-
-    const preview =
-        document.getElementById(
-            "pharmacyLogoPreview"
-        );
-
-
-    if (!name) {
-
-        alert(
-            "Pharmacy / Company Name দিন।"
-        );
-
-        return;
-    }
-
-
-    localStorage.setItem(
-        PHARMACY_NAME_KEY,
-        name
-    );
-
-
-    if (
-        preview &&
-        preview.dataset.logo
-    ) {
-
-        localStorage.setItem(
-            PHARMACY_LOGO_KEY,
-            preview.dataset.logo
-        );
-    }
-
+    write(DB.sales, sales);
 
     alert(
-        "✅ Pharmacy Name এবং Logo Save হয়েছে।"
+      "Sale সফলভাবে Complete হয়েছে!\nTotal: " +
+      money(total)
     );
 
+    cart = [];
 
-    showDashboard();
-}
+    showSales();
+  }
 
+  /* =========================================================
+     SUPPLIERS
+     ========================================================= */
 
-// ==========================================
-// CHANGE PASSWORD
-// ==========================================
+  function showSuppliers() {
 
-function showChangePassword() {
+    if (!loggedIn()) return showLogin();
 
-    if (!checkAdminSession()) return;
+    const suppliers = getSuppliers();
 
+    page("🚚 Suppliers", `
 
-    layout(
-        "🔑 Change Password",
+      <div class="panel">
 
-        `
+        <form id="supplierForm">
 
-        <div style="
-            max-width:500px;
-            margin:auto;
-        ">
-
-            <label>
-                <b>Current Password</b>
-            </label>
-
-            <input
-                id="oldAdminPassword"
-                type="password"
-                style="
-                    width:100%;
-                    box-sizing:border-box;
-                    padding:12px;
-                    margin:7px 0 15px;
-                "
-            >
-
-
-            <label>
-                <b>New Password</b>
-            </label>
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+            gap:12px;
+          ">
 
             <input
-                id="newAdminPassword"
-                type="password"
-                style="
-                    width:100%;
-                    box-sizing:border-box;
-                    padding:12px;
-                    margin:7px 0 15px;
-                "
+              id="supplierName"
+              class="form-control"
+              placeholder="Supplier Name"
+              required
             >
-
-
-            <label>
-                <b>Confirm New Password</b>
-            </label>
 
             <input
-                id="confirmAdminPassword"
-                type="password"
-                style="
-                    width:100%;
-                    box-sizing:border-box;
-                    padding:12px;
-                    margin:7px 0 18px;
-                "
+              id="supplierPhone"
+              class="form-control"
+              placeholder="Phone"
             >
 
-
-            <button
-                type="button"
-                onclick="changeAdminPassword()"
-                style="
-                    width:100%;
-                    padding:13px;
-                "
+            <input
+              id="supplierAddress"
+              class="form-control"
+              placeholder="Address"
             >
-                🔑 Change Password
-            </button>
+
+          </div>
+
+          <br>
+
+          <button class="btn btn-primary">
+            ➕ Add Supplier
+          </button>
+
+        </form>
+
+      </div>
+
+      <div class="panel" style="margin-top:20px;">
+
+        <h3>Supplier List</h3>
+
+        ${supplierRows(suppliers)}
+
+      </div>
+    `);
+
+    document
+      .getElementById("supplierForm")
+      ?.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const list = getSuppliers();
+
+        list.push({
+          id: uid("SUP"),
+          name:
+            document.getElementById("supplierName").value.trim(),
+          phone:
+            document.getElementById("supplierPhone").value.trim(),
+          address:
+            document.getElementById("supplierAddress").value.trim()
+        });
+
+        write(DB.suppliers, list);
+
+        alert("Supplier যোগ হয়েছে.");
+
+        showSuppliers();
+      });
+  }
+
+  function supplierRows(list) {
+
+    if (!list.length) {
+      return "<p>কোনো Supplier নেই।</p>";
+    }
+
+    return `
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Action</th>
+          </tr>
+
+          ${list.map(s => `
+            <tr>
+              <td>${esc(s.name)}</td>
+              <td>${esc(s.phone)}</td>
+              <td>${esc(s.address)}</td>
+              <td>
+                <button
+                  class="btn"
+                  onclick="deleteSupplier('${s.id}')">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          `).join("")}
+
+        </table>
+      </div>
+    `;
+  }
+
+  function deleteSupplier(id) {
+
+    if (!confirm("Supplier Delete করবেন?")) return;
+
+    write(
+      DB.suppliers,
+      getSuppliers().filter(s => s.id !== id)
+    );
+
+    showSuppliers();
+  }
+
+  /* =========================================================
+     CUSTOMERS
+     ========================================================= */
+
+  function showCustomers() {
+
+    if (!loggedIn()) return showLogin();
+
+    const customers = getCustomers();
+
+    page("👥 Customers", `
+
+      <div class="panel">
+
+        <form id="customerForm">
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+            gap:12px;
+          ">
+
+            <input
+              id="customerNameInput"
+              class="form-control"
+              placeholder="Customer Name"
+              required
+            >
+
+            <input
+              id="customerPhone"
+              class="form-control"
+              placeholder="Phone"
+            >
+
+            <input
+              id="customerAddress"
+              class="form-control"
+              placeholder="Address"
+            >
+
+          </div>
+
+          <br>
+
+          <button class="btn btn-primary">
+            ➕ Add Customer
+          </button>
+
+        </form>
+
+      </div>
+
+      <div class="panel" style="margin-top:20px;">
+
+        <h3>Customer List</h3>
+
+        ${customerRows(customers)}
+
+      </div>
+    `);
+
+    document
+      .getElementById("customerForm")
+      ?.addEventListener("submit", function (e) {
+
+        e.preventDefault();
+
+        const list = getCustomers();
+
+        list.push({
+          id: uid("CUS"),
+          name:
+            document.getElementById("customerNameInput")
+              .value.trim(),
+          phone:
+            document.getElementById("customerPhone")
+              .value.trim(),
+          address:
+            document.getElementById("customerAddress")
+              .value.trim()
+        });
+
+        write(DB.customers, list);
+
+        alert("Customer যোগ হয়েছে.");
+
+        showCustomers();
+      });
+  }
+
+  function customerRows(list) {
+
+    if (!list.length) {
+      return "<p>কোনো Customer নেই।</p>";
+    }
+
+    return `
+      <div style="overflow-x:auto;">
+
+        <table style="width:100%;border-collapse:collapse;">
+
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Action</th>
+          </tr>
+
+          ${list.map(c => `
+            <tr>
+              <td>${esc(c.name)}</td>
+              <td>${esc(c.phone)}</td>
+              <td>${esc(c.address)}</td>
+              <td>
+                <button
+                  class="btn"
+                  onclick="deleteCustomer('${c.id}')">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          `).join("")}
+
+        </table>
+
+      </div>
+    `;
+  }
+
+  function deleteCustomer(id) {
+
+    if (!confirm("Customer Delete করবেন?")) return;
+
+    write(
+      DB.customers,
+      getCustomers().filter(c => c.id !== id)
+    );
+
+    showCustomers();
+  }
+
+  /* =========================================================
+     REPORTS
+     ========================================================= */
+
+  function showReports() {
+
+    if (!loggedIn()) return showLogin();
+
+    const sales = getSales();
+    const purchases = getPurchases();
+
+    const totalSales =
+      sales.reduce((s, x) => s + Number(x.total || 0), 0);
+
+    const totalPurchase =
+      purchases.reduce((s, x) => s + Number(x.total || 0), 0);
+
+    page("📊 Reports", `
+
+      <div class="cards" style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+        gap:15px;
+      ">
+
+        <div class="card">
+          <h3>Total Sales</h3>
+          <h2>${money(totalSales)}</h2>
+        </div>
+
+        <div class="card">
+          <h3>Total Purchase</h3>
+          <h2>${money(totalPurchase)}</h2>
+        </div>
+
+        <div class="card">
+          <h3>Sales Count</h3>
+          <h2>${sales.length}</h2>
+        </div>
+
+        <div class="card">
+          <h3>Purchase Count</h3>
+          <h2>${purchases.length}</h2>
+        </div>
+
+      </div>
+
+      <div class="panel" style="margin-top:20px;">
+
+        <h3>Recent Sales</h3>
+
+        <div style="overflow-x:auto;">
+
+          <table style="width:100%;border-collapse:collapse;">
+
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Payment</th>
+              <th>Total</th>
+            </tr>
+
+            ${
+              sales.length
+              ? sales.slice(0,100).map(s => `
+                  <tr>
+                    <td>${esc(s.date)}</td>
+                    <td>${esc(s.customer || "Walk-in")}</td>
+                    <td>${esc(s.payment)}</td>
+                    <td>${money(s.total)}</td>
+                  </tr>
+                `).join("")
+              : `
+                <tr>
+                  <td colspan="4"
+                    style="text-align:center;padding:20px;">
+                    কোনো Sale নেই।
+                  </td>
+                </tr>
+              `
+            }
+
+          </table>
 
         </div>
 
-        `
+      </div>
+
+      <div class="panel" style="margin-top:20px;">
+
+        <h3>💾 Backup</h3>
+
+        <button class="btn btn-primary"
+          onclick="backupData()">
+          ⬇️ Download Backup
+        </button>
+
+        <button class="btn"
+          onclick="restoreData()">
+          ⬆️ Restore Backup
+        </button>
+
+      </div>
+    `);
+  }
+
+  /* =========================================================
+     SETTINGS
+     ========================================================= */
+
+  function showPharmacySettings() {
+
+    if (!loggedIn()) return showLogin();
+
+    const settings = read(DB.settings, {
+      name: "My Pharmacy",
+      phone: "",
+      address: ""
+    });
+
+    page("⚙️ Pharmacy Settings", `
+
+      <div class="panel">
+
+        <form id="settingsForm">
+
+          <input
+            id="pharmacyName"
+            class="form-control"
+            value="${esc(settings.name)}"
+            placeholder="Pharmacy Name"
+          >
+
+          <br>
+
+          <input
+            id="pharmacyPhone"
+            class="form-control"
+            value="${esc(settings.phone)}"
+            placeholder="Phone"
+          >
+
+          <br>
+
+          <textarea
+            id="pharmacyAddress"
+            class="form-control"
+            placeholder="Address"
+            rows="3"
+          >${esc(settings.address)}</textarea>
+
+          <br>
+
+          <button class="btn btn-primary">
+            💾 Save Settings
+          </button>
+
+        </form>
+
+      </div>
+    `);
+
+    document
+      .getElementById("settingsForm")
+      ?.addEventListener("submit", function (e) {
+
+        e.preventDefault();
+
+        write(DB.settings, {
+          name:
+            document.getElementById("pharmacyName").value.trim(),
+          phone:
+            document.getElementById("pharmacyPhone").value.trim(),
+          address:
+            document.getElementById("pharmacyAddress").value.trim()
+        });
+
+        alert("Settings Save হয়েছে.");
+
+        showDashboard();
+      });
+  }
+
+  /* =========================================================
+     BACKUP / RESTORE
+     ========================================================= */
+
+  function backupData() {
+
+    const data = {
+      medicines: getMedicines(),
+      purchases: getPurchases(),
+      sales: getSales(),
+      suppliers: getSuppliers(),
+      customers: getCustomers(),
+      payments: getPayments(),
+      settings: read(DB.settings, {})
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(data, null, 2)],
+      { type: "application/json" }
     );
-}
 
-// ==========================================
-// LOGIN PAGE
-// ==========================================
+    const url = URL.createObjectURL(blob);
 
-function showLogin() {
+    const a = document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+      "pharmacy-backup-" + today() + ".json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  function restoreData() {
+
+    const input = document.createElement("input");
+
+    input.type = "file";
+    input.accept = ".json";
+
+    input.onchange = function () {
+
+      const file = input.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function () {
+
+        try {
+
+          const data =
+            JSON.parse(reader.result);
+
+          if (!confirm(
+            "Backup Restore করলে বর্তমান Data replace হবে। Continue?"
+          )) return;
+
+          if (Array.isArray(data.medicines))
+            write(DB.medicines, data.medicines);
+
+          if (Array.isArray(data.purchases))
+            write(DB.purchases, data.purchases);
+
+          if (Array.isArray(data.sales))
+            write(DB.sales, data.sales);
+
+          if (Array.isArray(data.suppliers))
+            write(DB.suppliers, data.suppliers);
+
+          if (Array.isArray(data.customers))
+            write(DB.customers, data.customers);
+
+          if (Array.isArray(data.payments))
+            write(DB.payments, data.payments);
+
+          if (data.settings)
+            write(DB.settings, data.settings);
+
+          alert("Backup Restore হয়েছে।");
+
+          showDashboard();
+
+        } catch (e) {
+
+          alert("Backup file সঠিক নয়।");
+
+        }
+      };
+
+      reader.readAsText(file);
+    };
+
+    input.click();
+  }
+
+  /* =========================================================
+     COMPATIBILITY FUNCTIONS
+     ========================================================= */
+
+  function setupDefaultAdmin() {
+
+    if (!localStorage.getItem(DB.adminUser)) {
+      localStorage.setItem(DB.adminUser, "admin");
+    }
+
+    if (!localStorage.getItem(DB.adminPass)) {
+      localStorage.setItem(DB.adminPass, "1234");
+    }
+  }
+
+  function showMedicinesPage() {
+    showMedicines();
+  }
+
+  function showPurchasePage() {
+    showPurchase();
+  }
+
+  function showSalesPage() {
+    showSales();
+  }
+
+  function showSupplierPage() {
+    showSuppliers();
+  }
+
+  function showCustomerPage() {
+    showCustomers();
+  }
+
+  function showReportPage() {
+    showReports();
+  }
+
+  /* =========================================================
+     MAKE ALL FUNCTIONS GLOBAL
+     IMPORTANT FOR INLINE BUTTONS IN index.html
+     ========================================================= */
+
+  window.showLogin = showLogin;
+  window.adminLogin = adminLogin;
+  window.adminLogout = adminLogout;
+
+  window.showDashboard = showDashboard;
+  window.showMedicines = showMedicines;
+  window.showPurchase = showPurchase;
+  window.showSales = showSales;
+  window.showSuppliers = showSuppliers;
+  window.showCustomers = showCustomers;
+  window.showReports = showReports;
+
+  window.addMedicine = addMedicine;
+  window.editMedicine = editMedicine;
+  window.deleteMedicine = deleteMedicine;
+
+  window.addPurchase = addPurchase;
+
+  window.addToCart = addToCart;
+  window.removeCartItem = removeCartItem;
+  window.completeSale = completeSale;
+
+  window.deleteSupplier = deleteSupplier;
+  window.deleteCustomer = deleteCustomer;
+
+  window.changeAdminPassword = changeAdminPassword;
+
+  window.showPharmacySettings = showPharmacySettings;
+
+  window.backupData = backupData;
+  window.restoreData = restoreData;
+
+  window.setupDefaultAdmin = setupDefaultAdmin;
+
+  window.showMedicinesPage = showMedicinesPage;
+  window.showPurchasePage = showPurchasePage;
+  window.showSalesPage = showSalesPage;
+  window.showSupplierPage = showSupplierPage;
+  window.showCustomerPage = showCustomerPage;
+  window.showReportPage = showReportPage;
+
+  /* =========================================================
+     START APP
+     ========================================================= */
+
+  document.addEventListener("DOMContentLoaded", function () {
 
     setupDefaultAdmin();
 
-    setNavVisible(false);
-
-    const app = document.getElementById("app");
-
-    if (!app) return;
-
-    const savedName =
-        localStorage.getItem(PHARMACY_NAME_KEY) ||
-        "Pharmacy Inventory Pro";
-
-    const savedLogo =
-        localStorage.getItem(PHARMACY_LOGO_KEY) ||
-        "";
-
-    app.innerHTML = `
-        <div class="login-container">
-
-            <div style="
-                text-align:center;
-                margin-bottom:25px;
-            ">
-
-                <div id="loginLogo" style="
-                    width:90px;
-                    height:90px;
-                    margin:0 auto 15px;
-                    border-radius:20px;
-                    background:#f0fdfa;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    overflow:hidden;
-                    font-size:55px;
-                ">
-                    ${
-                        savedLogo
-                        ? `<img src="${savedLogo}"
-                            style="width:100%;height:100%;object-fit:contain;">`
-                        : `💊`
-                    }
-                </div>
-
-                <h2 style="
-                    color:#0f766e;
-                    margin-bottom:7px;
-                ">
-                    ${escapeHTML(savedName)}
-                </h2>
-
-                <p style="
-                    color:#6b7280;
-                    font-size:14px;
-                ">
-                    🔐 Admin Sign In
-                </p>
-
-            </div>
-
-            <div class="form-group" style="margin-bottom:16px;">
-
-                <label>👤 Username</label>
-
-                <input
-                    id="loginUsername"
-                    type="text"
-                    placeholder="Enter username"
-                    autocomplete="username"
-                    class="form-control"
-                >
-
-            </div>
-
-            <div class="form-group" style="margin-bottom:20px;">
-
-                <label>🔑 Password</label>
-
-                <input
-                    id="loginPassword"
-                    type="password"
-                    placeholder="Enter password"
-                    autocomplete="current-password"
-                    class="form-control"
-                    onkeydown="if(event.key === 'Enter'){ adminLogin(); }"
-                >
-
-            </div>
-
-            <button
-                type="button"
-                class="btn btn-primary"
-                style="
-                    width:100%;
-                    min-height:48px;
-                    font-size:16px;
-                "
-                onclick="adminLogin()"
-            >
-                🔐 Sign In
-            </button>
-
-            <p style="
-                text-align:center;
-                color:#9ca3af;
-                font-size:12px;
-                margin-top:18px;
-            ">
-                Pharmacy Inventory Pro
-            </p>
-
-        </div>
-    `;
-
-    setTimeout(function() {
-
-        const username =
-            document.getElementById("loginUsername");
-
-        if (username) {
-            username.focus();
-        }
-
-    }, 100);
-}
-
-
-// ==========================================
-// ADMIN LOGIN
-// ==========================================
-function changeAdminPassword() {
-
-    if (!checkAdminSession()) return;
-
-
-    const oldPassword =
-        document.getElementById(
-            "oldAdminPassword"
-        )?.value || "";
-
-
-    const newPassword =
-        document.getElementById(
-            "newAdminPassword"
-        )?.value || "";
-
-
-    const confirmPassword =
-        document.getElementById(
-            "confirmAdminPassword"
-        )?.value || "";
-
-
-    const savedPassword =
-        localStorage.getItem(
-            ADMIN_PASSWORD_KEY
-        );
-
-
-    if (
-        oldPassword !== savedPassword
-    ) {
-
-        alert(
-            "❌ Current Password ভুল!"
-        );
-
-        return;
-    }
-
-
-    if (newPassword.length < 4) {
-
-        alert(
-            "Password কমপক্ষে ৪ অক্ষরের হতে হবে।"
-        );
-
-        return;
-    }
-
-
-    if (
-        newPassword !== confirmPassword
-    ) {
-
-        alert(
-            "New Password এবং Confirm Password মিলছে না।"
-        );
-
-        return;
-    }
-
-
-    localStorage.setItem(
-        ADMIN_PASSWORD_KEY,
-        newPassword
-    );
-
-
-    alert(
-        "✅ Password successfully changed!"
-    );
-
-
-    showDashboard();
-}
-
-
-// ==========================================
-// ADD SETTINGS BUTTON TO DASHBOARD
-// ==========================================
-
-function openPharmacySettings() {
-
-    showPharmacySettings();
-
-}
-
-// ==========================================
-// START APP
-// ==========================================
-
-setupDefaultAdmin();
-
-window.addEventListener("load", function () {
-
-    if (isLoggedIn()) {
-
-        setNavVisible(true);
-        showDashboard();
-
+    if (loggedIn()) {
+      showDashboard();
     } else {
-
-        setNavVisible(false);
-        showLogin();
-
+      showLogin();
     }
 
-});
+  });
 
+})();
