@@ -458,8 +458,7 @@ app().innerHTML = `
                 ${expired}  
             </div>  
 
-        </div>  
-
+    </div>
 
     <div
         class="panel"
