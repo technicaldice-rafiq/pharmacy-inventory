@@ -36,7 +36,61 @@
   function getMedicines() {
     return read(DB.medicines, []);
   }
+function normalizeDatabaseMedicine(m) {
+    return {
+        id: uid("MED"),
+        name: m.brand || m.name || "",
+        generic: m.generic || "",
+        company: m.company || "",
+        strength: m.strength || "",
+        form: m.form || "",
+        buyPrice: Number(m.buyPrice || 0),
+        salePrice: Number(m.salePrice || 0),
+        stock: Number(m.stock || 0),
+        minStock: Number(m.minStock || 5),
+        expiry: m.expiry || ""
+    };
+}
 
+function importMedicineDatabase(force = false) {
+    if (
+        !Array.isArray(window.MEDICINE_DATABASE) ||
+        !window.MEDICINE_DATABASE.length
+    ) {
+        alert("Medicine database পাওয়া যায়নি।");
+        return 0;
+    }
+
+    const current = getMedicines();
+
+    if (!force && current.length) {
+        return current.length;
+    }
+
+    const imported = window.MEDICINE_DATABASE.map(
+        normalizeDatabaseMedicine
+    );
+
+    write(DB.medicines, imported);
+
+    alert(imported.length + " টি medicine database-এ যোগ হয়েছে।");
+
+    showMedicines();
+
+    return imported.length;
+}
+
+function seedMedicineDatabase() {
+    const current = getMedicines();
+
+    if (
+        !current.length &&
+        Array.isArray(window.MEDICINE_DATABASE) &&
+        window.MEDICINE_DATABASE.length
+    ) {
+        importMedicineDatabase(false);
+    }
+}
   function getPurchases() {
     return read(DB.purchases, []);
   }
@@ -252,7 +306,7 @@
      ========================================================= */
 
   function showDashboard() {
-
+    seedMedicineDatabase();
     if (!loggedIn()) {
       showLogin();
       return;
@@ -1562,74 +1616,196 @@
     if (!loggedIn()) return showLogin();
 
     const settings = read(DB.settings, {
-      name: "My Pharmacy",
-      phone: "",
-      address: ""
+        name: "My Pharmacy",
+        phone: "",
+        address: "",
+        logo: ""
     });
 
     page("⚙️ Pharmacy Settings", `
 
-      <div class="panel">
+        <div class="panel">
 
-        <form id="settingsForm">
+            <form id="settingsForm">
 
-          <input
-            id="pharmacyName"
-            class="form-control"
-            value="${esc(settings.name)}"
-            placeholder="Pharmacy Name"
-          >
+                <label><b>Pharmacy Name</b></label>
 
-          <br>
+                <input
+                    id="pharmacyName"
+                    class="form-control"
+                    value="${esc(settings.name)}"
+                    placeholder="Pharmacy Name"
+                >
 
-          <input
-            id="pharmacyPhone"
-            class="form-control"
-            value="${esc(settings.phone)}"
-            placeholder="Phone"
-          >
+                <br>
 
-          <br>
+                <label><b>Phone</b></label>
 
-          <textarea
-            id="pharmacyAddress"
-            class="form-control"
-            placeholder="Address"
-            rows="3"
-          >${esc(settings.address)}</textarea>
+                <input
+                    id="pharmacyPhone"
+                    class="form-control"
+                    value="${esc(settings.phone)}"
+                    placeholder="Phone"
+                >
 
-          <br>
+                <br>
 
-          <button class="btn btn-primary">
-            💾 Save Settings
-          </button>
+                <label><b>Address</b></label>
 
-        </form>
+                <textarea
+                    id="pharmacyAddress"
+                    class="form-control"
+                    rows="3"
+                    placeholder="Address"
+                >${esc(settings.address)}</textarea>
 
-      </div>
+                <br>
+
+                <label><b>Pharmacy Logo</b></label>
+
+                <input
+                    id="pharmacyLogo"
+                    class="form-control"
+                    type="file"
+                    accept="image/*"
+                >
+
+                <br>
+
+                ${
+                    settings.logo
+                    ? `
+                    <img
+                        id="logoPreview"
+                        src="${esc(settings.logo)}"
+                        style="
+                            width:120px;
+                            height:120px;
+                            object-fit:contain;
+                            border:1px solid #ddd;
+                            border-radius:12px;
+                            padding:5px;
+                        "
+                    >
+                    `
+                    : `
+                    <div id="logoPreview">
+                        No logo selected
+                    </div>
+                    `
+                }
+
+                <br>
+
+                <button
+                    class="btn btn-primary"
+                    type="submit"
+                >
+                    💾 Save Settings
+                </button>
+
+            </form>
+
+        </div>
     `);
 
+    const logoInput =
+        document.getElementById("pharmacyLogo");
+
+    logoInput?.addEventListener("change", function () {
+
+        const file = this.files[0];
+
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function () {
+
+            const preview =
+                document.getElementById("logoPreview");
+
+            if (preview) {
+
+                preview.outerHTML = `
+                    <img
+                        id="logoPreview"
+                        src="${reader.result}"
+                        style="
+                            width:120px;
+                            height:120px;
+                            object-fit:contain;
+                            border:1px solid #ddd;
+                            border-radius:12px;
+                            padding:5px;
+                        "
+                    >
+                `;
+            }
+        };
+
+        reader.readAsDataURL(file);
+    });
+
     document
-      .getElementById("settingsForm")
-      ?.addEventListener("submit", function (e) {
+        .getElementById("settingsForm")
+        ?.addEventListener("submit", function(e) {
 
-        e.preventDefault();
+            e.preventDefault();
 
-        write(DB.settings, {
-          name:
-            document.getElementById("pharmacyName").value.trim(),
-          phone:
-            document.getElementById("pharmacyPhone").value.trim(),
-          address:
-            document.getElementById("pharmacyAddress").value.trim()
+            const file =
+                document.getElementById("pharmacyLogo")
+                ?.files[0];
+
+            const saveSettings = function(logo) {
+
+                write(DB.settings, {
+
+                    name:
+                        document
+                        .getElementById("pharmacyName")
+                        .value
+                        .trim(),
+
+                    phone:
+                        document
+                        .getElementById("pharmacyPhone")
+                        .value
+                        .trim(),
+
+                    address:
+                        document
+                        .getElementById("pharmacyAddress")
+                        .value
+                        .trim(),
+
+                    logo: logo
+                });
+
+                alert("Pharmacy Settings Save হয়েছে.");
+
+                showDashboard();
+            };
+
+            if (file) {
+
+                const reader = new FileReader();
+
+                reader.onload = function() {
+                    saveSettings(reader.result);
+                };
+
+                reader.readAsDataURL(file);
+
+            } else {
+
+                saveSettings(settings.logo || "");
+
+            }
+
         });
-
-        alert("Settings Save হয়েছে.");
-
-        showDashboard();
-      });
-  }
-
+}
+   
   /* =========================================================
      BACKUP / RESTORE
      ========================================================= */
