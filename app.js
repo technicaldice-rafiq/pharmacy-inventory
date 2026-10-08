@@ -54,7 +54,7 @@ function normalizeDatabaseMedicine(m) {
 
 function importMedicineDatabase(force = false) {
     if (
-        !Array.isArray(window.MEDICINE_DATABASE) ||
+        !Array.isArray(MEDICINE_DATABASE) ||
         !window.MEDICINE_DATABASE.length
     ) {
         alert("Medicine database পাওয়া যায়নি।");
@@ -67,7 +67,7 @@ function importMedicineDatabase(force = false) {
         return current.length;
     }
 
-    const imported = window.MEDICINE_DATABASE.map(
+    const imported = MEDICINE_DATABASE.map(
         normalizeDatabaseMedicine
     );
 
@@ -85,8 +85,8 @@ function seedMedicineDatabase() {
 
     if (
         !current.length &&
-        Array.isArray(window.MEDICINE_DATABASE) &&
-        window.MEDICINE_DATABASE.length
+        Array.isArray(MEDICINE_DATABASE) &&
+        MEDICINE_DATABASE.length
     ) {
         importMedicineDatabase(false);
     }
@@ -484,6 +484,8 @@ function seedMedicineDatabase() {
   function showMedicines() {
 
     if (!loggedIn()) return showLogin();
+
+     seedMedicineDatabase();
 
     const medicines = getMedicines();
 
