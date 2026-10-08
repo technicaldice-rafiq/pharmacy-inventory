@@ -846,4 +846,472 @@ const MEDICINE_DATABASE = [
         strength: "665 mg",
         form: "Tablet"
     },
+,
+
+    // =========================
+    // ACME LABORATORIES
+    // =========================
+
+    {
+        brand: "Baby Zinc",
+        generic: "Zinc Sulfate Monohydrate",
+        company: "ACME Laboratories Ltd.",
+        strength: "20 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Ben-A",
+        generic: "Albendazole",
+        company: "ACME Laboratories Ltd.",
+        strength: "400 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Ben-A",
+        generic: "Albendazole",
+        company: "ACME Laboratories Ltd.",
+        strength: "200 mg/5 ml",
+        form: "Suspension"
+    },
+
+    {
+        brand: "Bet-A",
+        generic: "Betamethasone",
+        company: "ACME Laboratories Ltd.",
+        strength: "0.5 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Bet-A",
+        generic: "Betamethasone Valerate",
+        company: "ACME Laboratories Ltd.",
+        strength: "0.1%",
+        form: "Cream"
+    },
+
+    {
+        brand: "Balovir",
+        generic: "Baloxavir Marboxil",
+        company: "ACME Laboratories Ltd.",
+        strength: "40 mg",
+        form: "Tablet"
+    },
+
+
+    // =========================
+    // POPULAR PHARMACEUTICALS
+    // =========================
+
+    {
+        brand: "Alarup",
+        generic: "Rupatadine Fumarate",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Alcadin",
+        generic: "Alcaftadine",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "0.25%",
+        form: "Eye Drops"
+    },
+
+    {
+        brand: "Ambrosol",
+        generic: "Ambroxol Hydrochloride",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "75 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Ambrosol",
+        generic: "Ambroxol Hydrochloride",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "15 mg/5 ml",
+        form: "Syrup"
+    },
+
+    {
+        brand: "Amlovas",
+        generic: "Amlodipine Besilate",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "5 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Amlovas",
+        generic: "Amlodipine Besilate",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Amlovas AT",
+        generic: "Amlodipine Besilate + Atenolol",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "5 mg + 50 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Amlovas VS",
+        generic: "Amlodipine Besilate + Valsartan",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "5 mg + 80 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Angivas MR",
+        generic: "Trimetazidine Dihydrochloride",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "35 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Aquacal-D",
+        generic: "Algae Calcium + Vitamin D3",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "500 mg + 200 IU",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Arnitan",
+        generic: "Sacubitril + Valsartan",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "24 mg + 26 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Arnitan",
+        generic: "Sacubitril + Valsartan",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "49 mg + 51 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Arnitan",
+        generic: "Sacubitril + Valsartan",
+        company: "Popular Pharmaceuticals PLC",
+        strength: "97 mg + 103 mg",
+        form: "Tablet"
+    },
+
+
+    // =========================
+    // HEALTHCARE PHARMACEUTICALS
+    // =========================
+
+    {
+        brand: "Alcet",
+        generic: "Levocetirizine Dihydrochloride",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "5 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Alcet",
+        generic: "Levocetirizine Dihydrochloride",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "2.5 mg/5 ml",
+        form: "Syrup"
+    },
+
+    {
+        brand: "Aeron",
+        generic: "Montelukast Sodium",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Aeron FT",
+        generic: "Montelukast Sodium",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "5 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Alinix",
+        generic: "Nitazoxanide",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "500 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Cafedon",
+        generic: "Paracetamol + Caffeine",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "500 mg + 65 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Candinil",
+        generic: "Fluconazole",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "150 mg",
+        form: "Capsule"
+    },
+
+    {
+        brand: "Denvar",
+        generic: "Cefixime Trihydrate",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "200 mg",
+        form: "Capsule"
+    },
+
+    {
+        brand: "Emistat",
+        generic: "Ondansetron",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "8 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Esita",
+        generic: "Escitalopram Oxalate",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Furotil",
+        generic: "Cefuroxime Axetil",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "250 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Rozith",
+        generic: "Azithromycin Dihydrate",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "500 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Sergel",
+        generic: "Esomeprazole",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "20 mg",
+        form: "Capsule"
+    },
+
+    {
+        brand: "Sergel",
+        generic: "Esomeprazole",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "40 mg",
+        form: "Capsule"
+    },
+
+    {
+        brand: "Ternilla",
+        generic: "Aceclofenac",
+        company: "Healthcare Pharmaceuticals Ltd.",
+        strength: "100 mg",
+        form: "Tablet"
+    },
+
+
+    // =========================
+    // ESKAYEF PHARMACEUTICALS
+    // =========================
+
+    {
+        brand: "Aceten",
+        generic: "Acetylcysteine",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "600 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Aggra",
+        generic: "Sildenafil Citrate",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "50 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Aggra",
+        generic: "Sildenafil Citrate",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "100 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Aglip",
+        generic: "Alogliptin Benzoate",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "12.5 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Aglip",
+        generic: "Alogliptin Benzoate",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "25 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Alben",
+        generic: "Albendazole",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "200 mg/5 ml",
+        form: "Suspension"
+    },
+
+    {
+        brand: "Alben-DS",
+        generic: "Albendazole",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "400 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Biltin",
+        generic: "Bilastine",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Biltin",
+        generic: "Bilastine",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "20 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Emazid",
+        generic: "Empagliflozin",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Emazid",
+        generic: "Empagliflozin",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "25 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Etorix",
+        generic: "Etoricoxib",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "90 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Facid",
+        generic: "Sodium Fusidate",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "2%",
+        form: "Cream"
+    },
+
+    {
+        brand: "Favipir",
+        generic: "Favipiravir",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "200 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Lumona",
+        generic: "Montelukast Sodium",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "10 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Nabumet",
+        generic: "Nabumetone",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "500 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Nabumet",
+        generic: "Nabumetone",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "750 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Panoral",
+        generic: "Pantoprazole Sodium",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "20 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Panoral",
+        generic: "Pantoprazole Sodium",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "40 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Salomax",
+        generic: "Salbutamol",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "4 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Sentix",
+        generic: "Flupentixol Dihydrochloride",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "0.5 mg",
+        form: "Tablet"
+    },
+
+    {
+        brand: "Xinc",
+        generic: "Zinc Sulfate Monohydrate",
+        company: "Eskayef Pharmaceuticals Ltd.",
+        strength: "20 mg",
+        form: "Tablet"
+    },
 ];
