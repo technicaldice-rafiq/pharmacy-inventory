@@ -461,11 +461,24 @@ app().innerHTML = `
         </div>  
 
 
-    <div  
-        class="panel"  
-        style="margin-top:20px;"  
-    >  
+    <div
+        class="panel"
+        style="margin-top:20px;"
+    >
 
+        <h3>
+            📋 Recent Sales
+        </h3>
+
+        ${recentSalesHTML()}
+
+    </div>
+
+`;
+}
+
+function recentSalesHTML() {
+    
         <h3>  
             ⚡ Quick Actions  
         </h3>  
