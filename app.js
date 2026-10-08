@@ -522,7 +522,11 @@ function getPurchases() {
       <div class="panel" style="margin-top:20px;">
 
         <h3>Medicine List</h3>
-
+<button class="btn btn-primary"
+onclick="window.loadMedicineDatabase()">
+📥 Load Medicine Database
+</button>
+<br><br>
         <input
           id="medicineSearch"
           class="form-control"
