@@ -407,80 +407,456 @@ app().innerHTML = `
             </div>  
 
         </div>  
+// ==========================================
+// DASHBOARD
+// ==========================================
+
+function showDashboard() {
+
+    const salesToday =
+        sales
+            .filter(
+                s => s.date === today()
+            )
+            .reduce(
+                (sum, s) =>
+                    sum + Number(s.total || 0),
+                0
+            );
 
 
-        <div class="card">  
-
-            <h3>  
-                ⚠️ Low Stock  
-            </h3>  
-
-            <div class="card-value">  
-                ${lowStock}  
-            </div>  
-
-        </div>  
+    const lowStock =
+        medicines.filter(
+            m =>
+                Number(m.stock || 0) <=
+                Number(m.reorder || 0)
+        ).length;
 
 
-        <div class="card">  
+    const nearExpiry =
+        medicines.filter(
+            m => {
 
-            <h3>  
-                📅 Near Expiry  
-            </h3>  
+                if (!m.expiry) {
+                    return false;
+                }
 
-            <div class="card-value">  
-                ${nearExpiry}  
-            </div>  
+                const d =
+                    new Date(m.expiry);
 
-        </div>  
+                const now =
+                    new Date();
 
+                const days =
+                    (d - now) / 86400000;
 
-        <div class="card">  
+                return (
+                    days >= 0 &&
+                    days <= 30
+                );
 
-            <h3>  
-                💵 Total Due  
-            </h3>  
-
-            <div class="card-value">  
-                ${money(totalDue)}  
-            </div>  
-
-        </div>  
+            }
+        ).length;
 
 
-        
+    const expired =
+        medicines.filter(
+            m => {
+
+                if (!m.expiry) {
+                    return false;
+                }
+
+                return (
+                    new Date(m.expiry) <
+                    new Date()
+                );
+
+            }
+        ).length;
+
+
+    const totalDue =
+        getTotalDue();
+
+
+    app().innerHTML = `
+
+        <!-- ==============================
+             DASHBOARD CARDS
+        =============================== -->
+
+        <div class="cards">
+
+
             <div class="card">
 
+                <h3>
+                    💰 Today's Sales
+                </h3>
+
+                <div class="card-value">
+                    ${money(salesToday)}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    💊 Medicines
+                </h3>
+
+                <div class="card-value">
+                    ${medicines.length}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    ⚠️ Low Stock
+                </h3>
+
+                <div class="card-value">
+                    ${lowStock}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    📅 Near Expiry
+                </h3>
+
+                <div class="card-value">
+                    ${nearExpiry}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    💵 Total Due
+                </h3>
+
+                <div class="card-value">
+                    ${money(totalDue)}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    ❌ Expired
+                </h3>
+
+                <div class="card-value">
+                    ${expired}
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ==============================
+             QUICK ACTIONS
+        =============================== -->
+
+        <div
+            class="panel"
+            style="margin-top:20px;"
+        >
+
             <h3>
-                ❌ Expired
+                ⚡ Quick Actions
             </h3>
 
-            <div class="card-value">
-                ${expired}
+
+            <div
+                style="
+                    display:flex;
+                    gap:10px;
+                    flex-wrap:wrap;
+                "
+            >
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showMedicines()"
+                >
+                    💊 Medicines
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showPurchase()"
+                >
+                    📦 Purchase
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showSales()"
+                >
+                    🧾 New Sale
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showSuppliers()"
+                >
+                    🏢 Suppliers
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showCustomers()"
+                >
+                    👤 Customers
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showDueCollection()"
+                >
+                    💰 Due
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showStockAdjustment()"
+                >
+                    📦 Stock
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showReports()"
+                >
+                    📊 Reports
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showBackup()"
+                >
+                    💾 Backup
+                </button>
+
+
             </div>
 
         </div>
 
-    </div>
+
+        <!-- ==============================
+             PHARMACY & ADMIN SETTINGS
+        =============================== -->
+
+        <div
+            class="panel"
+            style="margin-top:20px;"
+        >
+
+            <h3>
+                ⚙️ Pharmacy & Admin Settings
+            </h3>
 
 
-    <div
-        class="panel"
-        style="margin-top:20px;"
-    >
+            <div
+                style="
+                    display:flex;
+                    gap:10px;
+                    flex-wrap:wrap;
+                "
+            >
 
-        <h3>
-            📋 Recent Sales
-        </h3>
+                <button
+                    class="btn btn-primary"
+                    onclick="showPharmacySettings()"
+                >
+                    🏥 Pharmacy / Company
+                </button>
 
-        ${recentSalesHTML()}
 
-    </div>
+                <button
+                    class="btn btn-primary"
+                    onclick="showPharmacySettings()"
+                >
+                    🖼️ Logo
+                </button>
 
-`;
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showPharmacySettings()"
+                >
+                    🔐 Admin Security
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showChangePassword()"
+                >
+                    🔑 Change Password
+                </button>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="adminLogout()"
+                >
+                    🚪 Logout
+                </button>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ==============================
+             RECENT SALES
+        =============================== -->
+
+        <div
+            class="panel"
+            style="margin-top:20px;"
+        >
+
+            <h3>
+                📋 Recent Sales
+            </h3>
+
+            ${recentSalesHTML()}
+
+        </div>
+
+    `;
 }
 
+
+// ==========================================
+// RECENT SALES
+// ==========================================
+
 function recentSalesHTML() {
+
+    const recent =
+        [...sales]
+            .reverse()
+            .slice(0, 5);
+
+
+    if (!recent.length) {
+
+        return `
+            <p>
+                এখনো কোনো বিক্রয় নেই।
+            </p>
+        `;
+
+    }
+
+
+    return `
+
+        <div style="overflow:auto;">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Date</th>
+
+                        <th>
+                            Customer
+                        </th>
+
+                        <th>
+                            Items
+                        </th>
+
+                        <th>
+                            Total
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    ${recent.map(
+                        s => `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHTML(
+                                    s.date
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    getCustomerName(s)
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${
+                                    s.items
+                                        ? s.items.length
+                                        : 1
+                                }
+                            </td>
+
+
+                            <td>
+                                ${money(s.total)}
+                            </td>
+
+                        </tr>
+
+                    `
+                    ).join("")}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    `;
+
+}
         <h3>  
             ⚡ Quick Actions  
         </h3>  
