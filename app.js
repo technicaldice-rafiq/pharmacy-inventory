@@ -617,8 +617,6 @@ function recentSalesHTML() {
 
         </div>
 
-            </div>
-
     </div>
 
 
