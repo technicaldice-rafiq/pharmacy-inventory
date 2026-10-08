@@ -6907,486 +6907,13 @@ function setNavVisible(show) {
 }
 
 
-// ==========================================
-// LOGIN PAGE
-// ==========================================
+ 
+                    
+                    
 
-function showLogin() {
+            
 
-    setupDefaultAdmin();
-
-    setNavVisible(false);
-
-    const app =
-        document.getElementById("app");
-
-    if (!app) return;
-
-    app.innerHTML = `
-
-        <div style="
-            min-height:85vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            padding:20px;
-        ">
-
-            <div style="
-                width:100%;
-                max-width:400px;
-                background:#fff;
-                padding:30px;
-                border-radius:20px;
-                box-shadow:0 8px 30px rgba(0,0,0,.15);
-            ">
-
-                <div style="
-                    text-align:center;
-                    margin-bottom:15px;
-                ">
-
-                    <div id="loginLogo"
-                        style="
-                            font-size:60px;
-                            margin-bottom:10px;
-                        ">
-                        💊
-                    </div>
-
-                    <h2 id="loginPharmacyName">
-                        Pharmacy Inventory Pro
-                    </h2>
-
-                    <p style="color:#666;">
-                        🔐 Admin Sign In
-                    </p>
-
-                </div>
-
-
-                <label>
-                    <b>Username</b>
-                </label>
-
-                <input
-                    id="loginUsername"
-                    type="text"
-                    placeholder="Enter username"
-                    autocomplete="username"
-                    style="
-                        width:100%;
-                        box-sizing:border-box;
-                        padding:13px;
-                        margin:7px 0 15px;
-                        border:1px solid #ccc;
-                        border-radius:9px;
-                    "
-                >
-
-
-                <label>
-                    <b>Password</b>
-                </label>
-
-                <input
-                    id="loginPassword"
-                    type="password"
-                    placeholder="Enter password"
-                    autocomplete="current-password"
-                    onkeydown="
-                        if(event.key==='Enter'){
-                            adminLogin();
-                        }
-                    "
-                    style="
-                        width:100%;
-                        box-sizing:border-box;
-                        padding:13px;
-                        margin:7px 0 18px;
-                        border:1px solid #ccc;
-                        border-radius:9px;
-                    "
-                >
-
-
-                <button
-                    type="button"
-                    onclick="adminLogin()"
-function showLogin() {
-
-    setupDefaultAdmin();
-
-    setNavVisible(false);
-
-    const app =
-        document.getElementById("app");
-
-    if (!app) return;
-
-    const savedName =
-        localStorage.getItem(
-            PHARMACY_NAME_KEY
-        ) ||
-        "Pharmacy Inventory Pro";
-
-    const savedLogo =
-        localStorage.getItem(
-            PHARMACY_LOGO_KEY
-        ) ||
-        "";
-
-    app.innerHTML = `
-
-        <div class="login-container">
-
-            <div style="
-                text-align:center;
-                margin-bottom:25px;
-            ">
-
-                <div id="loginLogo"
-                    style="
-                        width:90px;
-                        height:90px;
-                        margin:0 auto 15px;
-                        border-radius:20px;
-                        background:#f0fdfa;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        overflow:hidden;
-                        font-size:55px;
-                    "
-                >
-                    ${
-                        savedLogo
-                        ?
-                        `
-                        <img
-                            src="${savedLogo}"
-                            style="
-                                width:100%;
-                                height:100%;
-                                object-fit:contain;
-                            "
-                        >
-                        `
-                        :
-                        `💊`
-                    }
-                </div>
-
-                <h2 id="loginPharmacyName"
-                    style="
-                        color:#0f766e;
-                        margin-bottom:7px;
-                    "
-                >
-                    ${escapeHTML(savedName)}
-                </h2>
-
-                <p style="
-                    color:#6b7280;
-                    font-size:14px;
-                ">
-                    🔐 Admin Sign In
-                </p>
-
-            </div>
-
-
-            <div class="form-group"
-                style="margin-bottom:16px;"
-            >
-
-                <label>
-                    👤 Username
-                </label>
-
-                <input
-                    id="loginUsername"
-                    type="text"
-                    placeholder="Enter username"
-                    autocomplete="username"
-                    class="form-control"
-                >
-
-            </div>
-
-
-            <div class="form-group"
-                style="margin-bottom:20px;"
-            >
-
-                <label>
-                    🔑 Password
-                </label>
-
-                <input
-                    id="loginPassword"
-                    type="password"
-                    placeholder="Enter password"
-                    autocomplete="current-password"
-                    class="form-control"
-                    onkeydown="
-                        if(event.key === 'Enter'){
-                            adminLogin();
-                        }
-                    "
-                >
-
-            </div>
-
-
-            <button
-                type="button"
-                class="btn btn-primary"
-                style="
-                    width:100%;
-                    min-height:48px;
-                    font-size:16px;
-                "
-                onclick="adminLogin()"
-            >
-                🔐 Sign In
-            </button>
-
-
-            <p style="
-                text-align:center;
-                color:#9ca3af;
-                font-size:12px;
-                margin-top:18px;
-            ">
-                Pharmacy Inventory Pro
-            </p>
-
-        </div>
-
-    `;
-
-    setTimeout(function() {
-
-        const username =
-            document.getElementById(
-                "loginUsername"
-            );
-
-        if (username) {
-            username.focus();
-        }
-
-    }, 100);
-
-}
-
-// ==========================================
-// LOGIN PAGE
-// ==========================================
-
-function showLogin() {
-
-    setupDefaultAdmin();
-
-    setNavVisible(false);
-
-    const app = document.getElementById("app");
-
-    if (!app) return;
-
-    const savedName =
-        localStorage.getItem(PHARMACY_NAME_KEY) ||
-        "Pharmacy Inventory Pro";
-
-    const savedLogo =
-        localStorage.getItem(PHARMACY_LOGO_KEY) ||
-        "";
-
-    app.innerHTML = `
-
-        <div class="login-container">
-
-            <div style="
-                text-align:center;
-                margin-bottom:25px;
-            ">
-
-                <div id="loginLogo" style="
-                    width:90px;
-                    height:90px;
-                    margin:0 auto 15px;
-                    border-radius:20px;
-                    background:#f0fdfa;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    overflow:hidden;
-                    font-size:55px;
-                ">
-                    ${
-                        savedLogo
-                        ? `<img src="${savedLogo}"
-                            style="width:100%;height:100%;object-fit:contain;">`
-                        : `💊`
-                    }
-                </div>
-
-                <h2 id="loginPharmacyName"
-                    style="color:#0f766e;margin-bottom:7px;">
-                    ${escapeHTML(savedName)}
-                </h2>
-
-                <p style="
-                    color:#6b7280;
-                    font-size:14px;
-                ">
-                    🔐 Admin Sign In
-                </p>
-
-            </div>
-
-            <div class="form-group" style="margin-bottom:16px;">
-
-                <label>👤 Username</label>
-
-                <input
-                    id="loginUsername"
-                    type="text"
-                    placeholder="Enter username"
-                    autocomplete="username"
-                    class="form-control"
-                >
-
-            </div>
-
-            <div class="form-group" style="margin-bottom:20px;">
-
-                <label>🔑 Password</label>
-
-                <input
-                    id="loginPassword"
-                    type="password"
-                    placeholder="Enter password"
-                    autocomplete="current-password"
-                    class="form-control"
-                    onkeydown="if(event.key === 'Enter'){ adminLogin(); }"
-                >
-
-            </div>
-
-            <button
-                type="button"
-                class="btn btn-primary"
-                style="
-                    width:100%;
-                    min-height:48px;
-                    font-size:16px;
-                "
-                onclick="adminLogin()"
-            >
-                🔐 Sign In
-            </button>
-
-            <p style="
-                text-align:center;
-                color:#9ca3af;
-                font-size:12px;
-                margin-top:18px;
-            ">
-                Pharmacy Inventory Pro
-            </p>
-
-        </div>
-
-    `;
-
-    setTimeout(function() {
-
-        const username =
-            document.getElementById("loginUsername");
-
-        if (username) {
-            username.focus();
-        }
-
-    }, 100);
-}
-
-
-// ==========================================
-// ADMIN LOGIN
-// ==========================================
-
-function adminLogin() {
-
-    setupDefaultAdmin();
-
-    const username =
-        document.getElementById(
-            "loginUsername"
-        )?.value.trim() || "";
-
-    const password =
-        document.getElementById(
-            "loginPassword"
-        )?.value || "";
-
-
-    const savedUsername =
-        localStorage.getItem(
-            ADMIN_USERNAME_KEY
-        );
-
-    const savedPassword =
-        localStorage.getItem(
-            ADMIN_PASSWORD_KEY
-        );
-
-
-    if (!username || !password) {
-
-        alert(
-            "Username এবং Password দিন।"
-        );
-
-        return;
-    }
-
-
-    if (
-        username === savedUsername &&
-        password === savedPassword
-    ) {
-
-        localStorage.setItem(
-            ADMIN_LOGIN_KEY,
-            "true"
-        );
-
-        setNavVisible(true);
-
-        showDashboard();
-
-    } else {
-
-        alert(
-            "❌ Username অথবা Password ভুল!"
-        );
-
-        const pass =
-            document.getElementById(
-                "loginPassword"
-            );
-
-        if (pass) {
-
-            pass.value = "";
-
-            pass.focus();
-        }
-    }
-}
+    
 
 
 // ==========================================
@@ -7804,7 +7331,142 @@ function showChangePassword() {
     );
 }
 
+// ==========================================
+// LOGIN PAGE
+// ==========================================
 
+function showLogin() {
+
+    setupDefaultAdmin();
+
+    setNavVisible(false);
+
+    const app = document.getElementById("app");
+
+    if (!app) return;
+
+    const savedName =
+        localStorage.getItem(PHARMACY_NAME_KEY) ||
+        "Pharmacy Inventory Pro";
+
+    const savedLogo =
+        localStorage.getItem(PHARMACY_LOGO_KEY) ||
+        "";
+
+    app.innerHTML = `
+        <div class="login-container">
+
+            <div style="
+                text-align:center;
+                margin-bottom:25px;
+            ">
+
+                <div id="loginLogo" style="
+                    width:90px;
+                    height:90px;
+                    margin:0 auto 15px;
+                    border-radius:20px;
+                    background:#f0fdfa;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    overflow:hidden;
+                    font-size:55px;
+                ">
+                    ${
+                        savedLogo
+                        ? `<img src="${savedLogo}"
+                            style="width:100%;height:100%;object-fit:contain;">`
+                        : `💊`
+                    }
+                </div>
+
+                <h2 style="
+                    color:#0f766e;
+                    margin-bottom:7px;
+                ">
+                    ${escapeHTML(savedName)}
+                </h2>
+
+                <p style="
+                    color:#6b7280;
+                    font-size:14px;
+                ">
+                    🔐 Admin Sign In
+                </p>
+
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+
+                <label>👤 Username</label>
+
+                <input
+                    id="loginUsername"
+                    type="text"
+                    placeholder="Enter username"
+                    autocomplete="username"
+                    class="form-control"
+                >
+
+            </div>
+
+            <div class="form-group" style="margin-bottom:20px;">
+
+                <label>🔑 Password</label>
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    placeholder="Enter password"
+                    autocomplete="current-password"
+                    class="form-control"
+                    onkeydown="if(event.key === 'Enter'){ adminLogin(); }"
+                >
+
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                style="
+                    width:100%;
+                    min-height:48px;
+                    font-size:16px;
+                "
+                onclick="adminLogin()"
+            >
+                🔐 Sign In
+            </button>
+
+            <p style="
+                text-align:center;
+                color:#9ca3af;
+                font-size:12px;
+                margin-top:18px;
+            ">
+                Pharmacy Inventory Pro
+            </p>
+
+        </div>
+    `;
+
+    setTimeout(function() {
+
+        const username =
+            document.getElementById("loginUsername");
+
+        if (username) {
+            username.focus();
+        }
+
+    }, 100);
+}
+
+
+// ==========================================
+// ADMIN LOGIN
+// ==========================================
 function changeAdminPassword() {
 
     if (!checkAdminSession()) return;
