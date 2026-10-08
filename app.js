@@ -35,66 +35,11 @@
 
   function getMedicines() {
     return read(DB.medicines, []);
-  }
-function normalizeDatabaseMedicine(m) {
-    return {
-        id: uid("MED"),
-        name: m.brand || m.name || "",
-        generic: m.generic || "",
-        company: m.company || "",
-        strength: m.strength || "",
-        form: m.form || "",
-        buyPrice: Number(m.buyPrice || 0),
-        salePrice: Number(m.salePrice || 0),
-        stock: Number(m.stock || 0),
-        minStock: Number(m.minStock || 5),
-        expiry: m.expiry || ""
-    };
 }
 
-function importMedicineDatabase(force = false) {
-    if (
-    typeof MEDICINE_DATABASE === "undefined" ||
-    !Array.isArray(MEDICINE_DATABASE) ||
-    !MEDICINE_DATABASE.length
-) {
-        alert("Medicine database পাওয়া যায়নি।");
-        return 0;
-    }
-
-    const current = getMedicines();
-
-    if (!force && current.length) {
-        return current.length;
-    }
-
-    const imported = MEDICINE_DATABASE.map(
-        normalizeDatabaseMedicine
-    );
-
-    write(DB.medicines, imported);
-
-    alert(imported.length + " টি medicine database-এ যোগ হয়েছে।");
-
-    showMedicines();
-
-    return imported.length;
-}
-
-function seedMedicineDatabase() {
-    const current = getMedicines();
-
-    if (
-        !current.length &&
-        Array.isArray(MEDICINE_DATABASE) &&
-        MEDICINE_DATABASE.length
-    ) {
-        importMedicineDatabase(false);
-    }
-}
-  function getPurchases() {
+function getPurchases() {
     return read(DB.purchases, []);
-  }
+}
 
   function getSales() {
     return read(DB.sales, []);
@@ -307,7 +252,7 @@ function seedMedicineDatabase() {
      ========================================================= */
 
   function showDashboard() {
-    seedMedicineDatabase();
+    
     if (!loggedIn()) {
       showLogin();
       return;
@@ -486,7 +431,6 @@ function seedMedicineDatabase() {
 
     if (!loggedIn()) return showLogin();
 
-     seedMedicineDatabase();
 
     const medicines = getMedicines();
 
