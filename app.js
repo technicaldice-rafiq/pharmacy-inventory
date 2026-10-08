@@ -1115,63 +1115,107 @@ document.getElementById(
                     "mSale"  
                 ).value  
             ) || 0  
+<div style="margin-bottom:12px;">
 
-    };  
+    <label>
+        <b>🏢 Company নির্বাচন করুন</b>
+    </label>
 
+    <select
+        id="medicineCompanySelect"
+        class="form-control"
+        onchange="loadCompanyMedicines()"
+        style="
+            width:100%;
+            padding:10px;
+            margin-top:5px;
+            box-sizing:border-box;
+        "
+    >
 
-    if (  
-        editingMedicineIndex >= 0 &&  
-        medicines[editingMedicineIndex]  
-    ) {  
+        <option value="">
+            Select Company
+        </option>
 
-        medicineData.id =  
-            medicines[  
-                editingMedicineIndex  
-            ].id;  
+        ${
+            typeof MEDICINE_DATABASE !== "undefined"
+            ? [...new Set(
+                MEDICINE_DATABASE.map(
+                    m => m.company
+                )
+            )]
+            .sort()
+            .map(company => `
+                <option value="${escapeHTML(company)}">
+                    ${escapeHTML(company)}
+                </option>
+            `)
+            .join("")
+            : ""
+        }
 
+    </select>
 
-        medicines[  
-            editingMedicineIndex  
-        ] = medicineData;  
-
-
-        alert(  
-            "Medicine successfully updated!"  
-        );  
-
-    } else {  
-
-        medicineData.id =  
-            Date.now();  
-
-
-        medicines.push(  
-            medicineData  
-        );  
-
-
-        alert(  
-            "Medicine successfully saved!"  
-        );  
-
-    }  
-
-
-    saveData();  
-
-
-    editingMedicineIndex = -1;  
+</div>
 
 
-    showMedicines();  
+<div style="margin-bottom:12px;">
 
-};  
+    <label>
+        <b>💊 Medicine নির্বাচন করুন</b>
+    </label>
+
+    <select
+        id="medicinePresetSelect"
+        class="form-control"
+        onchange="selectDatabaseMedicine()"
+        style="
+            width:100%;
+            padding:10px;
+            margin-top:5px;
+            box-sizing:border-box;
+        "
+    >
+
+        <option value="">
+            আগে Company নির্বাচন করুন
+        </option>
+
+    </select>
+
+</div>
 
 
-renderMedicines();
+<div style="margin-bottom:12px;">
 
-}
+    <label>
+        <b>Medicine Name *</b>
+    </label>
 
+    <input
+        id="mName"
+        class="form-control"
+        placeholder="Medicine name"
+        autocomplete="off"
+        style="
+            width:100%;
+            padding:10px;
+            margin-top:5px;
+            box-sizing:border-box;
+        "
+    >
+
+</div>
+
+<small style="
+    display:block;
+    margin-top:-5px;
+    margin-bottom:15px;
+    color:#666;
+">
+    💊 Company নির্বাচন করলে সেই কোম্পানির Medicine দেখাবে।
+    Medicine নির্বাচন করলে Generic ও Strength অটো বসবে।
+</small>
 // ==========================================
 // RENDER MEDICINES
 // ==========================================
