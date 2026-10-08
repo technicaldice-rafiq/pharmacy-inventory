@@ -1,44 +1,323 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
-  <meta name="theme-color" content="#0f766e">
-<meta name="description" content="Pharmacy Inventory Pro">
-<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#0f766e">
+
+<meta name="description"
+      content="Pharmacy Inventory Pro">
+
+<link rel="manifest"
+      href="manifest.json">
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
 <title>Pharmacy Inventory Pro</title>
-<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet"
+      href="style.css">
+
 </head>
+
 
 <body>
 
+
 <header>
-  <h1>💊 Pharmacy Inventory Pro</h1>
-  <p>Pharmacy Stock & Management System</p>
+
+    <h1>💊 Pharmacy Inventory Pro</h1>
+
+    <p>
+        Pharmacy Stock & Management System
+    </p>
+
 </header>
 
+
+<!-- ================================
+     INSTALL / UPDATE BAR
+================================ -->
+
+<div id="appUpdateBar"
+     style="
+        display:none;
+        background:#0f766e;
+        color:white;
+        padding:10px;
+        text-align:center;
+        position:sticky;
+        top:0;
+        z-index:9999;
+     ">
+
+    <span id="updateMessage">
+        🔄 নতুন Version পাওয়া গেছে
+    </span>
+
+    <button
+        id="updateButton"
+        style="
+            margin-left:10px;
+            padding:7px 14px;
+            border:0;
+            border-radius:6px;
+            cursor:pointer;
+        "
+    >
+        Update
+    </button>
+
+</div>
+
+
 <nav>
-  <button onclick="showDashboard()">📊 Dashboard</button>
-  <button onclick="showMedicines()">💊 Medicines</button>
-  <button onclick="showPurchase()">📦 Purchase</button>
-  <button onclick="showSales()">🧾 Sales / POS</button>
-  <button onclick="showSuppliers()">🚚 Suppliers</button>
-  <button onclick="showCustomers()">👤 Customers</button>
-  <button onclick="showReports()">📈 Reports</button>
+
+    <button onclick="showDashboard()">
+        📊 Dashboard
+    </button>
+
+    <button onclick="showMedicines()">
+        💊 Medicines
+    </button>
+
+    <button onclick="showPurchase()">
+        📦 Purchase
+    </button>
+
+    <button onclick="showSales()">
+        🧾 Sales / POS
+    </button>
+
+    <button onclick="showSuppliers()">
+        🚚 Suppliers
+    </button>
+
+    <button onclick="showCustomers()">
+        👤 Customers
+    </button>
+
+    <button onclick="showReports()">
+        📈 Reports
+    </button>
+
 </nav>
 
+
 <main id="app"></main>
+
+
+<!-- =================================
+     PWA SERVICE WORKER
+================================= -->
+
 <script>
+
+let newWorker = null;
+
+
+// Register Service Worker
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-        navigator.serviceWorker.register("./sw.js")
-            .then(() => console.log("PWA ready"))
-            .catch(error => console.log("PWA error:", error));
-    });
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            navigator.serviceWorker
+                .register("./sw.js")
+                .then(registration => {
+
+                    console.log(
+                        "Pharmacy PWA Ready"
+                    );
+
+
+                    // নতুন Version খোঁজা
+                    registration.update();
+
+
+                    // নতুন Service Worker পাওয়া গেলে
+                    registration.addEventListener(
+                        "updatefound",
+                        function () {
+
+                            newWorker =
+                                registration.installing;
+
+
+                            newWorker.addEventListener(
+                                "statechange",
+                                function () {
+
+                                    if (
+                                        newWorker.state ===
+                                        "installed"
+                                    ) {
+
+                                        if (
+                                            navigator
+                                                .serviceWorker
+                                                .controller
+                                        ) {
+
+                                            showUpdateButton(
+                                                newWorker
+                                            );
+
+                                        }
+
+                                    }
+
+                                }
+                            );
+
+                        }
+                    );
+
+                })
+
+                .catch(error => {
+
+                    console.log(
+                        "PWA Error:",
+                        error
+                    );
+
+                });
+
+        }
+    );
+
 }
+
+
+// =================================
+// UPDATE BUTTON
+// =================================
+
+function showUpdateButton(worker) {
+
+    const bar =
+        document.getElementById(
+            "appUpdateBar"
+        );
+
+    const button =
+        document.getElementById(
+            "updateButton"
+        );
+
+    if (!bar || !button) {
+        return;
+    }
+
+
+    bar.style.display = "block";
+
+
+    button.onclick = function () {
+
+        worker.postMessage({
+            action: "SKIP_WAITING"
+        });
+
+    };
+
+}
+
+
+// =================================
+// SERVICE WORKER UPDATED
+// =================================
+
+if ("serviceWorker" in navigator) {
+
+    navigator.serviceWorker.addEventListener(
+        "controllerchange",
+        function () {
+
+            window.location.reload();
+
+        }
+    );
+
+}
+
+
+// =================================
+// INSTALL APP
+// =================================
+
+let deferredPrompt = null;
+
+
+window.addEventListener(
+    "beforeinstallprompt",
+    function (event) {
+
+        event.preventDefault();
+
+        deferredPrompt = event;
+
+
+        console.log(
+            "Install option available"
+        );
+
+    }
+);
+
+
+function installPharmacyApp() {
+
+    if (!deferredPrompt) {
+
+        alert(
+            "এই Browser থেকে এখন Install option পাওয়া যাচ্ছে না। Browser menu থেকে 'Install app' নির্বাচন করুন।"
+        );
+
+        return;
+
+    }
+
+
+    deferredPrompt.prompt();
+
+
+    deferredPrompt.userChoice
+        .then(choice => {
+
+            console.log(
+                "Install:",
+                choice.outcome
+            );
+
+            deferredPrompt = null;
+
+        });
+
+}
+
 </script>
+
+
+<!-- =================================
+     MEDICINE DATABASE
+================================= -->
+
 <script src="medicine-database.js"></script>
+
+
+<!-- =================================
+     MAIN APP
+================================= -->
+
 <script src="app.js"></script>
 
+
 </body>
+
 </html>
