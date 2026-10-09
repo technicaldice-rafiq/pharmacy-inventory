@@ -1,3 +1,4 @@
+
 {
   "id": "./",
   "name": "Pharmacy Inventory Pro",
@@ -7,5 +8,13 @@
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0f766e"
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "./pharmacy-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
