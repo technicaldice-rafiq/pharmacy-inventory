@@ -1217,6 +1217,8 @@ onclick="window.loadMedicineDatabase()">
           margin: 10px 0;
         }
         
+
+
 @media print {
   @page {
     margin: 10mm;
@@ -1248,7 +1250,6 @@ onclick="window.loadMedicineDatabase()">
     background: white !important;
   }
 }
-
 
   /* =========================================================
      SUPPLIERS
